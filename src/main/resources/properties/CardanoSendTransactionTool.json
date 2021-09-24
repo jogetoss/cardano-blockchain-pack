@@ -1,0 +1,111 @@
+[
+    {
+       "title":"@@process.cardanosendtransactiontool.header.config@@",
+       "properties":[
+            {
+                "name":"networkType",
+                "label":"@@process.cardanosendtransactiontool.networkType@@",
+                "description":"@@process.cardanosendtransactiontool.networkType.desc@@",
+                "type":"selectbox",
+                "options" : [{
+                    "value" : "mainnet",
+                    "label" : "@@process.cardanosendtransactiontool.networkType.mainnet@@"
+                },{
+                    "value" : "testnet",
+                    "label" : "@@process.cardanosendtransactiontool.networkType.testnet@@"
+                }],
+                "value":"testnet"
+            },
+            {
+                "name":"blockfrostProjectKey",
+                "label":"@@process.cardanosendtransactiontool.blockfrostProjectKey@@",
+                "description":"@@process.cardanosendtransactiontool.blockfrostProjectKey.desc@@",
+                "type":"textfield",
+                "required":"True"
+            }
+        ]
+    },
+    {
+        "title":"@@process.cardanosendtransactiontool.header.transactionDetails@@",
+        "properties":[
+            {
+                "name":"senderAddress",
+                "label":"@@process.cardanosendtransactiontool.senderAddress@@",
+                "description":"@@process.cardanosendtransactiontool.senderAddress.desc@@",
+                "type":"textfield",
+                "required":"True"
+            },
+            {
+                "name":"accountMnemonic",
+                "label":"@@process.cardanosendtransactiontool.accountMnemonic@@",
+                "description":"@@process.cardanosendtransactiontool.accountMnemonic.desc@@",
+                "type":"textfield",
+                "required":"True"
+            },
+            {
+                "name":"receiverAddress",
+                "label":"@@process.cardanosendtransactiontool.receiverAddress@@",
+                "description":"@@process.cardanosendtransactiontool.receiverAddress.desc@@",
+                "type":"textfield",
+                "required":"True"
+            },
+            {
+                "name":"amount",
+                "label":"@@process.cardanosendtransactiontool.amount@@",
+                "description":"@@process.cardanosendtransactiontool.amount.desc@@",
+                "type":"textfield",
+                "required":"True"
+            },
+            {
+                "name":"enableMetadata",
+                "label":"@@process.cardanosendtransactiontool.enableMetadata@@",
+                "type":"checkbox",
+                "options":[
+                    {"value":"true", "label":""}
+                ]
+            },
+            {
+                "name":"formDefId",
+                "label":"@@process.cardanosendtransactiontool.formDefId@@",
+                "type":"selectbox",
+                "required":"True",
+                "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/forms/options",
+                "control_field":"enableMetadata",
+                "control_value":"true",
+                "control_use_regex":"false"
+            },
+            {
+                "name":"metadata",
+                "label":"@@process.cardanosendtransactiontool.metadata@@",
+                "type":"grid",
+                "columns":[{
+                    "key":"fieldId",
+                    "label":"@@process.cardanosendtransactiontool.metadata.fieldId@@",
+                    "options_ajax_on_change":"formDefId",
+                    "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options"
+                }],
+                "required":"True",
+                "control_field":"enableMetadata",
+                "control_value":"true",
+                "control_use_regex":"false"
+            }
+        ]
+    },
+    {
+        "title" : "@@process.cardanosendtransactiontool.header.storeToWorkflowVariable@@",
+        "properties" : [
+            {
+                "name":"wfTransactionValidated",
+                "label":"@@process.cardanosendtransactiontool.wfMapping.wfTransactionValidated@@",
+                "type":"selectbox",
+                "options_ajax" : "[CONTEXT_PATH]/web/json/console/app[APP_PATH]/workflowVariable/options"
+            },
+            {
+                "name":"wfTransactionExplorerUrl",
+                "label":"@@process.cardanosendtransactiontool.wfMapping.wfTransactionExplorerUrl@@",
+                "type":"selectbox",
+                "options_ajax" : "[CONTEXT_PATH]/web/json/console/app[APP_PATH]/workflowVariable/options"
+            }
+        ]
+    }
+]

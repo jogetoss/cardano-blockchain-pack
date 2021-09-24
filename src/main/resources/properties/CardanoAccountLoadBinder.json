@@ -1,0 +1,51 @@
+[
+    {
+       "title":"@@form.cardanoaccountloadbinder.header.config@@",
+       "properties":[
+            {
+                "name":"networkType",
+                "label":"@@form.cardanoaccountloadbinder.networkType@@",
+                "description":"@@form.cardanoaccountloadbinder.networkType.desc@@",
+                "type":"selectbox",
+                "options" : [{
+                    "value" : "mainnet",
+                    "label" : "@@form.cardanoaccountloadbinder.networkType.mainnet@@"
+                },{
+                    "value" : "testnet",
+                    "label" : "@@form.cardanoaccountloadbinder.networkType.testnet@@"
+                }],
+                "value":"testnet"
+            },
+            {
+                "name":"blockfrostProjectKey",
+                "label":"@@form.cardanoaccountloadbinder.blockfrostProjectKey@@",
+                "description":"@@form.cardanoaccountloadbinder.blockfrostProjectKey.desc@@",
+                "type":"textfield",
+                "required":"True"
+            },
+            {
+                "name":"accountAddress",
+                "label":"@@form.cardanoaccountloadbinder.accountAddress@@",
+                "description":"@@form.cardanoaccountloadbinder.accountAddress.desc@@",
+                "type":"textfield",
+                "required":"True"
+            }
+        ]
+    },
+    {
+        "title":"@@form.cardanoaccountloadbinder.header.mapToFields@@",
+        "properties":[
+            {
+                "name":"balanceField",
+                "label":"@@form.cardanoaccountloadbinder.mapToFields.balanceField@@",
+                "type":"textfield",
+                "required":"True"
+            },
+            {
+                "name":"accountType",
+                "label":"@@form.cardanoaccountloadbinder.mapToFields.accountType@@",
+                "type":"textfield"
+            }
+        ]
+    }
+]

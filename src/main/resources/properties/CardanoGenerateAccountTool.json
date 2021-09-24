@@ -1,0 +1,84 @@
+[
+    {
+       "title":"@@process.cardanogenerateaccounttool.header.config@@",
+       "properties":[
+            {
+                "name":"networkType",
+                "label":"@@process.cardanogenerateaccounttool.networkType@@",
+                "description":"@@process.cardanogenerateaccounttool.networkType.desc@@",
+                "type":"selectbox",
+                "options" : [{
+                    "value" : "mainnet",
+                    "label" : "@@process.cardanogenerateaccounttool.networkType.mainnet@@"
+                },{
+                    "value" : "testnet",
+                    "label" : "@@process.cardanogenerateaccounttool.networkType.testnet@@"
+                }],
+                "value":"testnet"
+            }
+        ]
+    },
+    {
+        "title":"@@process.cardanogenerateaccounttool.header.storeToForm@@",
+        "properties":[
+            {
+                "name" : "formDefId",
+                "label" : "@@process.cardanogenerateaccounttool.formId@@",
+                "type" : "selectbox",
+                "required":"True",
+                "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/formsWithCustomTable/options"
+            },
+            {
+                "label": "@@process.cardanogenerateaccounttool.header.fieldMapping@@",
+                "type":"header"
+            },
+            {
+                "name":"accountMnemonicField",
+                "label":"@@process.cardanogenerateaccounttool.fieldMapping.accountMnemonicField@@",
+                "description":"@@process.cardanogenerateaccounttool.fieldMapping.accountMnemonicField.desc@@",
+                "type":"selectbox",
+                "required":"True",
+                "options_ajax_on_change":"formDefId",
+                "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options"
+            },
+            {
+                "name":"accountOwnerField",
+                "label":"@@process.cardanogenerateaccounttool.fieldMapping.accountOwnerField@@",
+                "type":"selectbox",
+                "options_ajax_on_change":"formDefId",
+                "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options"
+            },
+            {
+                "name":"accountOwnerValue",
+                "label":"@@process.cardanogenerateaccounttool.fieldMapping.accountOwnerValue@@",
+                "description":"@@process.cardanogenerateaccounttool.fieldMapping.accountOwnerValue.desc@@",
+                "type":"textfield"
+            },
+            {
+                "name":"isTestAccount",
+                "label":"@@process.cardanogenerateaccounttool.fieldMapping.isTestAccount@@",
+                "type":"selectbox",
+                "options_ajax_on_change":"formDefId",
+                "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options"
+            },
+            {
+                "name":"accountEnterpriseAddress",
+                "label":"@@process.cardanogenerateaccounttool.fieldMapping.accountEnterpriseAddress@@",
+                "type":"selectbox",
+                "options_ajax_on_change":"formDefId",
+                "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options"
+            }
+        ]
+    },
+    {
+        "title" : "@@process.cardanogenerateaccounttool.header.storeToWorkflowVariable@@",
+        "properties" : [
+            {
+                "name":"wfIsTestAccount",
+                "label":"@@process.cardanogenerateaccounttool.wfMapping.wfIsTestAccount@@",
+                "type":"selectbox",
+                "options_ajax" : "[CONTEXT_PATH]/web/json/console/app[APP_PATH]/workflowVariable/options"
+            }
+        ]
+    }
+]
