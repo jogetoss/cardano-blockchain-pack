@@ -144,7 +144,7 @@ public class CardanoSendTransactionTool extends DefaultApplicationPlugin {
                 if (transactionResult.isSuccessful()) {
                     validatedTransactionResult = waitForTransaction(backendService, transactionResult);
                 } else {
-                    LogUtil.warn(getClass().getName(), "Transaction failed with status code " + transactionResult.code());
+                    LogUtil.warn(getClass().getName(), "Transaction failed with status code " + transactionResult.code() + ". Response returned --> " + transactionResult.getResponse());
                 }
                 
                 //Store validated/confirmed txn result for current activity instance
