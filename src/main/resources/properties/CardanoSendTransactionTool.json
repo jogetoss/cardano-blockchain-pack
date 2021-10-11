@@ -101,6 +101,12 @@
                 "options_ajax" : "[CONTEXT_PATH]/web/json/console/app[APP_PATH]/workflowVariable/options"
             },
             {
+                "name":"wfTransactionId",
+                "label":"@@process.cardanosendtransactiontool.wfMapping.wfTransactionId@@",
+                "type":"selectbox",
+                "options_ajax" : "[CONTEXT_PATH]/web/json/console/app[APP_PATH]/workflowVariable/options"
+            },
+            {
                 "name":"wfTransactionExplorerUrl",
                 "label":"@@process.cardanosendtransactiontool.wfMapping.wfTransactionExplorerUrl@@",
                 "type":"selectbox",

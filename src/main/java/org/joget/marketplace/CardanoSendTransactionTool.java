@@ -31,8 +31,14 @@ import com.bloxbean.cardano.client.metadata.cbor.CBORMetadata;
 import com.bloxbean.cardano.client.metadata.cbor.CBORMetadataMap;
 import com.bloxbean.cardano.client.transaction.model.TransactionDetailsParams;
 import com.bloxbean.cardano.client.util.JsonUtil;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
+import java.net.URLEncoder;
 import java.util.HashMap;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.joget.apps.app.model.AppDefinition;
 import org.joget.apps.app.service.AppService;
 import org.joget.apps.form.model.FormRow;
@@ -110,6 +116,15 @@ public class CardanoSendTransactionTool extends DefaultApplicationPlugin {
                 for (Object o : metadataFields) {
                     Map mapping = (HashMap) o;
                     String fieldId = mapping.get("fieldId").toString();
+                    
+//                    String isFile = mapping.get("isFile").toString();
+//                    if ("true".equalsIgnoreCase(isFile)) {
+//                        String appVersion = appDef.getVersion().toString();
+//                        String filePath = getFilePath(row.getProperty(fieldId), appDef.getAppId(), appVersion, formDefId, primaryKey);
+//                        metadataMap.put(fieldId, getFileHashSha256(filePath));
+//                    } else {
+//                        metadataMap.put(fieldId, row.getProperty(fieldId));
+//                    }
                     
                     metadataMap.put(fieldId, row.getProperty(fieldId));
                 }
@@ -222,6 +237,7 @@ public class CardanoSendTransactionTool extends DefaultApplicationPlugin {
             Result<TransactionContent> validatedtransactionResult) {
         
         String transactionValidatedVar = getPropertyString("wfTransactionValidated");
+        String transactionIdVar = getPropertyString("wfTransactionId");
         String transactionUrlVar = getPropertyString("wfTransactionExplorerUrl");
 
         storeValuetoActivityVar(
@@ -229,6 +245,12 @@ public class CardanoSendTransactionTool extends DefaultApplicationPlugin {
                 activityId, 
                 transactionValidatedVar, 
                 validatedtransactionResult != null ? String.valueOf(validatedtransactionResult.isSuccessful()) : "false"
+        );
+        storeValuetoActivityVar(
+                workflowManager, 
+                activityId, 
+                transactionIdVar, 
+                transactionResult.getValue().getTransactionId()
         );
         storeValuetoActivityVar(
                 workflowManager, 
@@ -242,6 +264,31 @@ public class CardanoSendTransactionTool extends DefaultApplicationPlugin {
         if (!variable.isEmpty() && value != null) {
             workflowManager.activityVariable(activityId, variable, value);
         }
+    }
+    
+    private String getFilePath(String fileName, String appId, String appVersion, String formDefId, String primaryKeyValue) {
+        String filePath = null;
+        
+        if (fileName != null && !fileName.isEmpty()) {
+            String encodedFileName = fileName;
+            
+            try {
+                encodedFileName = URLEncoder.encode(fileName, "UTF8").replaceAll("\\+", "%20");
+            } catch (UnsupportedEncodingException ex) {
+                // ignore
+            }
+            
+            filePath = "/web/client/app/" + appId + "/" + appVersion + "/form/download/" + formDefId + "/" + primaryKeyValue + "/" + encodedFileName + ".";
+        }
+        
+        return filePath;
+    }
+    
+    private String getFileHashSha256(String filePath) throws FileNotFoundException, IOException {
+        if (filePath != null && !filePath.isEmpty()) {
+            return DigestUtils.sha256Hex(new FileInputStream(filePath));
+        }
+        return null;
     }
     
     @Override
