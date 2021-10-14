@@ -14,9 +14,13 @@ import com.bloxbean.cardano.client.transaction.model.PaymentTransaction;
 import com.bloxbean.cardano.client.account.Account;
 import com.bloxbean.cardano.client.backend.api.BackendService;
 import com.bloxbean.cardano.client.backend.api.BlockService;
+import com.bloxbean.cardano.client.backend.api.EpochService;
 import com.bloxbean.cardano.client.backend.api.TransactionService;
+import com.bloxbean.cardano.client.backend.api.UtxoService;
 import com.bloxbean.cardano.client.backend.api.helper.FeeCalculationService;
 import com.bloxbean.cardano.client.backend.api.helper.TransactionHelperService;
+import com.bloxbean.cardano.client.backend.api.helper.UtxoSelectionStrategy;
+import com.bloxbean.cardano.client.backend.api.helper.impl.FeeCalculationServiceImpl;
 import com.bloxbean.cardano.client.backend.api.helper.model.TransactionResult;
 import com.bloxbean.cardano.client.backend.exception.ApiException;
 import com.bloxbean.cardano.client.backend.model.Result;
@@ -139,6 +143,11 @@ public class CardanoSendTransactionTool extends DefaultApplicationPlugin {
             BlockService blockService = backendService.getBlockService();
             TransactionHelperService transactionHelperService = backendService.getTransactionHelperService();
 
+            /* Temporary fix due to Blockfrost API changes */
+            UtxoService utxoService = backendService.getUtxoService();
+            UtxoSelectionStrategy tempUtxoSelectionStrategy = new TempWorkaroundUtxoSelectionStrategyImpl(utxoService);
+            transactionHelperService.getUtxoTransactionBuilder().setUtxoSelectionStrategy(tempUtxoSelectionStrategy);
+            
             long ttl = blockService.getLastestBlock().getValue().getSlot() + 1000;
             TransactionDetailsParams detailsParams = TransactionDetailsParams.builder().ttl(ttl).build();
             
@@ -222,7 +231,14 @@ public class CardanoSendTransactionTool extends DefaultApplicationPlugin {
     }
     
     private BigInteger calculateFeeFromTransactionSize(BackendService backendService, TransactionDetailsParams detailsParams, PaymentTransaction paymentTransaction, Metadata metadata) throws ApiException, CborSerializationException, AddressExcepion {
-        FeeCalculationService feeCalculationService = backendService.getFeeCalculationService();
+        /* Temporary fix due to Blockfrost API changes */
+        UtxoService utxoService = backendService.getUtxoService();
+        UtxoSelectionStrategy tempUtxoSelectionStrategy = new TempWorkaroundUtxoSelectionStrategyImpl(utxoService);
+        TransactionHelperService transactionHelperService = backendService.getTransactionHelperService();
+        EpochService epochService = backendService.getEpochService();
+        transactionHelperService.getUtxoTransactionBuilder().setUtxoSelectionStrategy(tempUtxoSelectionStrategy);
+        
+        FeeCalculationService feeCalculationService = new FeeCalculationServiceImpl(transactionHelperService, epochService);
         
         //Calculate fee from transaction size in bytes
         return feeCalculationService.calculateFee(paymentTransaction, detailsParams, metadata);
