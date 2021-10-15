@@ -1,0 +1,56 @@
+[
+    {
+       "title":"@@form.cardanometadataloadbinder.header.config@@",
+       "properties":[
+            {
+                "name":"networkType",
+                "label":"@@form.cardanometadataloadbinder.networkType@@",
+                "description":"@@form.cardanometadataloadbinder.networkType.desc@@",
+                "type":"selectbox",
+                "options" : [{
+                    "value" : "mainnet",
+                    "label" : "@@form.cardanometadataloadbinder.networkType.mainnet@@"
+                },{
+                    "value" : "testnet",
+                    "label" : "@@form.cardanometadataloadbinder.networkType.testnet@@"
+                }],
+                "value":"testnet"
+            },
+            {
+                "name":"blockfrostProjectKey",
+                "label":"@@form.cardanometadataloadbinder.blockfrostProjectKey@@",
+                "description":"@@form.cardanometadataloadbinder.blockfrostProjectKey.desc@@",
+                "type":"textfield",
+                "required":"True"
+            },
+            {
+                "name":"transactionId",
+                "label":"@@form.cardanometadataloadbinder.transactionId@@",
+                "description":"@@form.cardanometadataloadbinder.transactionId.desc@@",
+                "type":"textfield",
+                "required":"True"
+            }
+        ]
+    },
+    {
+        "title":"@@form.cardanometadataloadbinder.header.mapToFields@@",
+        "properties":[
+            {
+                "name":"metadata",
+                "label":"@@process.cardanometadataloadbinder.metadata@@",
+                "type":"grid",
+                "columns":[
+                    {
+                        "key":"metadataField",
+                        "label":"@@process.cardanometadataloadbinder.metadata.metadataField@@"
+                    },
+                    {
+                        "key":"formFieldId",
+                        "label":"@@process.cardanometadataloadbinder.metadata.formFieldId@@"
+                    }
+                ],
+                "required":"True"
+            }
+        ]
+    }
+]
