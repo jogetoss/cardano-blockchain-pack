@@ -4,15 +4,15 @@
        "properties":[
             {
                 "name":"networkType",
-                "label":"@@process.cardanogenerateaccounttool.networkType@@",
+                "label":"@@cardano.prop.networkType@@",
                 "description":"@@process.cardanogenerateaccounttool.networkType.desc@@",
                 "type":"selectbox",
                 "options" : [{
                     "value" : "mainnet",
-                    "label" : "@@process.cardanogenerateaccounttool.networkType.mainnet@@"
+                    "label" : "@@cardano.prop.networkType.mainnet@@"
                 },{
                     "value" : "testnet",
-                    "label" : "@@process.cardanogenerateaccounttool.networkType.testnet@@"
+                    "label" : "@@cardano.prop.networkType.testnet@@"
                 }],
                 "value":"testnet"
             }

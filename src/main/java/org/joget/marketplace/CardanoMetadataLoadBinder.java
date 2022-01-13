@@ -5,9 +5,11 @@ import com.bloxbean.cardano.client.backend.api.MetadataService;
 import com.bloxbean.cardano.client.backend.model.Result;
 import com.bloxbean.cardano.client.backend.model.metadata.MetadataJSONContent;
 import com.fasterxml.jackson.databind.JsonNode;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.apps.form.model.Element;
 import org.joget.apps.form.model.FormBinder;
@@ -28,7 +30,13 @@ public class CardanoMetadataLoadBinder extends FormBinder implements FormLoadBin
 
     @Override
     public String getVersion() {
-        return "7.0.0";
+        final Properties projectProp = new Properties();
+        try {
+            projectProp.load(this.getClass().getClassLoader().getResourceAsStream("project.properties"));
+        } catch (IOException ex) {
+            LogUtil.error(getClass().getName(), ex, "Unable to get project version from project properties...");
+        }
+        return projectProp.getProperty("version");
     }
 
     @Override
@@ -38,16 +46,8 @@ public class CardanoMetadataLoadBinder extends FormBinder implements FormLoadBin
 
     @Override
     public FormRowSet load(Element element, String primaryKey, FormData formData) {
-        boolean isTest = false;
-        String networkType = getPropertyString("networkType");
-        
-        if ("testnet".equals(networkType)) {
-            isTest = true;
-        }
-        
         try {
-            final String blockfrostProjectKey = getPropertyString("blockfrostProjectKey");
-            final BackendService backendService = CardanoUtil.getBlockfrostBackendService(isTest, blockfrostProjectKey);
+            final BackendService backendService = CardanoUtil.getBackendService(getProperties());
 
             final String transactionId = WorkflowUtil.processVariable(getPropertyString("transactionId"), "", null);
 

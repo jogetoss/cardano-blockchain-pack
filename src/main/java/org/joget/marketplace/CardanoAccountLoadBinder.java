@@ -17,6 +17,8 @@ import org.joget.apps.form.model.FormRowSet;
 import org.joget.commons.util.LogUtil;
 import org.joget.workflow.util.WorkflowUtil;
 import static com.bloxbean.cardano.client.common.CardanoConstants.LOVELACE;
+import java.io.IOException;
+import java.util.Properties;
 
 public class CardanoAccountLoadBinder extends FormBinder implements FormLoadBinder, FormLoadElementBinder {
 
@@ -27,7 +29,13 @@ public class CardanoAccountLoadBinder extends FormBinder implements FormLoadBind
 
     @Override
     public String getVersion() {
-        return "7.0.0";
+        final Properties projectProp = new Properties();
+        try {
+            projectProp.load(this.getClass().getClassLoader().getResourceAsStream("project.properties"));
+        } catch (IOException ex) {
+            LogUtil.error(getClass().getName(), ex, "Unable to get project version from project properties...");
+        }
+        return projectProp.getProperty("version");
     }
 
     @Override
@@ -37,16 +45,8 @@ public class CardanoAccountLoadBinder extends FormBinder implements FormLoadBind
 
     @Override
     public FormRowSet load(Element element, String primaryKey, FormData formData) {
-        boolean isTest = false;
-        String networkType = getPropertyString("networkType");
-        
-        if ("testnet".equals(networkType)) {
-            isTest = true;
-        }
-        
         try {
-            final String blockfrostProjectKey = getPropertyString("blockfrostProjectKey");
-            final BackendService backendService = CardanoUtil.getBlockfrostBackendService(isTest, blockfrostProjectKey);
+            final BackendService backendService = CardanoUtil.getBackendService(getProperties());
 
             final String accountAddress = WorkflowUtil.processVariable(getPropertyString("accountAddress"), "", null);
 
@@ -70,20 +70,9 @@ public class CardanoAccountLoadBinder extends FormBinder implements FormLoadBind
 
             FormRow row = new FormRow();
 
-            row = addRow(
-                    row, 
-                    balanceField, 
-                    String.valueOf(
-                        ADAConversionUtil.lovelaceToAda(
-                            new BigInteger(
-                                addressInfo.getAmount().stream().filter(
-                                    accountBalance -> accountBalance.getUnit().equals(LOVELACE)
-                                ).findFirst().get().getQuantity()
-                            )
-                        )
-                    )
-            );
-            row = addRow(row, accountType, addressInfo.getType().name());
+            row = addRow(row,balanceField, getAdaBalance(addressInfo));
+            // Dandelion missing this info fyi
+            row = addRow(row, accountType, getAccountType(addressInfo));
             
             FormRowSet rows = new FormRowSet();
             rows.add(row);
@@ -93,6 +82,26 @@ public class CardanoAccountLoadBinder extends FormBinder implements FormLoadBind
             LogUtil.error(getClass().getName(), ex, "Error executing plugin...");
             return null;
         }
+    }
+    
+    private String getAdaBalance(AddressContent addressInfo) {
+        if (!addressInfo.getAmount().isEmpty()) {
+            return String.valueOf(
+                    ADAConversionUtil.lovelaceToAda(
+                        new BigInteger(
+                            addressInfo.getAmount().stream().filter(
+                                accountBalance -> accountBalance.getUnit().equals(LOVELACE)
+                            ).findFirst().get().getQuantity()
+                        )
+                    )
+                );
+        } else {
+            return "No balance found";
+        }
+    }
+    
+    private String getAccountType(AddressContent addressInfo) {
+        return (addressInfo.getType() != null) ? addressInfo.getType().name() : "";
     }
     
     private FormRow addRow(FormRow row, String field, String value) {

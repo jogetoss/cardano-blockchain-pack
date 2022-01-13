@@ -4,24 +4,56 @@
        "properties":[
             {
                 "name":"networkType",
-                "label":"@@process.cardanosendtransactiontool.networkType@@",
+                "label":"@@cardano.prop.networkType@@",
                 "description":"@@process.cardanosendtransactiontool.networkType.desc@@",
                 "type":"selectbox",
                 "options" : [{
                     "value" : "mainnet",
-                    "label" : "@@process.cardanosendtransactiontool.networkType.mainnet@@"
+                    "label" : "@@cardano.prop.networkType.mainnet@@"
                 },{
                     "value" : "testnet",
-                    "label" : "@@process.cardanosendtransactiontool.networkType.testnet@@"
+                    "label" : "@@cardano.prop.networkType.testnet@@"
                 }],
                 "value":"testnet"
             },
             {
+                "name":"backendService",
+                "label":"@@cardano.prop.backendService@@",
+                "type":"selectbox",
+                "options" : [
+                    {
+                        "value" : "blockfrost",
+                        "label" : "@@cardano.prop.backendService.blockfrost@@"
+                    },
+                    {
+                        "value" : "dandelion",
+                        "label" : "@@cardano.prop.backendService.dandelion@@"
+                    },
+                    {
+                        "value" : "customGraphQl",
+                        "label" : "@@cardano.prop.backendService.customGraphql@@"
+                    }
+                ],
+                "value":"dandelion"
+            },
+            {
                 "name":"blockfrostProjectKey",
-                "label":"@@process.cardanosendtransactiontool.blockfrostProjectKey@@",
-                "description":"@@process.cardanosendtransactiontool.blockfrostProjectKey.desc@@",
+                "label":"@@cardano.prop.blockfrostProjectKey@@",
+                "description":"@@cardano.prop.blockfrostProjectKey.desc@@",
                 "type":"textfield",
-                "required":"True"
+                "required":"True",
+                "control_field":"backendService",
+                "control_value":"blockfrost",
+                "control_use_regex":"false"
+            },
+            {
+                "name":"graphqlEndpointUrl",
+                "label":"@@cardano.prop.graphqlEndpointUrl@@",
+                "type":"textfield",
+                "required":"True",
+                "control_field":"backendService",
+                "control_value":"customGraphQl",
+                "control_use_regex":"false"
             }
         ]
     },

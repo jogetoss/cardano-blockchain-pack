@@ -37,6 +37,7 @@ import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.net.URLEncoder;
 import java.util.HashMap;
+import java.util.Properties;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.joget.apps.app.model.AppDefinition;
 import org.joget.apps.app.service.AppService;
@@ -53,7 +54,13 @@ public class CardanoSendTransactionTool extends DefaultApplicationPlugin {
 
     @Override
     public String getVersion() {
-        return "7.0.0";
+        final Properties projectProp = new Properties();
+        try {
+            projectProp.load(this.getClass().getClassLoader().getResourceAsStream("project.properties"));
+        } catch (IOException ex) {
+            LogUtil.error(getClass().getName(), ex, "Unable to get project version from project properties...");
+        }
+        return projectProp.getProperty("version");
     }
 
     @Override
@@ -64,13 +71,6 @@ public class CardanoSendTransactionTool extends DefaultApplicationPlugin {
     @Override
     public Object execute(Map props) {
         Object result = null;
-        
-        String networkType = getPropertyString("networkType");
-        boolean isTest = false;
-        
-        if ("testnet".equals(networkType)) {
-            isTest = true;
-        }
         
         Metadata metadata = null;
         WorkflowAssignment wfAssignment = (WorkflowAssignment) props.get("workflowAssignment");
@@ -84,10 +84,11 @@ public class CardanoSendTransactionTool extends DefaultApplicationPlugin {
         final String amount = WorkflowUtil.processVariable(getPropertyString("amount"), "", wfAssignment);
         
         try {
-            final String blockfrostProjectKey = getPropertyString("blockfrostProjectKey");
+            String networkType = getPropertyString("networkType");
+            boolean isTest = "testnet".equalsIgnoreCase(networkType);
             
             final Network.ByReference network = CardanoUtil.getNetwork(isTest);
-            final BackendService backendService = CardanoUtil.getBlockfrostBackendService(isTest, blockfrostProjectKey);
+            final BackendService backendService = CardanoUtil.getBackendService(getProperties());
             
             final Account senderAccount = new Account(network, accountMnemonic);
             

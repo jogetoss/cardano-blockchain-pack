@@ -4,11 +4,14 @@ import java.util.Map;
 import org.joget.plugin.base.DefaultApplicationPlugin;
 import com.bloxbean.cardano.client.account.Account;
 import com.bloxbean.cardano.client.common.model.Network;
+import java.io.IOException;
+import java.util.Properties;
 import org.joget.apps.app.model.AppDefinition;
 import org.joget.apps.app.service.AppService;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.apps.form.model.FormRow;
 import org.joget.apps.form.model.FormRowSet;
+import org.joget.commons.util.LogUtil;
 import org.joget.workflow.model.WorkflowAssignment;
 import org.joget.workflow.model.service.WorkflowManager;
 import org.joget.workflow.util.WorkflowUtil;
@@ -23,7 +26,13 @@ public class CardanoGenerateAccountTool extends DefaultApplicationPlugin {
 
     @Override
     public String getVersion() {
-        return "7.0.0";
+        final Properties projectProp = new Properties();
+        try {
+            projectProp.load(this.getClass().getClassLoader().getResourceAsStream("project.properties"));
+        } catch (IOException ex) {
+            LogUtil.error(getClass().getName(), ex, "Unable to get project version from project properties...");
+        }
+        return projectProp.getProperty("version");
     }
 
     @Override
@@ -33,17 +42,12 @@ public class CardanoGenerateAccountTool extends DefaultApplicationPlugin {
 
     @Override
     public Object execute(Map props) {
-        boolean isTest = false;
         String networkType = getPropertyString("networkType");
-        Network.ByReference network = null;
-        
-        if ("testnet".equals(networkType)) {
-            isTest = true;
-        }
+        boolean isTest = "testnet".equalsIgnoreCase(networkType);
         
         WorkflowAssignment wfAssignment = (WorkflowAssignment) props.get("workflowAssignment");
         
-        network = CardanoUtil.getNetwork(isTest);
+        Network.ByReference network = CardanoUtil.getNetwork(isTest);
         
         final Account account = new Account(network);
         
