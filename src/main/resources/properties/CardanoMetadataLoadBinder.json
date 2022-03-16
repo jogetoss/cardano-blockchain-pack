@@ -69,16 +69,16 @@
         "properties":[
             {
                 "name":"metadata",
-                "label":"@@process.cardanometadataloadbinder.metadata@@",
+                "label":"@@form.cardanometadataloadbinder.metadata@@",
                 "type":"grid",
                 "columns":[
                     {
                         "key":"metadataField",
-                        "label":"@@process.cardanometadataloadbinder.metadata.metadataField@@"
+                        "label":"@@form.cardanometadataloadbinder.metadata.metadataField@@"
                     },
                     {
                         "key":"formFieldId",
-                        "label":"@@process.cardanometadataloadbinder.metadata.formFieldId@@"
+                        "label":"@@form.cardanometadataloadbinder.metadata.formFieldId@@"
                     }
                 ],
                 "required":"True"

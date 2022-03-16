@@ -82,6 +82,30 @@
                 "required":"True"
             },
             {
+                "name":"paymentUnit",
+                "label":"@@process.cardanosendtransactiontool.paymentUnit@@",
+                "description":"@@process.cardanosendtransactiontool.paymentUnit.desc@@",
+                "type":"selectbox",
+                "options" : [{
+                    "value" : "lovelace",
+                    "label" : "@@process.cardanosendtransactiontool.paymentUnit.lovelace@@"
+                },{
+                    "value" : "nativeTokens",
+                    "label" : "@@process.cardanosendtransactiontool.paymentUnit.nativeTokens@@"
+                }],
+                "value":"lovelace"
+            },
+            {
+                "name":"policyId",
+                "label":"@@process.cardanosendtransactiontool.policyId@@",
+                "description":"@@process.cardanosendtransactiontool.policyId.desc@@",
+                "type":"textfield",
+                "required":"True",
+                "control_field":"paymentUnit",
+                "control_value":"nativeTokens",
+                "control_use_regex":"false"
+            },
+            {
                 "name":"amount",
                 "label":"@@process.cardanosendtransactiontool.amount@@",
                 "description":"@@process.cardanosendtransactiontool.amount.desc@@",

@@ -4,7 +4,7 @@
     <groupId>org.joget.marketplace</groupId>
     <artifactId>cardano_blockchain_pack</artifactId>
     <packaging>bundle</packaging>
-    <version>7.0.3</version>
+    <version>7.0.4</version>
     <name>cardano_blockchain_pack</name>
     <url>http://www.joget.org</url>
     <build>

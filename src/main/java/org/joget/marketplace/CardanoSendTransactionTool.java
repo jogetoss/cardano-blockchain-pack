@@ -177,7 +177,7 @@ public class CardanoSendTransactionTool extends DefaultApplicationPlugin {
         }
     }
     
-    private Result<TransactionContent> waitForTransaction(BackendService backendService, Result<TransactionResult> transactionResult) {
+    protected Result<TransactionContent> waitForTransaction(BackendService backendService, Result<TransactionResult> transactionResult) {
         try {
             if (transactionResult.isSuccessful()) {
                 //Wait for transaction to be mined
@@ -205,13 +205,13 @@ public class CardanoSendTransactionTool extends DefaultApplicationPlugin {
         }
     }
     
-    private PaymentTransaction constructPayment(BackendService backendService, TransactionDetailsParams detailsParams, Metadata metadata, Account senderAccount, String receiverAddress, String amount) throws ApiException, CborSerializationException, AddressExcepion {
+    protected PaymentTransaction constructPayment(BackendService backendService, TransactionDetailsParams detailsParams, Metadata metadata, Account senderAccount, String receiverAddress, String amount) throws ApiException, CborSerializationException, AddressExcepion {
         PaymentTransaction paymentTransaction =
             PaymentTransaction.builder()
                     .sender(senderAccount)
                     .receiver(receiverAddress)
-                    .amount(ADAConversionUtil.adaToLovelace(new BigDecimal(amount)))
-                    .unit(LOVELACE)
+                    .amount(getPaymentAmount(new BigDecimal(amount)))
+                    .unit(getPaymentUnit())
                     .build();
         
         final BigInteger fee = calculateFeeFromTransactionSize(backendService, detailsParams, paymentTransaction, metadata);
@@ -221,7 +221,15 @@ public class CardanoSendTransactionTool extends DefaultApplicationPlugin {
         return paymentTransaction;
     }
     
-    private BigInteger calculateFeeFromTransactionSize(BackendService backendService, TransactionDetailsParams detailsParams, PaymentTransaction paymentTransaction, Metadata metadata) throws ApiException, CborSerializationException, AddressExcepion {
+    protected BigInteger getPaymentAmount(BigDecimal amount) {
+        return getPropertyString("paymentUnit").equalsIgnoreCase(LOVELACE) ? ADAConversionUtil.adaToLovelace(amount) : amount.toBigInteger();
+    }
+    
+    protected String getPaymentUnit() {
+        return getPropertyString("paymentUnit").equalsIgnoreCase(LOVELACE) ? LOVELACE : getPropertyString("policyId");
+    }
+    
+    protected BigInteger calculateFeeFromTransactionSize(BackendService backendService, TransactionDetailsParams detailsParams, PaymentTransaction paymentTransaction, Metadata metadata) throws ApiException, CborSerializationException, AddressExcepion {
         FeeCalculationService feeCalculationService = backendService.getFeeCalculationService();
         
         //Calculate fee from transaction size in bytes
@@ -266,7 +274,7 @@ public class CardanoSendTransactionTool extends DefaultApplicationPlugin {
         }
     }
     
-    private String getFilePath(String fileName, String appId, String appVersion, String formDefId, String primaryKeyValue) {
+    protected String getFilePath(String fileName, String appId, String appVersion, String formDefId, String primaryKeyValue) {
         String filePath = null;
         
         if (fileName != null && !fileName.isEmpty()) {
@@ -284,7 +292,7 @@ public class CardanoSendTransactionTool extends DefaultApplicationPlugin {
         return filePath;
     }
     
-    private String getFileHashSha256(String filePath) throws FileNotFoundException, IOException {
+    protected String getFileHashSha256(String filePath) throws FileNotFoundException, IOException {
         if (filePath != null && !filePath.isEmpty()) {
             return DigestUtils.sha256Hex(new FileInputStream(filePath));
         }
