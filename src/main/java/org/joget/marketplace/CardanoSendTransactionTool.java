@@ -23,7 +23,6 @@ import com.bloxbean.cardano.client.backend.model.Result;
 import com.bloxbean.cardano.client.backend.model.TransactionContent;
 import com.bloxbean.cardano.client.common.ADAConversionUtil;
 import static com.bloxbean.cardano.client.common.CardanoConstants.LOVELACE;
-//Library typo lol
 import com.bloxbean.cardano.client.exception.AddressExcepion;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
 import com.bloxbean.cardano.client.metadata.Metadata;
@@ -37,7 +36,6 @@ import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.net.URLEncoder;
 import java.util.HashMap;
-import java.util.Properties;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.joget.apps.app.model.AppDefinition;
 import org.joget.apps.app.service.AppService;
@@ -54,13 +52,7 @@ public class CardanoSendTransactionTool extends DefaultApplicationPlugin {
 
     @Override
     public String getVersion() {
-        final Properties projectProp = new Properties();
-        try {
-            projectProp.load(this.getClass().getClassLoader().getResourceAsStream("project.properties"));
-        } catch (IOException ex) {
-            LogUtil.error(getClass().getName(), ex, "Unable to get project version from project properties...");
-        }
-        return projectProp.getProperty("version");
+        return PluginUtil.getProjectVersion(this.getClass());
     }
 
     @Override

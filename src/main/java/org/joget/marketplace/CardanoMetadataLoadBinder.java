@@ -5,11 +5,9 @@ import com.bloxbean.cardano.client.backend.api.MetadataService;
 import com.bloxbean.cardano.client.backend.model.Result;
 import com.bloxbean.cardano.client.backend.model.metadata.MetadataJSONContent;
 import com.fasterxml.jackson.databind.JsonNode;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.apps.form.model.Element;
 import org.joget.apps.form.model.FormBinder;
@@ -30,13 +28,7 @@ public class CardanoMetadataLoadBinder extends FormBinder implements FormLoadBin
 
     @Override
     public String getVersion() {
-        final Properties projectProp = new Properties();
-        try {
-            projectProp.load(this.getClass().getClassLoader().getResourceAsStream("project.properties"));
-        } catch (IOException ex) {
-            LogUtil.error(getClass().getName(), ex, "Unable to get project version from project properties...");
-        }
-        return projectProp.getProperty("version");
+        return PluginUtil.getProjectVersion(this.getClass());
     }
 
     @Override

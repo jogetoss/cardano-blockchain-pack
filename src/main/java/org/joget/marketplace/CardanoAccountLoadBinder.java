@@ -17,8 +17,6 @@ import org.joget.apps.form.model.FormRowSet;
 import org.joget.commons.util.LogUtil;
 import org.joget.workflow.util.WorkflowUtil;
 import static com.bloxbean.cardano.client.common.CardanoConstants.LOVELACE;
-import java.io.IOException;
-import java.util.Properties;
 
 public class CardanoAccountLoadBinder extends FormBinder implements FormLoadBinder, FormLoadElementBinder {
 
@@ -29,13 +27,7 @@ public class CardanoAccountLoadBinder extends FormBinder implements FormLoadBind
 
     @Override
     public String getVersion() {
-        final Properties projectProp = new Properties();
-        try {
-            projectProp.load(this.getClass().getClassLoader().getResourceAsStream("project.properties"));
-        } catch (IOException ex) {
-            LogUtil.error(getClass().getName(), ex, "Unable to get project version from project properties...");
-        }
-        return projectProp.getProperty("version");
+        return PluginUtil.getProjectVersion(this.getClass());
     }
 
     @Override
@@ -70,7 +62,7 @@ public class CardanoAccountLoadBinder extends FormBinder implements FormLoadBind
 
             FormRow row = new FormRow();
 
-            row = addRow(row,balanceField, getAdaBalance(addressInfo));
+            row = addRow(row, balanceField, getAdaBalance(addressInfo));
             // Dandelion missing this info fyi
             row = addRow(row, accountType, getAccountType(addressInfo));
             
