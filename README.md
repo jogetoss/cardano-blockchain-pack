@@ -4,6 +4,8 @@ The Cardano Blockchain Pack integrates Cardano with Joget, and allows you to des
 
 Do see [documentation and sample app](https://dev.joget.org/community/display/marketplace/Cardano+Blockchain+Pack).
 
+> :warning: **This project is in early development stages and not ready for production use.**
+
 Credits: [https://github.com/bloxbean/cardano-client-lib](https://github.com/bloxbean/cardano-client-lib)
 
 # Getting Help
