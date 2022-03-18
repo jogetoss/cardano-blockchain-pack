@@ -1,5 +1,7 @@
-package org.joget.marketplace;
+package org.joget.cardano.lib;
 
+import org.joget.cardano.service.PluginUtil;
+import org.joget.cardano.service.BackendUtil;
 import com.bloxbean.cardano.client.backend.api.BackendService;
 import com.bloxbean.cardano.client.backend.api.MetadataService;
 import com.bloxbean.cardano.client.backend.model.Result;
@@ -21,6 +23,15 @@ import org.joget.workflow.util.WorkflowUtil;
 
 public class CardanoMetadataLoadBinder extends FormBinder implements FormLoadBinder, FormLoadElementBinder {
 
+    BackendService backendService;
+    MetadataService metadataService;
+    
+    protected void initBackend() {
+        backendService = BackendUtil.getBackendService(getProperties());
+        
+        metadataService = backendService.getMetadataService();
+    }
+    
     @Override
     public String getName() {
         return "Cardano Metadata Load Binder";
@@ -39,8 +50,6 @@ public class CardanoMetadataLoadBinder extends FormBinder implements FormLoadBin
     @Override
     public FormRowSet load(Element element, String primaryKey, FormData formData) {
         try {
-            final BackendService backendService = CardanoUtil.getBackendService(getProperties());
-
             final String transactionId = WorkflowUtil.processVariable(getPropertyString("transactionId"), "", null);
 
             //Prevent error thrown from empty value and invalid hash variable
@@ -48,7 +57,7 @@ public class CardanoMetadataLoadBinder extends FormBinder implements FormLoadBin
                 return null;
             }
 
-            MetadataService metadataService = backendService.getMetadataService();
+            initBackend();
             
             final Result<List<MetadataJSONContent>> metadataResult = metadataService.getJSONMetadataByTxnHash(transactionId);
             if (!metadataResult.isSuccessful()) {

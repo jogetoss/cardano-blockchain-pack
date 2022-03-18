@@ -7,12 +7,12 @@
                 "label":"@@cardano.prop.networkType@@",
                 "description":"@@process.cardanogenerateaccounttool.networkType.desc@@",
                 "type":"selectbox",
-                "options" : [{
-                    "value" : "mainnet",
-                    "label" : "@@cardano.prop.networkType.mainnet@@"
+                "options":[{
+                    "value":"mainnet",
+                    "label":"@@cardano.prop.networkType.mainnet@@"
                 },{
-                    "value" : "testnet",
-                    "label" : "@@cardano.prop.networkType.testnet@@"
+                    "value":"testnet",
+                    "label":"@@cardano.prop.networkType.testnet@@"
                 }],
                 "value":"testnet"
             }
@@ -22,15 +22,23 @@
         "title":"@@process.cardanogenerateaccounttool.header.storeToForm@@",
         "properties":[
             {
-                "name" : "formDefId",
-                "label" : "@@process.cardanogenerateaccounttool.formId@@",
-                "type" : "selectbox",
+                "name":"formDefId",
+                "label":"@@process.cardanogenerateaccounttool.formId@@",
+                "type":"selectbox",
                 "required":"True",
                 "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/formsWithCustomTable/options"
             },
             {
-                "label": "@@process.cardanogenerateaccounttool.header.fieldMapping@@",
+                "label":"@@process.cardanogenerateaccounttool.header.fieldMapping@@",
                 "type":"header"
+            },
+            {
+                "name":"accountBaseAddress",
+                "label":"@@process.cardanogenerateaccounttool.fieldMapping.accountBaseAddress@@",
+                "description":"@@process.cardanogenerateaccounttool.fieldMapping.accountBaseAddress.desc@@",
+                "type":"readonly",
+                "value":"id",
+                "required":"True"
             },
             {
                 "name":"accountMnemonicField",
@@ -71,13 +79,13 @@
         ]
     },
     {
-        "title" : "@@process.cardanogenerateaccounttool.header.storeToWorkflowVariable@@",
-        "properties" : [
+        "title":"@@process.cardanogenerateaccounttool.header.storeToWorkflowVariable@@",
+        "properties":[
             {
                 "name":"wfIsTestAccount",
                 "label":"@@process.cardanogenerateaccounttool.wfMapping.wfIsTestAccount@@",
                 "type":"selectbox",
-                "options_ajax" : "[CONTEXT_PATH]/web/json/console/app[APP_PATH]/workflowVariable/options"
+                "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/workflowVariable/options"
             }
         ]
     }

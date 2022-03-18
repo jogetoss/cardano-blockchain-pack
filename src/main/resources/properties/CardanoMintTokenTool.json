@@ -1,18 +1,18 @@
 [
     {
-       "title":"@@process.cardanosendtransactiontool.header.config@@",
+       "title":"@@process.cardanominttokentool.header.config@@",
        "properties":[
             {
                 "name":"networkType",
                 "label":"@@cardano.prop.networkType@@",
-                "description":"@@process.cardanosendtransactiontool.networkType.desc@@",
+                "description":"@@process.cardanominttokentool.networkType.desc@@",
                 "type":"selectbox",
-                "options":[{
-                    "value":"mainnet",
-                    "label":"@@cardano.prop.networkType.mainnet@@"
+                "options" : [{
+                    "value" : "mainnet",
+                    "label" : "@@cardano.prop.networkType.mainnet@@"
                 },{
-                    "value":"testnet",
-                    "label":"@@cardano.prop.networkType.testnet@@"
+                    "value" : "testnet",
+                    "label" : "@@cardano.prop.networkType.testnet@@"
                 }],
                 "value":"testnet"
             },
@@ -20,18 +20,18 @@
                 "name":"backendService",
                 "label":"@@cardano.prop.backendService@@",
                 "type":"selectbox",
-                "options":[
+                "options" : [
                     {
-                        "value":"blockfrost",
-                        "label":"@@cardano.prop.backendService.blockfrost@@"
+                        "value" : "blockfrost",
+                        "label" : "@@cardano.prop.backendService.blockfrost@@"
                     },
                     {
-                        "value":"dandelion",
-                        "label":"@@cardano.prop.backendService.dandelion@@"
+                        "value" : "dandelion",
+                        "label" : "@@cardano.prop.backendService.dandelion@@"
                     },
                     {
-                        "value":"customGraphQl",
-                        "label":"@@cardano.prop.backendService.customGraphql@@"
+                        "value" : "customGraphQl",
+                        "label" : "@@cardano.prop.backendService.customGraphql@@"
                     }
                 ],
                 "value":"dandelion"
@@ -58,23 +58,23 @@
         ]
     },
     {
-        "title":"@@process.cardanosendtransactiontool.header.transactionDetails@@",
+        "title":"@@process.cardanominttokentool.header.nativeTokenProperties@@",
         "properties":[
             {
                 "name":"formDefId",
-                "label":"@@process.cardanosendtransactiontool.formDefId@@",
+                "label":"@@process.cardanominttokentool.formDefId@@",
                 "type":"selectbox",
                 "required":"True",
                 "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/forms/options"
             },
             {
-                "label" : "@@process.cardanosendtransactiontool.subheader.fieldMapping@@",
+                "label" : "@@process.cardanominttokentool.subheader.mintingAccount@@",
                 "type" : "header"
             },
             {
                 "name":"senderAddress",
-                "label":"@@process.cardanosendtransactiontool.senderAddress@@",
-                "description":"@@process.cardanosendtransactiontool.senderAddress.desc@@",
+                "label":"@@process.cardanominttokentool.senderAddress@@",
+                "description":"@@process.cardanominttokentool.senderAddress.desc@@",
                 "type":"selectbox",
                 "required":"True",
                 "options_ajax_on_change":"formDefId",
@@ -82,60 +82,53 @@
             },
             {
                 "name":"accountMnemonic",
-                "label":"@@process.cardanosendtransactiontool.accountMnemonic@@",
-                "description":"@@process.cardanosendtransactiontool.accountMnemonic.desc@@",
+                "label":"@@process.cardanominttokentool.accountMnemonic@@",
+                "description":"@@process.cardanominttokentool.accountMnemonic.desc@@",
                 "type":"textfield",
                 "required":"True"
             },
             {
-                "name":"receiverAddress",
-                "label":"@@process.cardanosendtransactiontool.receiverAddress@@",
-                "description":"@@process.cardanosendtransactiontool.receiverAddress.desc@@",
+                "label" : "@@process.cardanominttokentool.subheader.mintingConfig@@",
+                "type" : "header"
+            },
+            {
+                "name":"tokenName",
+                "label":"@@process.cardanominttokentool.tokenName@@",
+                "description":"@@process.cardanominttokentool.tokenName.desc@@",
                 "type":"selectbox",
                 "required":"True",
                 "options_ajax_on_change":"formDefId",
                 "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options"
             },
             {
-                "name":"paymentUnit",
-                "label":"@@process.cardanosendtransactiontool.paymentUnit@@",
-                "description":"@@process.cardanosendtransactiontool.paymentUnit.desc@@",
-                "type":"selectbox",
-                "options" : [{
-                    "value" : "lovelace",
-                    "label" : "@@process.cardanosendtransactiontool.paymentUnit.lovelace@@"
-                },{
-                    "value" : "nativeTokens",
-                    "label" : "@@process.cardanosendtransactiontool.paymentUnit.nativeTokens@@"
-                }],
-                "value":"lovelace"
-            },
-            {
-                "name":"policyId",
-                "label":"@@process.cardanosendtransactiontool.policyId@@",
-                "description":"@@process.cardanosendtransactiontool.policyId.desc@@",
-                "type":"textfield",
-                "required":"True",
-                "control_field":"paymentUnit",
-                "control_value":"nativeTokens",
-                "control_use_regex":"false"
-            },
-            {
-                "name":"amount",
-                "label":"@@process.cardanosendtransactiontool.amount@@",
-                "description":"@@process.cardanosendtransactiontool.amount.desc@@",
+                "name":"tokenSymbol",
+                "label":"@@process.cardanominttokentool.tokenSymbol@@",
+                "description":"@@process.cardanominttokentool.tokenSymbol.desc@@",
                 "type":"selectbox",
                 "required":"True",
                 "options_ajax_on_change":"formDefId",
                 "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options"
+            },
+            {
+                "name":"amountToMint",
+                "label":"@@process.cardanominttokentool.amountToMint@@",
+                "description":"@@process.cardanominttokentool.amountToMint.desc@@",
+                "type":"selectbox",
+                "required":"True",
+                "options_ajax_on_change":"formDefId",
+                "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options"
+            },
+            {
+                "label" : "@@process.cardanominttokentool.subheader.additionalMetadata@@",
+                "type" : "header"
             },
             {
                 "name":"metadata",
-                "label":"@@process.cardanosendtransactiontool.metadata@@",
+                "label":"@@process.cardanominttokentool.metadata@@",
                 "type":"grid",
                 "columns":[{
                     "key":"fieldId",
-                    "label":"@@process.cardanosendtransactiontool.metadata.fieldId@@",
+                    "label":"@@process.cardanominttokentool.metadata.fieldId@@",
                     "options_ajax_on_change":"formDefId",
                     "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options"
                 }]
@@ -143,25 +136,25 @@
         ]
     },
     {
-        "title":"@@cardano.prop.header.storeToWorkflowVariable@@",
-        "properties":[
+        "title" : "@@cardano.prop.header.storeToWorkflowVariable@@",
+        "properties" : [
             {
                 "name":"wfTransactionValidated",
                 "label":"@@cardano.prop.wfMapping.wfTransactionValidated@@",
                 "type":"selectbox",
-                "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/workflowVariable/options"
+                "options_ajax" : "[CONTEXT_PATH]/web/json/console/app[APP_PATH]/workflowVariable/options"
             },
             {
                 "name":"wfTransactionId",
                 "label":"@@cardano.prop.wfMapping.wfTransactionId@@",
                 "type":"selectbox",
-                "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/workflowVariable/options"
+                "options_ajax" : "[CONTEXT_PATH]/web/json/console/app[APP_PATH]/workflowVariable/options"
             },
             {
                 "name":"wfTransactionExplorerUrl",
                 "label":"@@cardano.prop.wfMapping.wfTransactionExplorerUrl@@",
                 "type":"selectbox",
-                "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/workflowVariable/options"
+                "options_ajax" : "[CONTEXT_PATH]/web/json/console/app[APP_PATH]/workflowVariable/options"
             }
         ]
     }
