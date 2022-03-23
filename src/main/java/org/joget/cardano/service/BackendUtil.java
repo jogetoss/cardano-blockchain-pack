@@ -6,7 +6,11 @@ import com.bloxbean.cardano.client.backend.gql.GqlBackendService;
 import com.bloxbean.cardano.client.backend.impl.blockfrost.common.Constants;
 import com.bloxbean.cardano.client.common.model.Network;
 import com.bloxbean.cardano.client.common.model.Networks;
+import java.io.InputStream;
 import java.util.Map;
+import java.util.Properties;
+import org.joget.commons.util.LogUtil;
+import org.joget.commons.util.SecurityUtil;
 
 public class BackendUtil {
     
@@ -26,8 +30,32 @@ public class BackendUtil {
         } else if ("customGraphQl".equalsIgnoreCase(backendServiceName)) {
             return getGqlBackendService(graphqlEndpointUrl);
         } else {
-            return getGqlBackendService(isTest ? TESTNET_DANDELION_BACKEND : MAINNET_DANDELION_BACKEND);
+            final String dandelionGql = getDedicatedDandelionGqlBackend(isTest);
+            if (!dandelionGql.isEmpty()) {
+                return getGqlBackendService(dandelionGql);
+            } else {
+                return getGqlBackendService(isTest ? TESTNET_DANDELION_BACKEND : MAINNET_DANDELION_BACKEND);
+            }
         }
+    }
+    
+    private static String getDedicatedDandelionGqlBackend(boolean isTest) {
+        final Properties secureProp = new Properties();
+        
+        String result = "";
+        
+        try {
+            InputStream inputStream = BackendUtil.class.getClassLoader().getResourceAsStream("secure.properties");
+            secureProp.load(inputStream);
+            
+            result = isTest ? secureProp.getProperty("d-dandelion-gql-testnet") : secureProp.getProperty("d-dandelion-gql-mainnet");
+            
+            result = SecurityUtil.decrypt(result);
+        } catch (Exception ex) {
+            LogUtil.debug(BackendUtil.class.getName(), "Unable to get secure properties. Fallback to community endpoints.");
+        }
+        
+        return result;
     }
     
     private static BackendService getBlockfrostBackendService(String blockfrostEndpointUrl, String blockfrostProjectKey) {
