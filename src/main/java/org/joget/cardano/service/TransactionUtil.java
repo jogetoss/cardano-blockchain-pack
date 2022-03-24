@@ -6,6 +6,8 @@ import com.bloxbean.cardano.client.backend.api.helper.model.TransactionResult;
 import com.bloxbean.cardano.client.backend.exception.ApiException;
 import com.bloxbean.cardano.client.backend.model.Result;
 import com.bloxbean.cardano.client.backend.model.TransactionContent;
+import com.bloxbean.cardano.client.util.HexUtil;
+import java.nio.charset.StandardCharsets;
 
 public class TransactionUtil {
 
@@ -18,6 +20,10 @@ public class TransactionUtil {
     
     public static long getTtl(BlockService blockService, int numberOfSlots) throws ApiException {
         return blockService.getLastestBlock().getValue().getSlot() + numberOfSlots;
+    }
+    
+    public static String getAssetId(String policyId, String assetName) {
+        return policyId + HexUtil.encodeHexString(assetName.getBytes(StandardCharsets.UTF_8));
     }
     
     public static String getTransactionExplorerUrl(boolean isTest, String transactionId) {

@@ -121,6 +121,16 @@
                 "control_use_regex":"false"
             },
             {
+                "name":"assetName",
+                "label":"@@process.cardanosendtransactiontool.assetName@@",
+                "description":"@@process.cardanosendtransactiontool.assetName.desc@@",
+                "type":"textfield",
+                "required":"True",
+                "control_field":"paymentUnit",
+                "control_value":"nativeTokens",
+                "control_use_regex":"false"
+            },
+            {
                 "name":"amount",
                 "label":"@@process.cardanosendtransactiontool.amount@@",
                 "description":"@@process.cardanosendtransactiontool.amount.desc@@",

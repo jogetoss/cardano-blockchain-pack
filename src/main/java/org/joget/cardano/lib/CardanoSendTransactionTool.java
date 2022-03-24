@@ -211,7 +211,7 @@ public class CardanoSendTransactionTool extends DefaultApplicationPlugin {
     }
     
     protected String getPaymentUnit() {
-        return getPropertyString("paymentUnit").equalsIgnoreCase(LOVELACE) ? LOVELACE : getPropertyString("policyId");
+        return getPropertyString("paymentUnit").equalsIgnoreCase(LOVELACE) ? LOVELACE : TransactionUtil.getAssetId(getPropertyString("policyId"), getPropertyString("assetName"));
     }
     
     protected void storeToWorkflowVariable(
