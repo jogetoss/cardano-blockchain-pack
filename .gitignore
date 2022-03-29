@@ -221,3 +221,4 @@ nbdist/
 #################
 
 wflow-consoleweb/src/main/webapp/wro/
+/nb-configuration.xml
