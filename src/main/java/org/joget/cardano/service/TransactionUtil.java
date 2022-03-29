@@ -27,31 +27,34 @@ public class TransactionUtil {
     }
     
     public static String getTransactionExplorerUrl(boolean isTest, String transactionId) {
-        String transactionUrl = null;
-        if (transactionId != null) {
-            transactionUrl = isTest ? TESTNET_TX_EXPLORER_URL : MAINNET_TX_EXPLORER_URL;
-            transactionUrl += "?id=" + transactionId;
+        if (transactionId == null || transactionId.isEmpty()) {
+            return null;
         }
-        return transactionUrl;
+
+        String transactionUrl = isTest ? TESTNET_TX_EXPLORER_URL : MAINNET_TX_EXPLORER_URL;
+        return transactionUrl += "?id=" + transactionId;
     }
     
     public static Result<TransactionContent> waitForTransaction(TransactionService transactionService, Result<TransactionResult> transactionResult) throws ApiException, InterruptedException {
-        if (transactionResult.isSuccessful()) {
-            //Wait for transaction to be mined
-            int count = 0;
-            while (count < 60) {
-                Result<TransactionContent> txnResult = transactionService.getTransaction(transactionResult.getValue().getTransactionId());
-                if (txnResult.isSuccessful()) {
-                    //LogUtil.info(getClass().getName(), JsonUtil.getPrettyJson(txnResult.getValue()));
-                    return txnResult;
-                } else {
-                    //LogUtil.info(getClass().getName(), "Waiting for transaction to be mined....");
-                }
-
-                count++;
-                Thread.sleep(2000);
-            }
+        if (!transactionResult.isSuccessful()) {
+            return null;
         }
+        
+        //Wait for transaction to be mined
+        int count = 0;
+        while (count < 60) {
+            Result<TransactionContent> txnResult = transactionService.getTransaction(transactionResult.getValue().getTransactionId());
+            if (txnResult.isSuccessful()) {
+                //LogUtil.info(getClass().getName(), JsonUtil.getPrettyJson(txnResult.getValue()));
+                return txnResult;
+            } else {
+                //LogUtil.info(getClass().getName(), "Waiting for transaction to be mined....");
+            }
+
+            count++;
+            Thread.sleep(2000);
+        }
+        
         return null;
     }
 }

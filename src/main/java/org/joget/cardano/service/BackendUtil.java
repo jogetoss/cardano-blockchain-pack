@@ -25,18 +25,26 @@ public class BackendUtil {
         String blockfrostProjectKey = (String) properties.get("blockfrostProjectKey");
         String graphqlEndpointUrl = (String) properties.get("graphqlEndpointUrl");
         
-        if ("blockfrost".equalsIgnoreCase(backendServiceName)) {
-            return getBlockfrostBackendService(isTest ? Constants.BLOCKFROST_TESTNET_URL : Constants.BLOCKFROST_MAINNET_URL, blockfrostProjectKey);
-        } else if ("customGraphQl".equalsIgnoreCase(backendServiceName)) {
-            return getGqlBackendService(graphqlEndpointUrl);
-        } else {
-            final String dandelionGql = getDedicatedDandelionGqlBackend(isTest);
-            if (!dandelionGql.isEmpty()) {
-                return getGqlBackendService(dandelionGql);
-            } else {
-                return getGqlBackendService(isTest ? TESTNET_DANDELION_BACKEND : MAINNET_DANDELION_BACKEND);
-            }
+        BackendService backend;
+        
+        switch (backendServiceName) {
+            case "blockfrost":
+                backend = getBlockfrostBackendService(isTest ? Constants.BLOCKFROST_TESTNET_URL : Constants.BLOCKFROST_MAINNET_URL, blockfrostProjectKey);
+                break;
+            case "customGraphQl":
+                backend = getGqlBackendService(graphqlEndpointUrl);
+                break;
+            default:
+                final String dandelionGql = getDedicatedDandelionGqlBackend(isTest);
+                if (!dandelionGql.isEmpty()) {
+                    backend = getGqlBackendService(dandelionGql);
+                } else {
+                    backend = getGqlBackendService(isTest ? TESTNET_DANDELION_BACKEND : MAINNET_DANDELION_BACKEND);
+                }
+                break;
         }
+        
+        return backend;
     }
     
     private static String getDedicatedDandelionGqlBackend(boolean isTest) {

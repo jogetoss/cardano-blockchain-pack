@@ -87,8 +87,11 @@ public class CardanoAccountLoadBinder extends FormBinder implements FormLoadBind
     }
     
     private String getAdaBalance(AddressContent addressInfo) {
-        if (!addressInfo.getAmount().isEmpty()) {
-            return String.valueOf(
+        if (addressInfo.getAmount().isEmpty()) {
+            return "No balance found";
+        }
+        
+        return String.valueOf(
                     ADAConversionUtil.lovelaceToAda(
                         new BigInteger(
                             addressInfo.getAmount().stream().filter(
@@ -97,9 +100,6 @@ public class CardanoAccountLoadBinder extends FormBinder implements FormLoadBind
                         )
                     )
                 );
-        } else {
-            return "No balance found";
-        }
     }
     
     private String getAccountType(AddressContent addressInfo) {

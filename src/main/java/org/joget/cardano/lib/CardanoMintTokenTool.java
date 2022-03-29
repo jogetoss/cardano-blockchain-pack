@@ -96,13 +96,13 @@ public class CardanoMintTokenTool extends DefaultApplicationPlugin {
         final String primaryKey = appService.getOriginProcessId(wfAssignment.getProcessId());
 
         FormRowSet rowSet = appService.loadFormData(appDef.getAppId(), appDef.getVersion().toString(), formDefId, primaryKey);
-        FormRow row = new FormRow();
-        if (!rowSet.isEmpty()) {
-            row = rowSet.get(0);
-        } else {
+        
+        if (rowSet == null || rowSet.isEmpty()) {
             LogUtil.warn(getClass().getName(), "Token minting aborted. No record found with record ID '" + primaryKey + "' from this form '" + formDefId + "'.");
             return null;
         }
+        
+        FormRow row = rowSet.get(0);
         
         final String senderAddress = row.getProperty(getPropertyString("senderAddress"));
         final String accountMnemonic = PluginUtil.decrypt(WorkflowUtil.processVariable(getPropertyString("accountMnemonic"), "", wfAssignment));
@@ -147,18 +147,9 @@ public class CardanoMintTokenTool extends DefaultApplicationPlugin {
             CBORMetadata cborMetadata = new CBORMetadata()
                     .put(BigInteger.ZERO, tokenInfoMap);
             
-            //Optional insert metadata from form data
-            Object[] metadataFields = (Object[]) props.get("metadata");
-            if (metadataFields != null && metadataFields.length > 0) {
-                CBORMetadataMap metadataMap = new CBORMetadataMap();
-                for (Object o : metadataFields) {
-                    Map mapping = (HashMap) o;
-                    String fieldId = mapping.get("fieldId").toString();
-
-                    metadataMap.put(fieldId, row.getProperty(fieldId));
-                }
-                
-                cborMetadata.put(BigInteger.ONE, metadataMap);
+            CBORMetadataMap formDataMetadata = generateMetadataMapFromFormData(props, row, primaryKey);
+            if (formDataMetadata != null) {
+                cborMetadata.put(BigInteger.ONE, formDataMetadata);
             }
             
             Metadata metadata = cborMetadata;
@@ -185,16 +176,16 @@ public class CardanoMintTokenTool extends DefaultApplicationPlugin {
             
             //Use separate thread to wait for transaction validation
             Thread waitTransactionThread = new PluginThread(() -> {
+                if (!transactionResult.isSuccessful()) {
+                    LogUtil.warn(getClass().getName(), "Transaction failed with status code " + transactionResult.code() + ". Response returned --> " + transactionResult.getResponse());
+                }
+                
                 Result<TransactionContent> validatedTransactionResult = null;
                 
-                if (transactionResult.isSuccessful()) {
-                    try {
-                        validatedTransactionResult = TransactionUtil.waitForTransaction(transactionService, transactionResult);
-                    } catch (Exception ex) {
-                        LogUtil.error(getClass().getName(), ex, "Error waiting for transaction validation...");
-                    }
-                } else {
-                    LogUtil.warn(getClass().getName(), "Transaction failed with status code " + transactionResult.code() + ". Response returned --> " + transactionResult.getResponse());
+                try {
+                    validatedTransactionResult = TransactionUtil.waitForTransaction(transactionService, transactionResult);
+                } catch (Exception ex) {
+                    LogUtil.error(getClass().getName(), ex, "Error waiting for transaction validation...");
                 }
                 
                  if (validatedTransactionResult != null) {
@@ -212,6 +203,25 @@ public class CardanoMintTokenTool extends DefaultApplicationPlugin {
             LogUtil.error(getClass().getName(), ex, "Error executing plugin...");
             return null;
         }
+    }
+    
+    protected CBORMetadataMap generateMetadataMapFromFormData(Map props, FormRow row, String primaryKey) {
+        //Optional insert metadata from form data
+        Object[] metadataFields = (Object[]) props.get("metadata");
+        
+        if (metadataFields == null || metadataFields.length == 0) {
+            return null;
+        }
+        
+        CBORMetadataMap metadataMap = new CBORMetadataMap();
+        for (Object o : metadataFields) {
+            Map mapping = (HashMap) o;
+            String fieldId = mapping.get("fieldId").toString();
+
+            metadataMap.put(fieldId, row.getProperty(fieldId));
+        }
+        
+        return metadataMap;
     }
     
     protected void storeToWorkflowVariable(

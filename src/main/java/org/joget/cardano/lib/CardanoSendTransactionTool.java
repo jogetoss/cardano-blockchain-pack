@@ -97,13 +97,13 @@ public class CardanoSendTransactionTool extends DefaultApplicationPlugin {
         final String primaryKey = appService.getOriginProcessId(wfAssignment.getProcessId());
         
         FormRowSet rowSet = appService.loadFormData(appDef.getAppId(), appDef.getVersion().toString(), formDefId, primaryKey);
-        FormRow row = new FormRow();
-        if (!rowSet.isEmpty()) {
-            row = rowSet.get(0);
-        } else {
+        
+        if (rowSet == null || rowSet.isEmpty()) {
             LogUtil.warn(getClass().getName(), "Send transaction aborted. No record found with record ID '" + primaryKey + "' from this form '" + formDefId + "'.");
             return null;
         }
+        
+        FormRow row = rowSet.get(0);
         
         final String senderAddress = row.getProperty(getPropertyString("senderAddress"));
         final String accountMnemonic = PluginUtil.decrypt(WorkflowUtil.processVariable(getPropertyString("accountMnemonic"), "", wfAssignment));
@@ -124,7 +124,13 @@ public class CardanoSendTransactionTool extends DefaultApplicationPlugin {
             
             initBackend();
             
-            Metadata metadata = generateTxMetadata(props, row, primaryKey);
+            CBORMetadata cborMetadata = null;
+            CBORMetadataMap formDataMetadata = generateMetadataMapFromFormData(props, row, primaryKey);
+            if (formDataMetadata != null) {
+                cborMetadata = new CBORMetadata();
+                cborMetadata.put(BigInteger.ZERO, formDataMetadata);
+            }
+            Metadata metadata = cborMetadata;
             
             PaymentTransaction paymentTransaction =
             PaymentTransaction.builder()
@@ -147,16 +153,16 @@ public class CardanoSendTransactionTool extends DefaultApplicationPlugin {
             
             //Use separate thread to wait for transaction validation
             Thread waitTransactionThread = new PluginThread(() -> {
+                if (!transactionResult.isSuccessful()) {
+                    LogUtil.warn(getClass().getName(), "Transaction failed with status code " + transactionResult.code() + ". Response returned --> " + transactionResult.getResponse());
+                }
+                
                 Result<TransactionContent> validatedTransactionResult = null;
                 
-                if (transactionResult.isSuccessful()) {
-                    try {
-                        validatedTransactionResult = TransactionUtil.waitForTransaction(transactionService, transactionResult);
-                    } catch (Exception ex) {
-                        LogUtil.error(getClass().getName(), ex, "Error waiting for transaction validation...");
-                    }
-                } else {
-                    LogUtil.warn(getClass().getName(), "Transaction failed with status code " + transactionResult.code() + ". Response returned --> " + transactionResult.getResponse());
+                try {
+                    validatedTransactionResult = TransactionUtil.waitForTransaction(transactionService, transactionResult);
+                } catch (Exception ex) {
+                    LogUtil.error(getClass().getName(), ex, "Error waiting for transaction validation...");
                 }
                 
                 if (validatedTransactionResult != null) {
@@ -176,34 +182,32 @@ public class CardanoSendTransactionTool extends DefaultApplicationPlugin {
         }
     }
     
-    protected Metadata generateTxMetadata(Map props, FormRow row, String primaryKey) {
-        Metadata metadata = null;
-        
+    protected CBORMetadataMap generateMetadataMapFromFormData(Map props, FormRow row, String primaryKey) {
         //Optional insert metadata from form data
         Object[] metadataFields = (Object[]) props.get("metadata");
-        if (metadataFields != null && metadataFields.length > 0) {
-            CBORMetadataMap metadataMap = new CBORMetadataMap();
-            for (Object o : metadataFields) {
-                Map mapping = (HashMap) o;
-                String fieldId = mapping.get("fieldId").toString();
-
-//                    String isFile = mapping.get("isFile").toString();
-//                    if ("true".equalsIgnoreCase(isFile)) {
-//                        String appVersion = appDef.getVersion().toString();
-//                        String filePath = getFilePath(row.getProperty(fieldId), appDef.getAppId(), appVersion, formDefId, primaryKey);
-//                        metadataMap.put(fieldId, getFileHashSha256(filePath));
-//                    } else {
-//                        metadataMap.put(fieldId, row.getProperty(fieldId));
-//                    }
-
-                metadataMap.put(fieldId, row.getProperty(fieldId));
-            }
-
-            metadata = new CBORMetadata()
-                    .put(BigInteger.ZERO, metadataMap);
+        
+        if (metadataFields == null || metadataFields.length == 0) {
+            return null;
         }
         
-        return metadata;
+        CBORMetadataMap metadataMap = new CBORMetadataMap();
+        for (Object o : metadataFields) {
+            Map mapping = (HashMap) o;
+            String fieldId = mapping.get("fieldId").toString();
+
+//            String isFile = mapping.get("isFile").toString();
+//            if ("true".equalsIgnoreCase(isFile)) {
+//                String appVersion = appDef.getVersion().toString();
+//                String filePath = getFilePath(row.getProperty(fieldId), appDef.getAppId(), appVersion, formDefId, primaryKey);
+//                metadataMap.put(fieldId, getFileHashSha256(filePath));
+//            } else {
+//                metadataMap.put(fieldId, row.getProperty(fieldId));
+//            }
+
+            metadataMap.put(fieldId, row.getProperty(fieldId));
+        }
+        
+        return metadataMap;
     }
     
     protected BigInteger getPaymentAmount(BigDecimal amount) {
@@ -248,28 +252,27 @@ public class CardanoSendTransactionTool extends DefaultApplicationPlugin {
     }
     
     protected String getFilePath(String fileName, String appId, String appVersion, String formDefId, String primaryKeyValue) {
-        String filePath = null;
-        
-        if (fileName != null && !fileName.isEmpty()) {
-            String encodedFileName = fileName;
-            
-            try {
-                encodedFileName = URLEncoder.encode(fileName, "UTF8").replaceAll("\\+", "%20");
-            } catch (UnsupportedEncodingException ex) {
-                // ignore
-            }
-            
-            filePath = "/web/client/app/" + appId + "/" + appVersion + "/form/download/" + formDefId + "/" + primaryKeyValue + "/" + encodedFileName + ".";
+        if (fileName == null || fileName.isEmpty()) {
+            return null;
         }
         
-        return filePath;
+        String encodedFileName = fileName;
+
+        try {
+            encodedFileName = URLEncoder.encode(fileName, "UTF8").replaceAll("\\+", "%20");
+        } catch (UnsupportedEncodingException ex) {
+            // ignore
+        }
+
+        return "/web/client/app/" + appId + "/" + appVersion + "/form/download/" + formDefId + "/" + primaryKeyValue + "/" + encodedFileName + ".";
     }
     
     protected String getFileHashSha256(String filePath) throws FileNotFoundException, IOException {
-        if (filePath != null && !filePath.isEmpty()) {
-            return DigestUtils.sha256Hex(new FileInputStream(filePath));
+        if (filePath == null || filePath.isEmpty()) {
+            return null;
         }
-        return null;
+        
+        return DigestUtils.sha256Hex(new FileInputStream(filePath));
     }
     
     @Override
