@@ -26,6 +26,10 @@
                         "label":"@@cardano.prop.backendService.blockfrost@@"
                     },
                     {
+                        "value" : "koios",
+                        "label" : "@@cardano.prop.backendService.koios@@"
+                    },
+                    {
                         "value":"dandelion",
                         "label":"@@cardano.prop.backendService.dandelion@@"
                     },

@@ -4,7 +4,7 @@
     <groupId>org.joget.cardano</groupId>
     <artifactId>cardano_blockchain_pack</artifactId>
     <packaging>bundle</packaging>
-    <version>7.0.4</version>
+    <version>7.0.5</version>
     <name>cardano_blockchain_pack</name>
     <url>http://www.joget.org</url>
     <build>
@@ -92,12 +92,27 @@
         <dependency>
             <groupId>com.bloxbean.cardano</groupId>
             <artifactId>cardano-client-lib</artifactId>
-            <version>0.2.0-beta2</version>
+            <version>0.2.0-beta3</version>
         </dependency>
         <dependency>
             <groupId>com.bloxbean.cardano</groupId>
+            <artifactId>cardano-client-backend-blockfrost</artifactId>
+            <version>0.2.0-beta3</version>
+        </dependency>
+        <dependency>
+            <groupId>com.bloxbean.cardano</groupId>
+            <artifactId>cardano-client-backend-koios</artifactId>
+            <version>0.2.0-beta3</version>
+        </dependency>
+<!--        <dependency>
+            <groupId>com.bloxbean.cardano</groupId>
+            <artifactId>cardano-client-backend-ogmios</artifactId>
+            <version>0.2.0-beta3</version>
+        </dependency>-->
+        <dependency>
+            <groupId>com.bloxbean.cardano</groupId>
             <artifactId>cardano-client-backend-gql</artifactId>
-            <version>0.1.4</version>
+            <version>0.2.0-beta3</version>
             <exclusions>
                 <exclusion>
                     <groupId>com.fasterxml.jackson.core</groupId>

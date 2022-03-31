@@ -4,7 +4,7 @@ import org.joget.cardano.service.PluginUtil;
 import org.joget.cardano.service.BackendUtil;
 import com.bloxbean.cardano.client.backend.api.BackendService;
 import com.bloxbean.cardano.client.backend.api.MetadataService;
-import com.bloxbean.cardano.client.backend.model.Result;
+import com.bloxbean.cardano.client.api.model.Result;
 import com.bloxbean.cardano.client.backend.model.metadata.MetadataJSONContent;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.util.HashMap;

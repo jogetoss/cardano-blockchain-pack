@@ -1,20 +1,22 @@
 package org.joget.cardano.lib;
 
 import com.bloxbean.cardano.client.account.Account;
+import com.bloxbean.cardano.client.api.UtxoSupplier;
+import com.bloxbean.cardano.client.api.exception.ApiException;
+import com.bloxbean.cardano.client.api.helper.FeeCalculationService;
+import com.bloxbean.cardano.client.api.helper.TransactionHelperService;
+import com.bloxbean.cardano.client.api.model.ProtocolParams;
+import com.bloxbean.cardano.client.api.model.Result;
+import com.bloxbean.cardano.client.api.model.Utxo;
 import com.bloxbean.cardano.client.backend.api.BackendService;
 import com.bloxbean.cardano.client.backend.api.BlockService;
+import com.bloxbean.cardano.client.backend.api.DefaultUtxoSupplier;
 import com.bloxbean.cardano.client.backend.api.EpochService;
 import com.bloxbean.cardano.client.backend.api.TransactionService;
 import com.bloxbean.cardano.client.backend.api.UtxoService;
-import com.bloxbean.cardano.client.backend.api.helper.FeeCalculationService;
-import com.bloxbean.cardano.client.backend.api.helper.TransactionHelperService;
 import com.bloxbean.cardano.client.coinselection.UtxoSelectionStrategy;
 import com.bloxbean.cardano.client.coinselection.impl.DefaultUtxoSelectionStrategyImpl;
-import com.bloxbean.cardano.client.backend.exception.ApiException;
-import com.bloxbean.cardano.client.backend.model.ProtocolParams;
-import com.bloxbean.cardano.client.backend.model.Result;
 import com.bloxbean.cardano.client.backend.model.TransactionContent;
-import com.bloxbean.cardano.client.backend.model.Utxo;
 import static com.bloxbean.cardano.client.common.CardanoConstants.LOVELACE;
 import com.bloxbean.cardano.client.common.MinAdaCalculator;
 import com.bloxbean.cardano.client.common.model.Network;
@@ -71,6 +73,7 @@ public class CardanoBurnTokenTool extends DefaultApplicationPlugin {
     TransactionService transactionService;
     UtxoService utxoService;
     EpochService epochService;
+    UtxoSupplier utxoSupplier;
     
     AppService appService;
     WorkflowAssignment wfAssignment;
@@ -86,6 +89,8 @@ public class CardanoBurnTokenTool extends DefaultApplicationPlugin {
         transactionService = backendService.getTransactionService();
         utxoService = backendService.getUtxoService();
         epochService = backendService.getEpochService();
+        
+        utxoSupplier = new DefaultUtxoSupplier(utxoService);
     }
     
     protected void initUtils(Map props) {        
@@ -177,7 +182,7 @@ public class CardanoBurnTokenTool extends DefaultApplicationPlugin {
             multiAsset.getAssets().add(new Asset(tokenName, amountToBurnAbs.negate()));
         
             //Get utxos for such asset ID
-            UtxoSelectionStrategy utxoSelectionStrategy = new DefaultUtxoSelectionStrategyImpl(utxoService);
+            UtxoSelectionStrategy utxoSelectionStrategy = new DefaultUtxoSelectionStrategyImpl(utxoSupplier);
             List<Utxo> utxos = utxoSelectionStrategy.selectUtxos(senderAddress, assetId, amountToBurnAbs, Collections.EMPTY_SET);
             
             //Create inputs

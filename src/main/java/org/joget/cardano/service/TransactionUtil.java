@@ -1,10 +1,10 @@
 package org.joget.cardano.service;
 
+import com.bloxbean.cardano.client.api.exception.ApiException;
+import com.bloxbean.cardano.client.api.helper.model.TransactionResult;
+import com.bloxbean.cardano.client.api.model.Result;
 import com.bloxbean.cardano.client.backend.api.BlockService;
 import com.bloxbean.cardano.client.backend.api.TransactionService;
-import com.bloxbean.cardano.client.backend.api.helper.model.TransactionResult;
-import com.bloxbean.cardano.client.backend.exception.ApiException;
-import com.bloxbean.cardano.client.backend.model.Result;
 import com.bloxbean.cardano.client.backend.model.TransactionContent;
 import com.bloxbean.cardano.client.metadata.cbor.CBORMetadataMap;
 import com.bloxbean.cardano.client.util.HexUtil;
@@ -27,11 +27,11 @@ public class TransactionUtil {
     public static final long DEFAULT_WAIT_TIME_MS = 2000;
     
     public static long getTtl(BlockService blockService) throws ApiException {
-        return blockService.getLastestBlock().getValue().getSlot() + 1000;
+        return blockService.getLatestBlock().getValue().getSlot() + 1000;
     }
     
     public static long getTtl(BlockService blockService, int numberOfSlots) throws ApiException {
-        return blockService.getLastestBlock().getValue().getSlot() + numberOfSlots;
+        return blockService.getLatestBlock().getValue().getSlot() + numberOfSlots;
     }
     
     public static String getAssetId(String policyId, String assetName) {
