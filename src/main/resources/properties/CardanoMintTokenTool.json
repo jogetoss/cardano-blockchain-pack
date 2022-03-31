@@ -5,7 +5,7 @@
             {
                 "name":"networkType",
                 "label":"@@cardano.prop.networkType@@",
-                "description":"@@process.cardanominttokentool.networkType.desc@@",
+                "description":"@@cardano.prop.networkType.tx.desc@@",
                 "type":"selectbox",
                 "options" : [{
                     "value" : "mainnet",
@@ -132,6 +132,71 @@
                     "options_ajax_on_change":"formDefId",
                     "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options"
                 }]
+            }
+        ]
+    },
+    {
+        "title" : "@@process.cardanominttokentool.header.storeMintingDataToForm@@",
+        "properties" : [
+            {
+                "name" : "formDefIdStoreMintData",
+                "label" : "@@process.cardanominttokentool.formDefIdStoreMintData@@",
+                "type" : "selectbox",
+                "required":"True",
+                "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/formsWithCustomTable/options"
+            },
+            {
+                "label" : "@@process.cardanominttokentool.subheader.fieldMapping@@",
+                "type" : "header"
+            },
+            {
+                "name":"assetIdField",
+                "label":"@@process.cardanominttokentool.assetIdField@@",
+                "description":"@@process.cardanominttokentool.assetIdField.desc@@",
+                "type":"readonly",
+                "value":"id",
+                "required":"True"
+            },
+            {
+                "name":"minterAccountField",
+                "label":"@@process.cardanominttokentool.minterAccountField@@",
+                "type":"selectbox",
+                "required":"True",
+                "options_ajax_on_change":"formDefId:formDefIdStoreMintData",
+                "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options"
+            },
+            {
+                "name":"policyIdField",
+                "label":"@@process.cardanominttokentool.policyIdField@@",
+                "type":"selectbox",
+                "required":"True",
+                "options_ajax_on_change":"formDefId:formDefIdStoreMintData",
+                "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options"
+            },
+            {
+                "name":"policySecretKeyField",
+                "label":"@@process.cardanominttokentool.policySecretKeyField@@",
+                "description":"@@process.cardanominttokentool.policySecretKeyField.desc@@",
+                "type":"selectbox",
+                "required":"True",
+                "options_ajax_on_change":"formDefId:formDefIdStoreMintData",
+                "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options"
+            },
+            {
+                "name":"tokenNameField",
+                "label":"@@process.cardanominttokentool.tokenNameField@@",
+                "type":"selectbox",
+                "required":"True",
+                "options_ajax_on_change":"formDefId:formDefIdStoreMintData",
+                "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options"
+            },
+            {
+                "name":"isTestnetField",
+                "label":"@@process.cardanominttokentool.isTestnetField@@",
+                "type":"selectbox",
+                "required":"True",
+                "options_ajax_on_change":"formDefId:formDefIdStoreMintData",
+                "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options"
             }
         ]
     },

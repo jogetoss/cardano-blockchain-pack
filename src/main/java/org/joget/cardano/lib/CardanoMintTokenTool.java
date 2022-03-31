@@ -24,7 +24,6 @@ import com.bloxbean.cardano.client.transaction.spec.MultiAsset;
 import com.bloxbean.cardano.client.transaction.spec.script.ScriptPubkey;
 import java.math.BigInteger;
 import java.util.Arrays;
-import java.util.HashMap;
 import org.joget.cardano.service.PluginUtil;
 import org.joget.cardano.service.BackendUtil;
 import org.joget.cardano.service.TransactionUtil;
@@ -110,12 +109,12 @@ public class CardanoMintTokenTool extends DefaultApplicationPlugin {
         try {
             final boolean isTest = "testnet".equalsIgnoreCase(getPropertyString("networkType"));
             
-            final Network.ByReference network = BackendUtil.getNetwork(isTest);
+            final Network network = BackendUtil.getNetwork(isTest);
             
             final Account senderAccount = new Account(network, accountMnemonic);
             
             if (!senderAddress.equals(senderAccount.baseAddress())) {
-                LogUtil.warn(getClass().getName(), "Transaction failed! Sender account encountered invalid mnemonic phrase.");
+                LogUtil.warn(getClass().getName(), "Transaction failed! Minter account encountered invalid mnemonic phrase.");
                 return null;
             }
             
@@ -147,7 +146,7 @@ public class CardanoMintTokenTool extends DefaultApplicationPlugin {
             CBORMetadata cborMetadata = new CBORMetadata()
                     .put(BigInteger.ZERO, tokenInfoMap);
             
-            CBORMetadataMap formDataMetadata = generateMetadataMapFromFormData(props, row, primaryKey);
+            CBORMetadataMap formDataMetadata = TransactionUtil.generateMetadataMapFromFormData((Object[]) props.get("metadata"), row);
             if (formDataMetadata != null) {
                 cborMetadata.put(BigInteger.ONE, formDataMetadata);
             }
@@ -188,13 +187,16 @@ public class CardanoMintTokenTool extends DefaultApplicationPlugin {
                     LogUtil.error(getClass().getName(), ex, "Error waiting for transaction validation...");
                 }
                 
-                 if (validatedTransactionResult != null) {
+                if (validatedTransactionResult != null) {                    
+                    //Store minting policy data to form
+                    storeToForm(senderAccount, policyId, skey, tokenName, isTest);
+                     
                     //Store validated/confirmed txn result for current activity instance
                     storeToWorkflowVariable(wfAssignment.getActivityId(), props, isTest, transactionResult, validatedTransactionResult);
 
                     //Store validated/confirmed txn result for future running activity instance
                     storeToWorkflowVariable(workflowManager.getRunningActivityIdByRecordId(primaryKey, wfAssignment.getProcessDefId(), null, null), props, isTest, transactionResult, validatedTransactionResult);
-                 }
+                }
             });
             waitTransactionThread.start();
             
@@ -205,23 +207,48 @@ public class CardanoMintTokenTool extends DefaultApplicationPlugin {
         }
     }
     
-    protected CBORMetadataMap generateMetadataMapFromFormData(Map props, FormRow row, String primaryKey) {
-        //Optional insert metadata from form data
-        Object[] metadataFields = (Object[]) props.get("metadata");
+    protected void storeToForm(Account minter, String policyId, SecretKey skey, String tokenName, boolean isTest) {
+        String formDefId = getPropertyString("formDefIdStoreMintData");
         
-        if (metadataFields == null || metadataFields.length == 0) {
-            return null;
+        if (formDefId == null || formDefId.isEmpty()) {
+            LogUtil.warn(getClass().getName(), "Unable to store minting data to form. Encountered blank form ID.");
+            return;
         }
-        
-        CBORMetadataMap metadataMap = new CBORMetadataMap();
-        for (Object o : metadataFields) {
-            Map mapping = (HashMap) o;
-            String fieldId = mapping.get("fieldId").toString();
 
-            metadataMap.put(fieldId, row.getProperty(fieldId));
+        String minterAccountField = getPropertyString("minterAccountField");
+        String policyIdField = getPropertyString("policyIdField");
+        String policySecretKeyField = getPropertyString("policySecretKeyField");
+        String tokenNameField = getPropertyString("tokenNameField");
+        String isTestnetField = getPropertyString("isTestnetField");
+
+        FormRowSet rowSet = new FormRowSet();
+
+        FormRow row = new FormRow();
+
+        //Asset ID set as Record ID
+        row.setId(TransactionUtil.getAssetId(policyId, tokenName));
+
+        row = addRow(row, minterAccountField, minter.baseAddress());
+        row = addRow(row, policyIdField, policyId);
+        row = addRow(row, policySecretKeyField, PluginUtil.encrypt(skey.getCborHex()));
+        row = addRow(row, tokenNameField, tokenName);
+        row = addRow(row, isTestnetField, String.valueOf(isTest));
+
+        rowSet.add(row);
+
+        if (!rowSet.isEmpty()) {
+            FormRowSet storedData = appService.storeFormData(appDef.getId(), appDef.getVersion().toString(), formDefId, rowSet, null);
+            if (storedData == null) {
+                LogUtil.warn(getClass().getName(), "Unable to store minting data to form. Encountered invalid form ID of '" + formDefId + "'.");
+            }
         }
-        
-        return metadataMap;
+    }
+    
+    private FormRow addRow(FormRow row, String field, String value) {
+        if (row != null && !field.isEmpty()) {
+            row.put(field, value);
+        }
+        return row;
     }
     
     protected void storeToWorkflowVariable(
@@ -245,16 +272,19 @@ public class CardanoMintTokenTool extends DefaultApplicationPlugin {
                 transactionIdVar, 
                 transactionResult.getValue().getTransactionId()
         );
-        storeValuetoActivityVar(activityId, 
+        storeValuetoActivityVar(
+                activityId, 
                 transactionUrlVar, 
                 TransactionUtil.getTransactionExplorerUrl(isTest, transactionResult.getValue().getTransactionId())
         );
     }
     
     private void storeValuetoActivityVar(String activityId, String variable, String value) {
-        if (!variable.isEmpty() && value != null) {
-            workflowManager.activityVariable(activityId, variable, value);
+        if (activityId == null || activityId.isEmpty() || variable.isEmpty() || value == null) {
+            return;
         }
+        
+        workflowManager.activityVariable(activityId, variable, value);
     }
     
     @Override

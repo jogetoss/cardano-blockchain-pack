@@ -1,9 +1,9 @@
 package org.joget.cardano.service;
 
 import com.bloxbean.cardano.client.backend.api.BackendService;
-import com.bloxbean.cardano.client.backend.factory.BackendFactory;
 import com.bloxbean.cardano.client.backend.gql.GqlBackendService;
 import com.bloxbean.cardano.client.backend.impl.blockfrost.common.Constants;
+import com.bloxbean.cardano.client.backend.impl.blockfrost.service.BFBackendService;
 import com.bloxbean.cardano.client.common.model.Network;
 import com.bloxbean.cardano.client.common.model.Networks;
 import java.io.InputStream;
@@ -67,14 +67,14 @@ public class BackendUtil {
     }
     
     private static BackendService getBlockfrostBackendService(String blockfrostEndpointUrl, String blockfrostProjectKey) {
-        return BackendFactory.getBlockfrostBackendService(blockfrostEndpointUrl, blockfrostProjectKey);
+        return new BFBackendService(blockfrostEndpointUrl, blockfrostProjectKey);
     }
     
     private static BackendService getGqlBackendService(String graphqlEndpointUrl) {
         return new GqlBackendService(graphqlEndpointUrl);
     }
     
-    public static Network.ByReference getNetwork(boolean isTest) {
+    public static Network getNetwork(boolean isTest) {
         return isTest ? Networks.testnet() : Networks.mainnet();
     }
 }

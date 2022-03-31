@@ -11,6 +11,7 @@ import org.joget.apps.app.service.AppService;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.apps.form.model.FormRow;
 import org.joget.apps.form.model.FormRowSet;
+import org.joget.commons.util.LogUtil;
 import org.joget.workflow.model.WorkflowAssignment;
 import org.joget.workflow.model.service.WorkflowManager;
 import org.joget.workflow.util.WorkflowUtil;
@@ -54,7 +55,7 @@ public class CardanoGenerateAccountTool extends DefaultApplicationPlugin {
         String networkType = getPropertyString("networkType");
         boolean isTest = "testnet".equalsIgnoreCase(networkType);
         
-        Network.ByReference network = BackendUtil.getNetwork(isTest);
+        Network network = BackendUtil.getNetwork(isTest);
         
         final Account account = new Account(network);
         
@@ -72,31 +73,36 @@ public class CardanoGenerateAccountTool extends DefaultApplicationPlugin {
     protected void storeToForm(Map properties, boolean isTest, final Account account) {
         String formDefId = getPropertyString("formDefId");
         
-        if (formDefId != null && formDefId.trim().length() > 0) {
+        if (formDefId == null || formDefId.isEmpty()) {
+            LogUtil.warn(getClass().getName(), "Unable to store account data to form. Encountered blank form ID.");
+            return;
+        }
 
-            String accountMnemonicField = getPropertyString("accountMnemonicField");
-            String accountOwnerField = getPropertyString("accountOwnerField");
-            String accountOwnerValue = WorkflowUtil.processVariable(getPropertyString("accountOwnerValue"), "", wfAssignment);
-            String isTestAccountField = getPropertyString("isTestAccount");
-            String accountEAddressField = getPropertyString("accountEnterpriseAddress");
-            
-            FormRowSet rowSet = new FormRowSet();
-            
-            FormRow row = new FormRow();
-            
-            //Account base address set as Record ID
-            row.setId(account.baseAddress());
-            
-            //Mnemonic phrase MUST be secured at all times.
-            row = addRow(row, accountMnemonicField, PluginUtil.encrypt(account.mnemonic()));
-            row = addRow(row, accountOwnerField, accountOwnerValue);
-            row = addRow(row, isTestAccountField, String.valueOf(isTest));
-            row = addRow(row, accountEAddressField, account.enterpriseAddress());
+        String accountMnemonicField = getPropertyString("accountMnemonicField");
+        String accountOwnerField = getPropertyString("accountOwnerField");
+        String accountOwnerValue = WorkflowUtil.processVariable(getPropertyString("accountOwnerValue"), "", wfAssignment);
+        String isTestAccountField = getPropertyString("isTestAccount");
+        String accountEAddressField = getPropertyString("accountEnterpriseAddress");
 
-            rowSet.add(row);
+        FormRowSet rowSet = new FormRowSet();
 
-            if (rowSet.size() > 0) {
-                appService.storeFormData(appDef.getId(), appDef.getVersion().toString(), formDefId, rowSet, null);
+        FormRow row = new FormRow();
+
+        //Account base address set as Record ID
+        row.setId(account.baseAddress());
+
+        //Mnemonic phrase MUST be secured at all times.
+        row = addRow(row, accountMnemonicField, PluginUtil.encrypt(account.mnemonic()));
+        row = addRow(row, accountOwnerField, accountOwnerValue);
+        row = addRow(row, isTestAccountField, String.valueOf(isTest));
+        row = addRow(row, accountEAddressField, account.enterpriseAddress());
+
+        rowSet.add(row);
+
+        if (!rowSet.isEmpty()) {
+            FormRowSet storedData = appService.storeFormData(appDef.getId(), appDef.getVersion().toString(), formDefId, rowSet, null);
+            if (storedData == null) {
+                LogUtil.warn(getClass().getName(), "Unable to store account data to form. Encountered invalid form ID of '" + formDefId + "'.");
             }
         }
     }
@@ -115,9 +121,11 @@ public class CardanoGenerateAccountTool extends DefaultApplicationPlugin {
     }
     
     private void storeValuetoActivityVar(String activityId, String variable, String value) {
-        if (!variable.isEmpty()) {
-            workflowManager.activityVariable(activityId, variable, value);
+        if (activityId == null || activityId.isEmpty() || variable.isEmpty() || value == null) {
+            return;
         }
+        
+        workflowManager.activityVariable(activityId, variable, value);
     }
     
     @Override

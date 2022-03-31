@@ -1,0 +1,160 @@
+[
+    {
+       "title":"@@process.cardanoburntokentool.header.config@@",
+       "properties":[
+            {
+                "name":"networkType",
+                "label":"@@cardano.prop.networkType@@",
+                "description":"@@cardano.prop.networkType.tx.desc@@",
+                "type":"selectbox",
+                "options" : [{
+                    "value" : "mainnet",
+                    "label" : "@@cardano.prop.networkType.mainnet@@"
+                },{
+                    "value" : "testnet",
+                    "label" : "@@cardano.prop.networkType.testnet@@"
+                }],
+                "value":"testnet"
+            },
+            {
+                "name":"backendService",
+                "label":"@@cardano.prop.backendService@@",
+                "type":"selectbox",
+                "options" : [
+                    {
+                        "value" : "blockfrost",
+                        "label" : "@@cardano.prop.backendService.blockfrost@@"
+                    },
+                    {
+                        "value" : "dandelion",
+                        "label" : "@@cardano.prop.backendService.dandelion@@"
+                    },
+                    {
+                        "value" : "customGraphQl",
+                        "label" : "@@cardano.prop.backendService.customGraphql@@"
+                    }
+                ],
+                "value":"dandelion"
+            },
+            {
+                "name":"blockfrostProjectKey",
+                "label":"@@cardano.prop.blockfrostProjectKey@@",
+                "description":"@@cardano.prop.blockfrostProjectKey.desc@@",
+                "type":"textfield",
+                "required":"True",
+                "control_field":"backendService",
+                "control_value":"blockfrost",
+                "control_use_regex":"false"
+            },
+            {
+                "name":"graphqlEndpointUrl",
+                "label":"@@cardano.prop.graphqlEndpointUrl@@",
+                "type":"textfield",
+                "required":"True",
+                "control_field":"backendService",
+                "control_value":"customGraphQl",
+                "control_use_regex":"false"
+            }
+        ]
+    },
+    {
+        "title":"@@process.cardanoburntokentool.header.tokenBurningProperties@@",
+        "properties":[
+            {
+                "name":"formDefId",
+                "label":"@@process.cardanoburntokentool.formDefId@@",
+                "type":"selectbox",
+                "required":"True",
+                "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/forms/options"
+            },
+            {
+                "name":"assetId",
+                "label":"@@process.cardanoburntokentool.assetId@@",
+                "description":"@@process.cardanoburntokentool.assetId.desc@@",
+                "type":"textfield",
+                "required":"True"
+            },
+            {
+                "label" : "@@process.cardanoburntokentool.subheader.mintingAccount@@",
+                "type" : "header"
+            },
+            {
+                "name":"senderAddress",
+                "label":"@@process.cardanoburntokentool.senderAddress@@",
+                "description":"@@process.cardanoburntokentool.senderAddress.desc@@",
+                "type":"selectbox",
+                "required":"True",
+                "options_ajax_on_change":"formDefId",
+                "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options"
+            },
+            {
+                "name":"accountMnemonic",
+                "label":"@@process.cardanoburntokentool.accountMnemonic@@",
+                "description":"@@process.cardanoburntokentool.accountMnemonic.desc@@",
+                "type":"textfield",
+                "required":"True"
+            },
+            {
+                "label" : "@@process.cardanoburntokentool.subheader.tokenBurningConfig@@",
+                "type" : "header"
+            },
+            {
+                "name":"policyId",
+                "label":"@@process.cardanoburntokentool.policyId@@",
+                "description":"@@process.cardanoburntokentool.policyId.desc@@",
+                "type":"selectbox",
+                "required":"True",
+                "options_ajax_on_change":"formDefId",
+                "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options"
+            },
+            {
+                "name":"policySigningKey",
+                "label":"@@process.cardanoburntokentool.policySigningKey@@",
+                "description":"@@process.cardanoburntokentool.policySigningKey.desc@@",
+                "type":"selectbox",
+                "required":"True",
+                "options_ajax_on_change":"formDefId",
+                "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options"
+            },
+            {
+                "name":"tokenName",
+                "label":"@@process.cardanoburntokentool.tokenName@@",
+                "description":"@@process.cardanoburntokentool.tokenName.desc@@",
+                "type":"selectbox",
+                "required":"True",
+                "options_ajax_on_change":"formDefId",
+                "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options"
+            },
+            {
+                "name":"amountToBurn",
+                "label":"@@process.cardanoburntokentool.amountToBurn@@",
+                "description":"@@process.cardanoburntokentool.amountToBurn.desc@@",
+                "type":"textfield",
+                "required":"True"
+            }
+        ]
+    },
+    {
+        "title" : "@@cardano.prop.header.storeToWorkflowVariable@@",
+        "properties" : [
+            {
+                "name":"wfTransactionValidated",
+                "label":"@@cardano.prop.wfMapping.wfTransactionValidated@@",
+                "type":"selectbox",
+                "options_ajax" : "[CONTEXT_PATH]/web/json/console/app[APP_PATH]/workflowVariable/options"
+            },
+            {
+                "name":"wfTransactionId",
+                "label":"@@cardano.prop.wfMapping.wfTransactionId@@",
+                "type":"selectbox",
+                "options_ajax" : "[CONTEXT_PATH]/web/json/console/app[APP_PATH]/workflowVariable/options"
+            },
+            {
+                "name":"wfTransactionExplorerUrl",
+                "label":"@@cardano.prop.wfMapping.wfTransactionExplorerUrl@@",
+                "type":"selectbox",
+                "options_ajax" : "[CONTEXT_PATH]/web/json/console/app[APP_PATH]/workflowVariable/options"
+            }
+        ]
+    }
+]
