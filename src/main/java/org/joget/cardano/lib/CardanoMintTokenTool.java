@@ -21,6 +21,7 @@ import com.bloxbean.cardano.client.transaction.model.MintTransaction;
 import com.bloxbean.cardano.client.transaction.model.TransactionDetailsParams;
 import com.bloxbean.cardano.client.transaction.spec.Asset;
 import com.bloxbean.cardano.client.transaction.spec.MultiAsset;
+import com.bloxbean.cardano.client.transaction.spec.Policy;
 import com.bloxbean.cardano.client.transaction.spec.script.ScriptPubkey;
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -130,7 +131,10 @@ public class CardanoMintTokenTool extends DefaultApplicationPlugin {
             SecretKey skey = keys.getSkey();
 
             ScriptPubkey scriptPubkey = ScriptPubkey.create(vkey);
-            String policyId = scriptPubkey.getPolicyId();
+            
+            Policy policy = new Policy(scriptPubkey, Arrays.asList(skey));
+            
+            String policyId = policy.getPolicyId();
             
             MultiAsset multiAsset = new MultiAsset();
             multiAsset.setPolicyId(policyId);
@@ -158,8 +162,7 @@ public class CardanoMintTokenTool extends DefaultApplicationPlugin {
                         .sender(senderAccount)
                         .receiver(senderAccount.baseAddress())
                         .mintAssets(Arrays.asList(multiAsset))
-                        .policyScript(scriptPubkey)
-                        .policyKeys(Arrays.asList(skey))
+                        .policy(policy)
                         .build();
             
             long ttl = TransactionUtil.getTtl(blockService, 2000);
