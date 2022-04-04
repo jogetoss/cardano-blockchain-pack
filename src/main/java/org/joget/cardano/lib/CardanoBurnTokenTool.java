@@ -4,7 +4,6 @@ import com.bloxbean.cardano.client.account.Account;
 import com.bloxbean.cardano.client.api.UtxoSupplier;
 import com.bloxbean.cardano.client.api.exception.ApiException;
 import com.bloxbean.cardano.client.api.helper.FeeCalculationService;
-import com.bloxbean.cardano.client.api.helper.TransactionHelperService;
 import com.bloxbean.cardano.client.api.model.ProtocolParams;
 import com.bloxbean.cardano.client.api.model.Result;
 import com.bloxbean.cardano.client.api.model.Utxo;
@@ -68,11 +67,11 @@ public class CardanoBurnTokenTool extends DefaultApplicationPlugin {
 
     BackendService backendService;
     BlockService blockService;
-    TransactionHelperService transactionHelperService;
     FeeCalculationService feeCalculationService;
     TransactionService transactionService;
     UtxoService utxoService;
     EpochService epochService;
+    
     UtxoSupplier utxoSupplier;
     
     AppService appService;
@@ -84,7 +83,6 @@ public class CardanoBurnTokenTool extends DefaultApplicationPlugin {
         backendService = BackendUtil.getBackendService(getProperties());
         
         blockService = backendService.getBlockService();
-        transactionHelperService = backendService.getTransactionHelperService();
         feeCalculationService = backendService.getFeeCalculationService();
         transactionService = backendService.getTransactionService();
         utxoService = backendService.getUtxoService();
