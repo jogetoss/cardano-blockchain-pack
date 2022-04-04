@@ -30,14 +30,22 @@ import com.bloxbean.cardano.client.metadata.cbor.CBORMetadata;
 import com.bloxbean.cardano.client.metadata.cbor.CBORMetadataMap;
 import com.bloxbean.cardano.client.transaction.model.TransactionDetailsParams;
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
 import org.joget.apps.app.model.AppDefinition;
 import org.joget.apps.app.service.AppService;
+import org.joget.apps.datalist.model.DataListBinder;
+import org.joget.apps.datalist.model.DataListCollection;
+import org.joget.apps.datalist.model.DataListFilterQueryObject;
+import org.joget.apps.datalist.service.DataListService;
 import org.joget.apps.form.model.FormRow;
 import org.joget.apps.form.model.FormRowSet;
 import org.joget.commons.util.PluginThread;
 
 public class CardanoSendTransactionTool extends DefaultApplicationPlugin {
-
+    
+    protected DataListBinder binder = null;
+    
     BackendService backendService;
     BlockService blockService;
     TransactionHelperService transactionHelperService;
@@ -48,6 +56,7 @@ public class CardanoSendTransactionTool extends DefaultApplicationPlugin {
     WorkflowAssignment wfAssignment;
     AppDefinition appDef;
     WorkflowManager workflowManager;
+    DataListService dataListService;
     
     protected void initBackend() {
         backendService = BackendUtil.getBackendService(getProperties());
@@ -65,6 +74,7 @@ public class CardanoSendTransactionTool extends DefaultApplicationPlugin {
         wfAssignment = (WorkflowAssignment) props.get("workflowAssignment");
         appDef = (AppDefinition) props.get("appDef");
         workflowManager = (WorkflowManager) ac.getBean("workflowManager");
+        dataListService = (DataListService) ac.getBean("dataListService");
     }
     
     @Override
@@ -125,21 +135,37 @@ public class CardanoSendTransactionTool extends DefaultApplicationPlugin {
             }
             Metadata metadata = cborMetadata;
             
-            PaymentTransaction paymentTransaction =
-            PaymentTransaction.builder()
-                    .sender(senderAccount)
-                    .receiver(receiverAddress)
-                    .amount(getPaymentAmount(new BigDecimal(amount)))
-                    .unit(getPaymentUnit())
-                    .build();
-            
-            long ttl = TransactionUtil.getTtl(blockService);
+            long ttl = TransactionUtil.getTtl(blockService, 2000);
             TransactionDetailsParams detailsParams = TransactionDetailsParams.builder().ttl(ttl).build();
             
-            final BigInteger fee = feeCalculationService.calculateFee(paymentTransaction, detailsParams, metadata);
-            paymentTransaction.setFee(fee);
+            Result<TransactionResult> transactionResult;
             
-            final Result<TransactionResult> transactionResult = transactionHelperService.transfer(paymentTransaction, detailsParams, metadata);
+            if ("true".equalsIgnoreCase(getPropertyString("multipleReceiverMode"))) { // If enabled multi receiver mode
+                List<PaymentTransaction> paymentList = getPaymentListFromBinderData(senderAccount);
+                
+                if (paymentList == null || paymentList.isEmpty()) {
+                    LogUtil.warn(getClass().getName(), "Transaction aborted. No valid receiver records found from binder.");
+                    return null;
+                }
+                
+                final BigInteger fee = feeCalculationService.calculateFee(paymentList, detailsParams, metadata);
+                paymentList.get(0).setFee(fee);
+                
+                transactionResult = transactionHelperService.transfer(paymentList, detailsParams, metadata);
+            } else { // If not enabled multi receiver mode (single receiver only)
+                PaymentTransaction paymentTransaction =
+                    PaymentTransaction.builder()
+                            .sender(senderAccount)
+                            .receiver(receiverAddress)
+                            .amount(getPaymentAmount(new BigDecimal(amount)))
+                            .unit(getPaymentUnit())
+                            .build();
+                
+                final BigInteger fee = feeCalculationService.calculateFee(paymentTransaction, detailsParams, metadata);
+                paymentTransaction.setFee(fee);
+                
+                transactionResult = transactionHelperService.transfer(paymentTransaction, detailsParams, metadata);
+            }
             
             //Store successful unvalidated txn result first
             storeToWorkflowVariable(wfAssignment.getActivityId(), props, isTest, transactionResult, null);
@@ -173,6 +199,72 @@ public class CardanoSendTransactionTool extends DefaultApplicationPlugin {
             LogUtil.error(getClass().getName(), ex, "Error executing plugin...");
             return null;
         }
+    }
+    
+    protected DataListBinder getBinder() {
+        if (binder == null) {
+            Object binderMap = getProperty("binder");
+            if (binderMap != null && binderMap instanceof Map) {
+                Map bdMap = (Map) binderMap;
+                if (bdMap.containsKey("className") && !bdMap.get("className").toString().isEmpty()) {
+                    binder = dataListService.getBinder(bdMap.get("className").toString());
+                    if (binder != null) {
+                        Map bdProps = (Map) bdMap.get("properties");
+                        binder.setProperties(bdProps);
+                    }
+                }
+            }
+        }
+        
+        return binder;
+    }
+    
+    //Get receiver(s) & their respective amounts to send from user-selected binder
+    protected List<PaymentTransaction> getPaymentListFromBinderData(Account senderAccount) {
+        List<PaymentTransaction> paymentList = new ArrayList<>();
+            
+        try {
+            DataListCollection node = getBinder().getData(null, getBinder().getProperties(), new DataListFilterQueryObject[]{}, null, null, null, null);
+
+            if (node == null || node.isEmpty()) {
+                return null;
+            }
+            
+            // Unit var placed outside of for-loop to avoid redundant calls just to get payment unit
+            String unit = getPaymentUnit();
+            
+            for (Object r : node) {
+                String receiverAddress = (String) DataListService.evaluateColumnValueFromRow(r, getPropertyString("receiverAddressColumn"));
+                String amount = (String) DataListService.evaluateColumnValueFromRow(r, getPropertyString("amountColumn"));
+
+                // Skip row where receiver address or amount is empty
+                if (receiverAddress == null || receiverAddress.isEmpty() || amount == null || amount.isEmpty()) {
+                    continue;
+                }
+                
+                BigInteger amountBgInt = getPaymentAmount(new BigDecimal(amount));
+
+                // Check for illogical transfer amount of less or equal to 0
+                if (amountBgInt.compareTo(BigInteger.ZERO) <= 0) {
+                    LogUtil.info(getClass().getName(), "Skipping receiver address \"" + receiverAddress + "\" with invalid amount of \"" + amount + "\"");
+                    continue;
+                }
+                
+                PaymentTransaction paymentTransaction =
+                    PaymentTransaction.builder()
+                            .sender(senderAccount)
+                            .receiver(receiverAddress)
+                            .amount(amountBgInt)
+                            .unit(unit)
+                            .build();
+
+                paymentList.add(paymentTransaction);
+            }
+        } catch (Exception ex) {
+            LogUtil.error(getClass().getName(), ex, "Unable to retrieve transaction receivers data from binder.");
+        }
+        
+        return paymentList;
     }
     
     protected BigInteger getPaymentAmount(BigDecimal amount) {

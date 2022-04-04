@@ -92,13 +92,37 @@
                 "required":"True"
             },
             {
+                "name" : "multipleReceiverMode",
+                "label" : "@@process.cardanosendtransactiontool.multipleReceiverMode@@",
+                "type" : "checkbox",
+                "options" : [{
+                    "value" : "true",
+                    "label" : ""
+                }],
+                "value" : ""
+            },
+            {
+                "name": "binder",
+                "label": "@@process.cardanosendtransactiontool.binder@@",
+                "type": "elementselect",
+                "required": "True",
+                "options_ajax": "[CONTEXT_PATH]/web/property/json/getElements?classname=org.joget.apps.datalist.model.DataListBinderDefault",
+                "url": "[CONTEXT_PATH]/web/property/json[APP_PATH]/getPropertyOptions",
+                "control_field":"multipleReceiverMode",
+                "control_value":"true",
+                "control_use_regex":"false"
+            },
+            {
                 "name":"receiverAddress",
                 "label":"@@process.cardanosendtransactiontool.receiverAddress@@",
                 "description":"@@process.cardanosendtransactiontool.receiverAddress.desc@@",
                 "type":"selectbox",
                 "required":"True",
                 "options_ajax_on_change":"formDefId",
-                "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options"
+                "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options",
+                "control_field":"multipleReceiverMode",
+                "control_value":"",
+                "control_use_regex":"false"
             },
             {
                 "name":"paymentUnit",
@@ -141,7 +165,14 @@
                 "type":"selectbox",
                 "required":"True",
                 "options_ajax_on_change":"formDefId",
-                "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options"
+                "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options",
+                "control_field":"multipleReceiverMode",
+                "control_value":"",
+                "control_use_regex":"false"
+            },
+            {
+                "label" : "@@process.cardanosendtransactiontool.subheader.additionalMetadata@@",
+                "type" : "header"
             },
             {
                 "name":"metadata",
@@ -153,6 +184,44 @@
                     "options_ajax_on_change":"formDefId",
                     "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options"
                 }]
+            }
+        ]
+    },
+    {
+        "title":"@@process.cardanosendtransactiontool.header.multiReceiverColumnMapping@@",
+        "control_field":"multipleReceiverMode",
+        "control_value":"true",
+        "control_use_regex":"false",
+        "properties":[
+            {
+                "name" : "receiverAddressColumn",
+                "label" : "@@process.cardanosendtransactiontool.receiverAddressColumn@@",
+                "type" : "selectbox",
+                "required":"True",
+                "options_ajax_on_change" : "id:binder.className;binderId:binder.className;binderJson:binder.properties",
+                "options_ajax" : "[CONTEXT_PATH]/web/json/console/app[APP_PATH]/builder/binder/columns",
+                "options_ajax_mapping": {
+                    "arrayObj" : "columns",
+                    "value" : "name",
+                    "label" : "label",
+                    "addEmpty" : "true"
+                },
+                "options_ajax_method": "POST"
+            },
+            {
+                "name" : "amountColumn",
+                "label" : "@@process.cardanosendtransactiontool.amountColumn@@",
+                "type" : "selectbox",
+                "required":"True",
+                "options_ajax_on_change" : "id:binder.className;binderId:binder.className;binderJson:binder.properties",
+                "options_ajax" : "[CONTEXT_PATH]/web/json/console/app[APP_PATH]/builder/binder/columns",
+                "options_ajax_mapping": {
+                    "arrayObj" : "columns",
+                    "value" : "name",
+                    "label" : "label",
+                    "addEmpty" : "true"
+                },
+                "options_ajax_method" : "POST"
             }
         ]
     },

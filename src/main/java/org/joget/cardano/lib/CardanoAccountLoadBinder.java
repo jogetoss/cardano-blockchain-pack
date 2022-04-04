@@ -58,7 +58,7 @@ public class CardanoAccountLoadBinder extends FormBinder implements FormLoadBind
 
             initBackend();
             
-            //Get account data from blockchain          
+            //Get account data from blockchain
             final Result<AddressContent> addressInfoResult = addressService.getAddressInfo(accountAddress);
             if (!addressInfoResult.isSuccessful()) {
                 LogUtil.warn(getClass().getName(), "Unable to retrieve address info. Response returned --> " + addressInfoResult.getResponse());
