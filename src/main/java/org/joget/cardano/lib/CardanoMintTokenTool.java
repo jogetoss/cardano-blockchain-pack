@@ -10,10 +10,7 @@ import com.bloxbean.cardano.client.backend.api.BlockService;
 import com.bloxbean.cardano.client.backend.api.TransactionService;
 import com.bloxbean.cardano.client.backend.model.TransactionContent;
 import com.bloxbean.cardano.client.common.model.Network;
-import com.bloxbean.cardano.client.crypto.KeyGenUtil;
-import com.bloxbean.cardano.client.crypto.Keys;
 import com.bloxbean.cardano.client.crypto.SecretKey;
-import com.bloxbean.cardano.client.crypto.VerificationKey;
 import com.bloxbean.cardano.client.metadata.Metadata;
 import com.bloxbean.cardano.client.metadata.cbor.CBORMetadata;
 import com.bloxbean.cardano.client.metadata.cbor.CBORMetadataMap;
@@ -22,9 +19,10 @@ import com.bloxbean.cardano.client.transaction.model.TransactionDetailsParams;
 import com.bloxbean.cardano.client.transaction.spec.Asset;
 import com.bloxbean.cardano.client.transaction.spec.MultiAsset;
 import com.bloxbean.cardano.client.transaction.spec.Policy;
-import com.bloxbean.cardano.client.transaction.spec.script.ScriptPubkey;
+import com.bloxbean.cardano.client.util.PolicyUtil;
 import java.math.BigInteger;
 import java.util.Arrays;
+import java.util.List;
 import org.joget.cardano.service.PluginUtil;
 import org.joget.cardano.service.BackendUtil;
 import org.joget.cardano.service.TransactionUtil;
@@ -126,15 +124,13 @@ public class CardanoMintTokenTool extends DefaultApplicationPlugin {
             final String amountToMint = row.getProperty(getPropertyString("amountToMint"));
             
             /* Mint logic starts here */
-            Keys keys = KeyGenUtil.generateKey();
-            VerificationKey vkey = keys.getVkey();
-            SecretKey skey = keys.getSkey();
-
-            ScriptPubkey scriptPubkey = ScriptPubkey.create(vkey);
+            //Perhaps support multisig policy signing in future? 1 signer for now.
+            Policy policy = PolicyUtil.createMultiSigScriptAllPolicy("", 1);
+            final String policyId = policy.getPolicyId();
+            final List<SecretKey> skeys = policy.getPolicyKeys();
             
-            Policy policy = new Policy(scriptPubkey, Arrays.asList(skey));
-            
-            String policyId = policy.getPolicyId();
+            //Perhaps allow fully-customizable policy name?
+            policy.setName("mintPolicy-" + policyId.substring(0, 6) + "-" + tokenName);
             
             MultiAsset multiAsset = new MultiAsset();
             multiAsset.setPolicyId(policyId);
@@ -192,7 +188,7 @@ public class CardanoMintTokenTool extends DefaultApplicationPlugin {
                 
                 if (validatedTransactionResult != null) {                    
                     //Store minting policy data to form
-                    storeToForm(senderAccount, policyId, skey, tokenName, isTest);
+                    storeToForm(senderAccount, policyId, skeys, tokenName, isTest);
                      
                     //Store validated/confirmed txn result for current activity instance
                     storeToWorkflowVariable(wfAssignment.getActivityId(), props, isTest, transactionResult, validatedTransactionResult);
@@ -210,7 +206,7 @@ public class CardanoMintTokenTool extends DefaultApplicationPlugin {
         }
     }
     
-    protected void storeToForm(Account minter, String policyId, SecretKey skey, String tokenName, boolean isTest) {
+    protected void storeToForm(Account minter, String policyId, List<SecretKey> skeys, String tokenName, boolean isTest) {
         String formDefId = getPropertyString("formDefIdStoreMintData");
         
         if (formDefId == null || formDefId.isEmpty()) {
@@ -218,6 +214,9 @@ public class CardanoMintTokenTool extends DefaultApplicationPlugin {
             return;
         }
 
+        // Combine all secret key(s) into string delimited by semicolon for storage (e.g.: skey1;skey2;skey3)
+        String skeyListAsCborHex = TransactionUtil.getSecretKeysAsCborHexStringList(skeys);
+        
         String minterAccountField = getPropertyString("minterAccountField");
         String policyIdField = getPropertyString("policyIdField");
         String policySecretKeyField = getPropertyString("policySecretKeyField");
@@ -233,7 +232,7 @@ public class CardanoMintTokenTool extends DefaultApplicationPlugin {
 
         row = addRow(row, minterAccountField, minter.baseAddress());
         row = addRow(row, policyIdField, policyId);
-        row = addRow(row, policySecretKeyField, PluginUtil.encrypt(skey.getCborHex()));
+        row = addRow(row, policySecretKeyField, PluginUtil.encrypt(skeyListAsCborHex));
         row = addRow(row, tokenNameField, tokenName);
         row = addRow(row, isTestnetField, String.valueOf(isTest));
 

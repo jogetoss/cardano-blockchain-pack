@@ -33,6 +33,7 @@ import com.bloxbean.cardano.client.transaction.spec.TransactionInput;
 import com.bloxbean.cardano.client.transaction.spec.TransactionOutput;
 import com.bloxbean.cardano.client.transaction.spec.TransactionWitnessSet;
 import com.bloxbean.cardano.client.transaction.spec.Value;
+import com.bloxbean.cardano.client.transaction.spec.script.ScriptAll;
 import com.bloxbean.cardano.client.transaction.spec.script.ScriptPubkey;
 import com.bloxbean.cardano.client.util.AssetUtil;
 import com.bloxbean.cardano.client.util.HexUtil;
@@ -169,9 +170,12 @@ public class CardanoBurnTokenTool extends DefaultApplicationPlugin {
             
             initBackend();
             
-            final SecretKey secretKey = new SecretKey(policySigningKey);
-            final VerificationKey vkey = KeyGenUtil.getPublicKeyFromPrivateKey(secretKey);
-            final ScriptPubkey scriptPubkey = ScriptPubkey.create(vkey);
+            final List<SecretKey> skeys = TransactionUtil.getSecretKeysStringAsList(policySigningKey);
+            ScriptAll scriptAll = new ScriptAll();
+            for (SecretKey skey : skeys) {
+                VerificationKey vkey = KeyGenUtil.getPublicKeyFromPrivateKey(skey);
+                scriptAll.addScript(ScriptPubkey.create(vkey));
+            }
             
             /* Burn logic starts here */
             MultiAsset multiAsset = new MultiAsset();
@@ -233,7 +237,7 @@ public class CardanoBurnTokenTool extends DefaultApplicationPlugin {
 
             //Add script witness
             TransactionWitnessSet transactionWitnessSet = TransactionWitnessSet.builder()
-                    .nativeScripts(Arrays.asList(scriptPubkey))
+                    .nativeScripts(Arrays.asList(scriptAll))
                     .build();
 
             Transaction transaction = Transaction.builder()
@@ -241,9 +245,9 @@ public class CardanoBurnTokenTool extends DefaultApplicationPlugin {
                     .witnessSet(transactionWitnessSet)
                     .build();
 
-            calculateEstimatedFeeAndMinAdaRequirementAndUpdateTxnOutput(senderAccount, secretKey, utxoSelectionStrategy, utxos, transaction);
+            calculateEstimatedFeeAndMinAdaRequirementAndUpdateTxnOutput(senderAccount, skeys, utxoSelectionStrategy, utxos, transaction);
 
-            byte[] signedCBorBytes = signTransactionWithSenderAndSecretKey(senderAccount, secretKey, transaction).serialize();
+            byte[] signedCBorBytes = signTransactionWithSenderAndSecretKey(senderAccount, skeys, transaction).serialize();
 
             final Result<String> transactionResult = transactionService.submitTransaction(signedCBorBytes);
 
@@ -281,14 +285,14 @@ public class CardanoBurnTokenTool extends DefaultApplicationPlugin {
         }
     }
     
-    private void calculateEstimatedFeeAndMinAdaRequirementAndUpdateTxnOutput(Account minter, SecretKey skey, UtxoSelectionStrategy utxoSelectionStrategy,
+    private void calculateEstimatedFeeAndMinAdaRequirementAndUpdateTxnOutput(Account minter, List<SecretKey> skeys, UtxoSelectionStrategy utxoSelectionStrategy,
                                                                              List<Utxo> utxos, Transaction transaction) 
             throws ApiException, CborSerializationException, CborDeserializationException {
         List<TransactionInput> inputs = transaction.getBody().getInputs();
         TransactionOutput transactionOutput = transaction.getBody().getOutputs().get(0);
 
         //Calculate fee with signed transaction
-        BigInteger estimatedFee = feeCalculationService.calculateFee(signTransactionWithSenderAndSecretKey(minter, skey, transaction));
+        BigInteger estimatedFee = feeCalculationService.calculateFee(signTransactionWithSenderAndSecretKey(minter, skeys, transaction));
 
         //Check if min-ada is there in transaction output. If not, get some additional utxos
         ProtocolParams protocolParams = epochService.getProtocolParameters().getValue();
@@ -316,7 +320,7 @@ public class CardanoBurnTokenTool extends DefaultApplicationPlugin {
                 utxosToExclude.addAll(additionalUtxos);
 
                 //Calculate fee again as new utxos were added
-                estimatedFee = feeCalculationService.calculateFee(signTransactionWithSenderAndSecretKey(minter, skey, transaction));
+                estimatedFee = feeCalculationService.calculateFee(signTransactionWithSenderAndSecretKey(minter, skeys, transaction));
             }
             minAda = minAdaCalculator.calculateMinAda(transactionOutput);
         }
@@ -327,13 +331,15 @@ public class CardanoBurnTokenTool extends DefaultApplicationPlugin {
     }
 
     
-    private Transaction signTransactionWithSenderAndSecretKey(Account minter, SecretKey skey, Transaction transaction)
+    private Transaction signTransactionWithSenderAndSecretKey(Account minter, List<SecretKey> skeys, Transaction transaction)
             throws CborSerializationException, CborDeserializationException {
         //sign with minter account
         Transaction signTxn = minter.sign(transaction);
 
         //sign with secret key
-        signTxn = TransactionSigner.INSTANCE.sign(signTxn, skey);
+        for (SecretKey skey : skeys) {
+            signTxn = TransactionSigner.INSTANCE.sign(signTxn, skey);
+        }
 
         return signTxn;
     }

@@ -6,6 +6,7 @@ import com.bloxbean.cardano.client.api.model.Result;
 import com.bloxbean.cardano.client.backend.api.BlockService;
 import com.bloxbean.cardano.client.backend.api.TransactionService;
 import com.bloxbean.cardano.client.backend.model.TransactionContent;
+import com.bloxbean.cardano.client.crypto.SecretKey;
 import com.bloxbean.cardano.client.metadata.cbor.CBORMetadataMap;
 import com.bloxbean.cardano.client.util.HexUtil;
 import java.io.FileInputStream;
@@ -14,8 +15,11 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.joget.apps.form.model.FormRow;
 
@@ -45,6 +49,30 @@ public class TransactionUtil {
 
         String transactionUrl = isTest ? TESTNET_TX_EXPLORER_URL : MAINNET_TX_EXPLORER_URL;
         return transactionUrl += "?id=" + transactionId;
+    }
+    
+    // Combine all secret key(s) into string delimited by semicolon (e.g.: skey1;skey2;skey3)
+    public static String getSecretKeysAsCborHexStringList(List<SecretKey> skeys) {
+        if (skeys == null || skeys.isEmpty()) {
+            return null;
+        }
+        
+        return skeys.stream().map(skey -> skey.getCborHex())
+				.collect(Collectors.joining(";"));
+    }
+    
+    public static List<SecretKey> getSecretKeysStringAsList(String skeysStringList) {
+        if (skeysStringList == null || skeysStringList.trim().isEmpty()) {
+            return null;
+        }
+        
+        List<SecretKey> skeys = new ArrayList<>();
+        
+        for (String skey : skeysStringList.split(";")) {
+            skeys.add(new SecretKey(skey.trim()));
+        }
+        
+        return skeys;
     }
     
     public static CBORMetadataMap generateMetadataMapFromFormData(Object[] metadataFields, FormRow row) {
