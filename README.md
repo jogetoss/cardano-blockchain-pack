@@ -8,6 +8,38 @@ Do see [documentation and sample app](https://dev.joget.org/community/display/ma
 
 Credits: [https://github.com/bloxbean/cardano-client-lib](https://github.com/bloxbean/cardano-client-lib)
 
+# Changelog
+
+## Q2 2022 (In Progress)
+#### Added
+- Added additional fallbacks for Dandelion GraphQL endpoints
+- Added new Process Tool plugin - Cardano Mint Token Tool
+- Added new Process Tool plugin - Cardano Burn Token Tool
+- Added support for Koios backend
+
+#### Updates & Fixes
+- Major codebase restructuring & refactoring
+- Cardano Send Transaction Tool - Support native token transfers
+- Cardano Send Transaction Tool - Fixed missing asset name for native token transfers
+- Cardano Mint Token Tool - Added store minting policy to form function
+- Cardano Send Transaction Tool - Added support for multiple receivers (e.g.: airdropping tokens)
+
+## Q4 2021 & Q1 2022
+#### Initial commit of this plugin pack, which includes:
+- Cardano Send Transaction Tool
+- Cardano Generate Account Tool
+- Cardano Account Load Binder
+
+#### Added
+- Added new Form Load Binder plugin - Cardano Metadata Load Binder
+- Added support for GraphQL APIs, Backend service now defaults on Dandelion GraphQL APIs
+- Added support for Joget running as multi-tenant
+
+#### Updates & Fixes
+- Cardano Send Transaction Tool - Added more helpful error message upon transaction failure
+- Cardano Send Transaction Tool - Added store transaction ID to workflow variable
+- Updated cardano lib for Address Utxo API change fix
+
 # Getting Help
 
 JogetOSS is a community-led team for open source software related to the [Joget](https://www.joget.org) no-code/low-code application platform.
