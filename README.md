@@ -12,19 +12,27 @@ Credits: [https://github.com/bloxbean/cardano-client-lib](https://github.com/blo
 
 ## Q2 2022 (In Progress)
 #### Added
-- Added additional fallbacks for Dandelion GraphQL endpoints
-- Added new Process Tool plugin - Cardano Mint Token Tool
-- Added new Process Tool plugin - Cardano Burn Token Tool
 - Added support for Koios backend
+- Adapt code changes to updated cardano library
 
 #### Updates & Fixes
-- Major codebase restructuring & refactoring
-- Cardano Send Transaction Tool - Support native token transfers
-- Cardano Send Transaction Tool - Fixed missing asset name for native token transfers
-- Cardano Mint Token Tool - Added store minting policy to form function
 - Cardano Send Transaction Tool - Added support for multiple receivers (e.g.: airdropping tokens)
 
-## Q4 2021 & Q1 2022
+## Q1 2022
+#### Added
+- Added support for GraphQL APIs, Backend service now defaults on Dandelion GraphQL APIs
+- Added support for Joget running as multi-tenant
+- Added new Process Tool plugin - Cardano Mint Token Tool
+- Added additional fallbacks for Dandelion GraphQL endpoints
+- Added new Process Tool plugin - Cardano Burn Token Tool
+
+#### Updates & Fixes
+- Cardano Send Transaction Tool - Support native token transfers
+- Major codebase restructuring & refactoring
+- Cardano Send Transaction Tool - Fixed missing asset name for native token transfers
+- Cardano Mint Token Tool - Added store minting policy to form function
+
+## Q4 2021
 #### Initial commit of this plugin pack, which includes:
 - Cardano Send Transaction Tool
 - Cardano Generate Account Tool
@@ -32,8 +40,6 @@ Credits: [https://github.com/bloxbean/cardano-client-lib](https://github.com/blo
 
 #### Added
 - Added new Form Load Binder plugin - Cardano Metadata Load Binder
-- Added support for GraphQL APIs, Backend service now defaults on Dandelion GraphQL APIs
-- Added support for Joget running as multi-tenant
 
 #### Updates & Fixes
 - Cardano Send Transaction Tool - Added more helpful error message upon transaction failure
