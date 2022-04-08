@@ -9,6 +9,9 @@ import com.bloxbean.cardano.client.backend.api.BackendService;
 import com.bloxbean.cardano.client.backend.api.BlockService;
 import com.bloxbean.cardano.client.backend.api.TransactionService;
 import com.bloxbean.cardano.client.backend.model.TransactionContent;
+import com.bloxbean.cardano.client.cip.cip25.NFT;
+import com.bloxbean.cardano.client.cip.cip25.NFTFile;
+import com.bloxbean.cardano.client.cip.cip25.NFTMetadata;
 import com.bloxbean.cardano.client.common.model.Network;
 import com.bloxbean.cardano.client.crypto.SecretKey;
 import com.bloxbean.cardano.client.metadata.Metadata;
@@ -83,7 +86,7 @@ public class CardanoMintTokenTool extends DefaultApplicationPlugin {
 
     @Override
     public String getDescription() {
-        return "Mint native tokens on the Cardano blockchain.";
+        return "Mint native tokens and NFTs on the Cardano blockchain.";
     }
 
     @Override
@@ -119,40 +122,73 @@ public class CardanoMintTokenTool extends DefaultApplicationPlugin {
             
             initBackend();
             
-            final String tokenName = row.getProperty(getPropertyString("tokenName"));
-            final String tokenSymbol = row.getProperty(getPropertyString("tokenSymbol"));
-            final String amountToMint = row.getProperty(getPropertyString("amountToMint"));
-            
-            /* Mint logic starts here */
             //Perhaps support multisig policy signing in future? 1 signer for now.
             Policy policy = PolicyUtil.createMultiSigScriptAllPolicy("", 1);
             final String policyId = policy.getPolicyId();
             final List<SecretKey> skeys = policy.getPolicyKeys();
             
-            //Perhaps allow fully-customizable policy name?
-            policy.setName("mintPolicy-" + policyId.substring(0, 6) + "-" + tokenName);
-            
             MultiAsset multiAsset = new MultiAsset();
             multiAsset.setPolicyId(policyId);
-            Asset asset = new Asset(tokenName, new BigInteger(amountToMint));
-            multiAsset.getAssets().add(asset);
             
-            //Put token name and symbol into metadata
-            CBORMetadataMap tokenInfoMap
-                    = new CBORMetadataMap()
-                    .put("token", tokenName)
-                    .put("symbol", tokenSymbol);
+            Asset asset;
+            
+            Metadata metadata;
+            
+            /* Mint logic starts here */
+            if ("nft".equalsIgnoreCase(getPropertyString("mintType"))) { //For minting NFT
+                //Perhaps consider creating new File Upload form element plugin to support IPFS read/write...
+                final String nftName = row.getProperty(getPropertyString("nftName"));
+                final String nftDescription = row.getProperty(getPropertyString("nftDescription"));
+                final String nftFileName = row.getProperty(getPropertyString("nftFileName"));
+                final String nftFileType = getPropertyString("nftFileType"); // Check for other common supported mime types
+                final String ipfsCid = row.getProperty(getPropertyString("ipfsCid")); // Typically looks like --> Qmcv6hwtmdVumrNeb42R1KmCEWdYWGcqNgs17Y3hj6CkP4
+                
+                asset = new Asset(nftName, BigInteger.ONE);
+                
+                NFT nft = NFT.create()
+                    .assetName(nftName)
+                    .name(nftName)
+                    .description(nftDescription)
+                    .image("ipfs://" + ipfsCid)
+                    .mediaType(nftFileType)
+                    .addFile(NFTFile.create()
+                            .name(nftFileName)
+                            .mediaType(nftFileType)
+                            .src("ipfs/" + ipfsCid));
+            
+                // See https://cips.cardano.org/cips/cip25/
+                NFTMetadata nftMetadata = NFTMetadata.create()
+                        .addNFT(policyId, nft);
+                
+                metadata = nftMetadata;
+            } else { // For minting native tokens
+                final String tokenName = row.getProperty(getPropertyString("tokenName"));
+                final String tokenSymbol = row.getProperty(getPropertyString("tokenSymbol"));
+                final String amountToMint = row.getProperty(getPropertyString("amountToMint"));
+                
+                asset = new Asset(tokenName, new BigInteger(amountToMint));
+                
+                CBORMetadata cborMetadata = new CBORMetadata();
+                
+                //Put token name and symbol into metadata
+                CBORMetadataMap tokenInfoMap
+                        = new CBORMetadataMap()
+                        .put("token", tokenName)
+                        .put("symbol", tokenSymbol);
+                cborMetadata.put(BigInteger.ZERO, tokenInfoMap);
 
-            CBORMetadata cborMetadata = new CBORMetadata()
-                    .put(BigInteger.ZERO, tokenInfoMap);
-            
-            CBORMetadataMap formDataMetadata = TransactionUtil.generateMetadataMapFromFormData((Object[]) props.get("metadata"), row);
-            if (formDataMetadata != null) {
-                cborMetadata.put(BigInteger.ONE, formDataMetadata);
+                CBORMetadataMap formDataMetadata = TransactionUtil.generateMetadataMapFromFormData((Object[]) props.get("metadata"), row);
+                if (formDataMetadata != null) {
+                    cborMetadata.put(BigInteger.ONE, formDataMetadata);
+                }
+                
+                metadata = cborMetadata;
             }
             
-            Metadata metadata = cborMetadata;
-        
+            policy.setName(TransactionUtil.getFormattedPolicyName(policyId, asset.getName()));
+            
+            multiAsset.getAssets().add(asset);
+            
             MintTransaction mintTransaction =
                 MintTransaction.builder()
                         .sender(senderAccount)
@@ -188,7 +224,7 @@ public class CardanoMintTokenTool extends DefaultApplicationPlugin {
                 
                 if (validatedTransactionResult != null) {                    
                     //Store minting policy data to form
-                    storeToForm(senderAccount, policyId, skeys, tokenName, isTest);
+                    storeToForm(senderAccount, policyId, skeys, asset.getName(), isTest);
                      
                     //Store validated/confirmed txn result for current activity instance
                     storeToWorkflowVariable(wfAssignment.getActivityId(), props, isTest, transactionResult, validatedTransactionResult);
@@ -263,7 +299,7 @@ public class CardanoMintTokenTool extends DefaultApplicationPlugin {
         String transactionValidatedVar = getPropertyString("wfTransactionValidated");
         String transactionIdVar = getPropertyString("wfTransactionId");
         String transactionUrlVar = getPropertyString("wfTransactionExplorerUrl");
-
+        
         storeValuetoActivityVar(
                 activityId, 
                 transactionValidatedVar, 

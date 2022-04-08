@@ -42,6 +42,11 @@ public class TransactionUtil {
         return policyId + HexUtil.encodeHexString(assetName.getBytes(StandardCharsets.UTF_8));
     }
     
+    //Perhaps allow fully-customizable policy name?
+    public static String getFormattedPolicyName(String policyId, String assetName) {
+        return "mintPolicy-" + policyId.substring(0, 6) + "-" + assetName;
+    }
+    
     public static String getTransactionExplorerUrl(boolean isTest, String transactionId) {
         if (transactionId == null || transactionId.isEmpty()) {
             return null;

@@ -62,7 +62,7 @@
         ]
     },
     {
-        "title":"@@process.cardanominttokentool.header.nativeTokenProperties@@",
+        "title":"@@process.cardanominttokentool.header.tokenProperties@@",
         "properties":[
             {
                 "name":"formDefId",
@@ -96,13 +96,29 @@
                 "type" : "header"
             },
             {
+                "name":"mintType",
+                "label":"@@process.cardanominttokentool.mintType@@",
+                "type":"selectbox",
+                "options" : [{
+                    "value" : "nativeToken",
+                    "label" : "@@process.cardanominttokentool.mintType.nativeToken@@"
+                },{
+                    "value" : "nft",
+                    "label" : "@@process.cardanominttokentool.mintType.nft@@"
+                }],
+                "value":"nativeToken"
+            },
+            {
                 "name":"tokenName",
                 "label":"@@process.cardanominttokentool.tokenName@@",
                 "description":"@@process.cardanominttokentool.tokenName.desc@@",
                 "type":"selectbox",
                 "required":"True",
                 "options_ajax_on_change":"formDefId",
-                "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options"
+                "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options",
+                "control_field":"mintType",
+                "control_value":"nativeToken",
+                "control_use_regex":"false"
             },
             {
                 "name":"tokenSymbol",
@@ -111,7 +127,10 @@
                 "type":"selectbox",
                 "required":"True",
                 "options_ajax_on_change":"formDefId",
-                "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options"
+                "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options",
+                "control_field":"mintType",
+                "control_value":"nativeToken",
+                "control_use_regex":"false"
             },
             {
                 "name":"amountToMint",
@@ -120,11 +139,17 @@
                 "type":"selectbox",
                 "required":"True",
                 "options_ajax_on_change":"formDefId",
-                "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options"
+                "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options",
+                "control_field":"mintType",
+                "control_value":"nativeToken",
+                "control_use_regex":"false"
             },
             {
                 "label" : "@@process.cardanominttokentool.subheader.additionalMetadata@@",
-                "type" : "header"
+                "type" : "header",
+                "control_field":"mintType",
+                "control_value":"nativeToken",
+                "control_use_regex":"false"
             },
             {
                 "name":"metadata",
@@ -135,7 +160,81 @@
                     "label":"@@process.cardanominttokentool.metadata.fieldId@@",
                     "options_ajax_on_change":"formDefId",
                     "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options"
-                }]
+                }],
+                "control_field":"mintType",
+                "control_value":"nativeToken",
+                "control_use_regex":"false"
+            },
+            {
+                "name":"nftName",
+                "label":"@@process.cardanominttokentool.nftName@@",
+                "description":"@@process.cardanominttokentool.nftName.desc@@",
+                "type":"selectbox",
+                "required":"True",
+                "options_ajax_on_change":"formDefId",
+                "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options",
+                "control_field":"mintType",
+                "control_value":"nft",
+                "control_use_regex":"false"
+            },
+            {
+                "name":"nftDescription",
+                "label":"@@process.cardanominttokentool.nftDescription@@",
+                "description":"@@process.cardanominttokentool.nftDescription.desc@@",
+                "type":"selectbox",
+                "required":"True",
+                "options_ajax_on_change":"formDefId",
+                "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options",
+                "control_field":"mintType",
+                "control_value":"nft",
+                "control_use_regex":"false"
+            },
+            {
+                "name":"nftFileName",
+                "label":"@@process.cardanominttokentool.nftFileName@@",
+                "description":"@@process.cardanominttokentool.nftFileName.desc@@",
+                "type":"selectbox",
+                "required":"True",
+                "options_ajax_on_change":"formDefId",
+                "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options",
+                "control_field":"mintType",
+                "control_value":"nft",
+                "control_use_regex":"false"
+            },
+            {
+                "name":"nftFileType",
+                "label":"@@process.cardanominttokentool.nftFileType@@",
+                "type":"selectbox",
+                "options" : [
+                    {
+                        "value" : "image/png",
+                        "label" : "@@process.cardanominttokentool.nftFileType.imagePng@@"
+                    },
+                    {
+                        "value" : "image/jpeg",
+                        "label" : "@@process.cardanominttokentool.nftFileType.imageJpeg@@"
+                    },
+                    {
+                        "value" : "image/svg+xml",
+                        "label" : "@@process.cardanominttokentool.nftFileType.imageSvgXml@@"
+                    }
+                ],
+                "value":"testnet",
+                "control_field":"mintType",
+                "control_value":"nft",
+                "control_use_regex":"false"
+            },
+            {
+                "name":"ipfsCid",
+                "label":"@@process.cardanominttokentool.ipfsCid@@",
+                "description":"@@process.cardanominttokentool.ipfsCid.desc@@",
+                "type":"selectbox",
+                "required":"True",
+                "options_ajax_on_change":"formDefId",
+                "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options",
+                "control_field":"mintType",
+                "control_value":"nft",
+                "control_use_regex":"false"
             }
         ]
     },
