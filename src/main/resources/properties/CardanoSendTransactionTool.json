@@ -26,8 +26,8 @@
                         "label":"@@cardano.prop.backendService.blockfrost@@"
                     },
                     {
-                        "value" : "koios",
-                        "label" : "@@cardano.prop.backendService.koios@@"
+                        "value":"koios",
+                        "label":"@@cardano.prop.backendService.koios@@"
                     },
                     {
                         "value":"dandelion",
@@ -62,7 +62,7 @@
         ]
     },
     {
-        "title":"@@process.cardanosendtransactiontool.header.transactionDetails@@",
+        "title":"@@process.cardanosendtransactiontool.header.transactionProperties@@",
         "properties":[
             {
                 "name":"formDefId",
@@ -72,7 +72,51 @@
                 "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/forms/options"
             },
             {
-                "label" : "@@process.cardanosendtransactiontool.subheader.fieldMapping@@",
+                "label" : "@@process.cardanosendtransactiontool.subheader.assetConfig@@",
+                "type" : "header"
+            },
+            {
+                "name":"paymentUnit",
+                "label":"@@process.cardanosendtransactiontool.paymentUnit@@",
+                "type":"selectbox",
+                "options" : [
+                    {
+                        "value" : "lovelace",
+                        "label" : "@@process.cardanosendtransactiontool.paymentUnit.lovelace@@"
+                    },
+                    {
+                        "value" : "nativeTokens",
+                        "label" : "@@process.cardanosendtransactiontool.paymentUnit.nativeTokens@@"
+                    },
+                    {
+                        "value" : "nft",
+                        "label" : "@@process.cardanosendtransactiontool.paymentUnit.nft@@"
+                    }
+                ],
+                "value":"lovelace"
+            },
+            {
+                "name":"policyId",
+                "label":"@@process.cardanosendtransactiontool.policyId@@",
+                "description":"@@process.cardanosendtransactiontool.policyId.desc@@",
+                "type":"textfield",
+                "required":"True",
+                "control_field":"paymentUnit",
+                "control_value":"nativeTokens|nft",
+                "control_use_regex":"true"
+            },
+            {
+                "name":"assetName",
+                "label":"@@process.cardanosendtransactiontool.assetName@@",
+                "description":"@@process.cardanosendtransactiontool.assetName.desc@@",
+                "type":"textfield",
+                "required":"True",
+                "control_field":"paymentUnit",
+                "control_value":"nativeTokens|nft",
+                "control_use_regex":"true"
+            },
+            {
+                "label" : "@@process.cardanosendtransactiontool.subheader.paymentConfig@@",
                 "type" : "header"
             },
             {
@@ -99,7 +143,10 @@
                     "value" : "true",
                     "label" : ""
                 }],
-                "value" : ""
+                "value" : "",
+                "control_field":"paymentUnit",
+                "control_value":"lovelace|nativeTokens",
+                "control_use_regex":"true"
             },
             {
                 "name": "binder",
@@ -113,6 +160,18 @@
                 "control_use_regex":"false"
             },
             {
+                "name":"nftReceiverAddress",
+                "label":"@@process.cardanosendtransactiontool.receiverAddress@@",
+                "description":"@@process.cardanosendtransactiontool.receiverAddress.desc@@",
+                "type":"selectbox",
+                "required":"True",
+                "options_ajax_on_change":"formDefId",
+                "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options",
+                "control_field":"paymentUnit",
+                "control_value":"nft",
+                "control_use_regex":"false"
+            },
+            {
                 "name":"receiverAddress",
                 "label":"@@process.cardanosendtransactiontool.receiverAddress@@",
                 "description":"@@process.cardanosendtransactiontool.receiverAddress.desc@@",
@@ -122,40 +181,6 @@
                 "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options",
                 "control_field":"multipleReceiverMode",
                 "control_value":"",
-                "control_use_regex":"false"
-            },
-            {
-                "name":"paymentUnit",
-                "label":"@@process.cardanosendtransactiontool.paymentUnit@@",
-                "description":"@@process.cardanosendtransactiontool.paymentUnit.desc@@",
-                "type":"selectbox",
-                "options" : [{
-                    "value" : "lovelace",
-                    "label" : "@@process.cardanosendtransactiontool.paymentUnit.lovelace@@"
-                },{
-                    "value" : "nativeTokens",
-                    "label" : "@@process.cardanosendtransactiontool.paymentUnit.nativeTokens@@"
-                }],
-                "value":"lovelace"
-            },
-            {
-                "name":"policyId",
-                "label":"@@process.cardanosendtransactiontool.policyId@@",
-                "description":"@@process.cardanosendtransactiontool.policyId.desc@@",
-                "type":"textfield",
-                "required":"True",
-                "control_field":"paymentUnit",
-                "control_value":"nativeTokens",
-                "control_use_regex":"false"
-            },
-            {
-                "name":"assetName",
-                "label":"@@process.cardanosendtransactiontool.assetName@@",
-                "description":"@@process.cardanosendtransactiontool.assetName.desc@@",
-                "type":"textfield",
-                "required":"True",
-                "control_field":"paymentUnit",
-                "control_value":"nativeTokens",
                 "control_use_regex":"false"
             },
             {

@@ -52,8 +52,7 @@ public class CardanoGenerateAccountTool extends DefaultApplicationPlugin {
     public Object execute(Map props) {
         initUtils(props);
         
-        String networkType = getPropertyString("networkType");
-        boolean isTest = "testnet".equalsIgnoreCase(networkType);
+        boolean isTest = BackendUtil.isTestnet(props);
         
         Network network = BackendUtil.getNetwork(isTest);
         

@@ -143,7 +143,7 @@ public class CardanoBurnTokenTool extends DefaultApplicationPlugin {
         final String accountMnemonic = PluginUtil.decrypt(WorkflowUtil.processVariable(getPropertyString("accountMnemonic"), "", wfAssignment));
         
         try {
-            final boolean isTest = "testnet".equalsIgnoreCase(getPropertyString("networkType"));
+            final boolean isTest = BackendUtil.isTestnet(props);
             
             final Network network = BackendUtil.getNetwork(isTest);
             

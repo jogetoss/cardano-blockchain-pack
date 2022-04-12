@@ -21,9 +21,14 @@ public class BackendUtil {
     public static final String TESTNET_DANDELION_BACKEND = "https://graphql-api.testnet.dandelion.link/";
     public static final String MAINNET_DANDELION_BACKEND = "https://graphql-api.mainnet.dandelion.link/";
     
-    public static BackendService getBackendService(Map properties) {
+    public static boolean isTestnet(Map properties) {
         String networkType = (String) properties.get("networkType");
-        boolean isTest = "testnet".equalsIgnoreCase(networkType);
+        
+        return "testnet".equalsIgnoreCase(networkType);
+    }
+    
+    public static BackendService getBackendService(Map properties) {
+        boolean isTest = isTestnet(properties);
         
         String backendServiceName = (String) properties.get("backendService");
         String blockfrostProjectKey = (String) properties.get("blockfrostProjectKey");

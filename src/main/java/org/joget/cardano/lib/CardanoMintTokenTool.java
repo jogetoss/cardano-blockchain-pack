@@ -109,7 +109,7 @@ public class CardanoMintTokenTool extends DefaultApplicationPlugin {
         final String accountMnemonic = PluginUtil.decrypt(WorkflowUtil.processVariable(getPropertyString("accountMnemonic"), "", wfAssignment));
         
         try {
-            final boolean isTest = "testnet".equalsIgnoreCase(getPropertyString("networkType"));
+            final boolean isTest = BackendUtil.isTestnet(props);
             
             final Network network = BackendUtil.getNetwork(isTest);
             
@@ -177,6 +177,7 @@ public class CardanoMintTokenTool extends DefaultApplicationPlugin {
                         .put("symbol", tokenSymbol);
                 cborMetadata.put(BigInteger.ZERO, tokenInfoMap);
 
+                // Need check compliance with cip20 --> https://cips.cardano.org/cips/cip20/
                 CBORMetadataMap formDataMetadata = TransactionUtil.generateMetadataMapFromFormData((Object[]) props.get("metadata"), row);
                 if (formDataMetadata != null) {
                     cborMetadata.put(BigInteger.ONE, formDataMetadata);

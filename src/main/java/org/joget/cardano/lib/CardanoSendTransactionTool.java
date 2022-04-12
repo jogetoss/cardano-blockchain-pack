@@ -89,7 +89,7 @@ public class CardanoSendTransactionTool extends DefaultApplicationPlugin {
 
     @Override
     public String getDescription() {
-        return "Send funds from one account to another on the Cardano blockchain, with optional transaction metadata.";
+        return "Send assets from one account to another on the Cardano blockchain, with optional transaction metadata.";
     }
     
     @Override
@@ -111,10 +111,11 @@ public class CardanoSendTransactionTool extends DefaultApplicationPlugin {
         final String senderAddress = row.getProperty(getPropertyString("senderAddress"));
         final String accountMnemonic = PluginUtil.decrypt(WorkflowUtil.processVariable(getPropertyString("accountMnemonic"), "", wfAssignment));
         final String receiverAddress = row.getProperty(getPropertyString("receiverAddress"));
+        final String nftReceiverAddress = row.getProperty(getPropertyString("nftReceiverAddress")); // separate property to workaround multi-condition in properties options
         final String amount = row.getProperty(getPropertyString("amount"));
         
         try {
-            final boolean isTest = "testnet".equalsIgnoreCase(getPropertyString("networkType"));
+            final boolean isTest = BackendUtil.isTestnet(props);
             
             final Network network = BackendUtil.getNetwork(isTest);
             
@@ -127,6 +128,7 @@ public class CardanoSendTransactionTool extends DefaultApplicationPlugin {
             
             initBackend();
             
+            // Need check compliance with cip20 --> https://cips.cardano.org/cips/cip20/
             CBORMetadata cborMetadata = null;
             CBORMetadataMap formDataMetadata = TransactionUtil.generateMetadataMapFromFormData((Object[]) props.get("metadata"), row);
             if (formDataMetadata != null) {
@@ -153,11 +155,19 @@ public class CardanoSendTransactionTool extends DefaultApplicationPlugin {
                 
                 transactionResult = transactionHelperService.transfer(paymentList, detailsParams, metadata);
             } else { // If not enabled multi receiver mode (single receiver only)
+                String tempReceiverAddress;
+                
+                if ("nft".equalsIgnoreCase(getPropertyString("paymentUnit"))) {
+                    tempReceiverAddress = nftReceiverAddress;
+                } else {
+                    tempReceiverAddress = receiverAddress;
+                }
+                
                 PaymentTransaction paymentTransaction =
                     PaymentTransaction.builder()
                             .sender(senderAccount)
-                            .receiver(receiverAddress)
-                            .amount(getPaymentAmount(new BigDecimal(amount)))
+                            .receiver(tempReceiverAddress)
+                            .amount(getPaymentAmount(amount))
                             .unit(getPaymentUnit())
                             .build();
                 
@@ -242,7 +252,7 @@ public class CardanoSendTransactionTool extends DefaultApplicationPlugin {
                     continue;
                 }
                 
-                BigInteger amountBgInt = getPaymentAmount(new BigDecimal(amount));
+                BigInteger amountBgInt = getPaymentAmount(amount);
 
                 // Check for illogical transfer amount of less or equal to 0
                 if (amountBgInt.compareTo(BigInteger.ZERO) <= 0) {
@@ -267,8 +277,19 @@ public class CardanoSendTransactionTool extends DefaultApplicationPlugin {
         return paymentList;
     }
     
-    protected BigInteger getPaymentAmount(BigDecimal amount) {
-        return getPropertyString("paymentUnit").equalsIgnoreCase(LOVELACE) ? ADAConversionUtil.adaToLovelace(amount) : amount.toBigInteger();
+    protected BigInteger getPaymentAmount(String amount) {
+        String paymentUnit = getPropertyString("paymentUnit");
+        
+        switch (paymentUnit) {
+            case LOVELACE:
+                return ADAConversionUtil.adaToLovelace(new BigDecimal(amount));
+            case "nativeTokens":
+                return new BigDecimal(amount).toBigInteger();
+            case "nft":
+                return BigInteger.ONE;
+        }
+        
+        return null;
     }
     
     protected String getPaymentUnit() {
