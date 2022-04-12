@@ -440,6 +440,7 @@ public class CardanoBurnTokenTool extends DefaultApplicationPlugin {
 
     @Override
     public String getPropertyOptions() {
-        return AppUtil.readPluginResource(getClass().getName(), "/properties/CardanoBurnTokenTool.json", null, true, "messages/CardanoMessages");
+        String backendConfigs = PluginUtil.readGenericBackendConfigs(getClass().getName());
+        return AppUtil.readPluginResource(getClass().getName(), "/properties/CardanoBurnTokenTool.json", new String[]{backendConfigs}, true, PluginUtil.MESSAGE_PATH);
     }
 }

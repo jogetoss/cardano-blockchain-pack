@@ -109,6 +109,7 @@ public class CardanoMetadataLoadBinder extends FormBinder implements FormLoadBin
 
     @Override
     public String getPropertyOptions() {
-        return AppUtil.readPluginResource(getClass().getName(), "/properties/CardanoMetadataLoadBinder.json", null, true, "messages/CardanoMessages");
+        String backendConfigs = PluginUtil.readGenericBackendConfigs(getClass().getName());
+        return AppUtil.readPluginResource(getClass().getName(), "/properties/CardanoMetadataLoadBinder.json", new String[]{backendConfigs}, true, PluginUtil.MESSAGE_PATH);
     }
 }

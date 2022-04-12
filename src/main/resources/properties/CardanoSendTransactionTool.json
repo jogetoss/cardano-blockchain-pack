@@ -2,63 +2,7 @@
     {
        "title":"@@process.cardanosendtransactiontool.header.config@@",
        "properties":[
-            {
-                "name":"networkType",
-                "label":"@@cardano.prop.networkType@@",
-                "description":"@@cardano.prop.networkType.tx.desc@@",
-                "type":"selectbox",
-                "options":[{
-                    "value":"mainnet",
-                    "label":"@@cardano.prop.networkType.mainnet@@"
-                },{
-                    "value":"testnet",
-                    "label":"@@cardano.prop.networkType.testnet@@"
-                }],
-                "value":"testnet"
-            },
-            {
-                "name":"backendService",
-                "label":"@@cardano.prop.backendService@@",
-                "type":"selectbox",
-                "options":[
-                    {
-                        "value":"blockfrost",
-                        "label":"@@cardano.prop.backendService.blockfrost@@"
-                    },
-                    {
-                        "value":"koios",
-                        "label":"@@cardano.prop.backendService.koios@@"
-                    },
-                    {
-                        "value":"dandelion",
-                        "label":"@@cardano.prop.backendService.dandelion@@"
-                    },
-                    {
-                        "value":"customGraphQl",
-                        "label":"@@cardano.prop.backendService.customGraphql@@"
-                    }
-                ],
-                "value":"dandelion"
-            },
-            {
-                "name":"blockfrostProjectKey",
-                "label":"@@cardano.prop.blockfrostProjectKey@@",
-                "description":"@@cardano.prop.blockfrostProjectKey.desc@@",
-                "type":"textfield",
-                "required":"True",
-                "control_field":"backendService",
-                "control_value":"blockfrost",
-                "control_use_regex":"false"
-            },
-            {
-                "name":"graphqlEndpointUrl",
-                "label":"@@cardano.prop.graphqlEndpointUrl@@",
-                "type":"textfield",
-                "required":"True",
-                "control_field":"backendService",
-                "control_value":"customGraphQl",
-                "control_use_regex":"false"
-            }
+            %s
         ]
     },
     {

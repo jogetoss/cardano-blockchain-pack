@@ -5,7 +5,7 @@
             {
                 "name":"networkType",
                 "label":"@@cardano.prop.networkType@@",
-                "description":"@@cardano.prop.networkType.tx.desc@@",
+                "description":"@@cardano.prop.networkType.desc@@",
                 "type":"selectbox",
                 "options":[{
                     "value":"mainnet",

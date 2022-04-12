@@ -139,6 +139,6 @@ public class CardanoGenerateAccountTool extends DefaultApplicationPlugin {
 
     @Override
     public String getPropertyOptions() {
-        return AppUtil.readPluginResource(getClass().getName(), "/properties/CardanoGenerateAccountTool.json", null, true, "messages/CardanoMessages");
+        return AppUtil.readPluginResource(getClass().getName(), "/properties/CardanoGenerateAccountTool.json", null, true, PluginUtil.MESSAGE_PATH);
     }
 }

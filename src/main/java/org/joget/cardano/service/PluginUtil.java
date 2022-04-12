@@ -2,10 +2,14 @@ package org.joget.cardano.service;
 
 import java.io.IOException;
 import java.util.Properties;
+import org.joget.apps.app.service.AppUtil;
 import org.joget.commons.util.LogUtil;
 import org.joget.commons.util.SecurityUtil;
 
 public class PluginUtil {
+    
+    public static final String MESSAGE_PATH = "messages/CardanoMessages";
+    
     public static String getProjectVersion(Class classObj) {
         final Properties projectProp = new Properties();
         try {
@@ -16,6 +20,10 @@ public class PluginUtil {
         return projectProp.getProperty("version");
     }
 
+    public static String readGenericBackendConfigs(String className) {
+        return AppUtil.readPluginResource(className, "/properties/genericBackendConfigs.json");
+    }
+    
     //Feel free to implement more secure encryption algo, and decrypt accordingly
     public static String decrypt(String content) {
         return SecurityUtil.decrypt(content);
