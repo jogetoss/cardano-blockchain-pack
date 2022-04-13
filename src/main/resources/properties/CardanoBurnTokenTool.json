@@ -16,13 +16,6 @@
                 "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/forms/options"
             },
             {
-                "name":"assetId",
-                "label":"@@process.cardanoburntokentool.assetId@@",
-                "description":"@@process.cardanoburntokentool.assetId.desc@@",
-                "type":"textfield",
-                "required":"True"
-            },
-            {
                 "label" : "@@process.cardanoburntokentool.subheader.mintingAccount@@",
                 "type" : "header"
             },
@@ -45,6 +38,26 @@
             {
                 "label" : "@@process.cardanoburntokentool.subheader.tokenBurningConfig@@",
                 "type" : "header"
+            },
+            {
+                "name":"burnType",
+                "label":"@@process.cardanoburntokentool.burnType@@",
+                "type":"selectbox",
+                "options" : [{
+                    "value" : "nativeToken",
+                    "label" : "@@process.cardanoburntokentool.burnType.nativeToken@@"
+                },{
+                    "value" : "nft",
+                    "label" : "@@process.cardanoburntokentool.burnType.nft@@"
+                }],
+                "value":"nativeToken"
+            },
+            {
+                "name":"assetId",
+                "label":"@@process.cardanoburntokentool.assetId@@",
+                "description":"@@process.cardanoburntokentool.assetId.desc@@",
+                "type":"textfield",
+                "required":"True"
             },
             {
                 "name":"policyId",
@@ -78,7 +91,10 @@
                 "label":"@@process.cardanoburntokentool.amountToBurn@@",
                 "description":"@@process.cardanoburntokentool.amountToBurn.desc@@",
                 "type":"textfield",
-                "required":"True"
+                "required":"True",
+                "control_field":"burnType",
+                "control_value":"nativeToken",
+                "control_use_regex":"false"
             }
         ]
     },

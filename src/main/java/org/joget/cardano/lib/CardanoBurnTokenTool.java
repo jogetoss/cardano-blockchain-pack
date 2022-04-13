@@ -113,7 +113,7 @@ public class CardanoBurnTokenTool extends DefaultApplicationPlugin {
 
     @Override
     public String getDescription() {
-        return "Burn native tokens that was previously minted by an account on the Cardano blockchain.";
+        return "Burn native tokens and NFTs that was previously minted by an account on the Cardano blockchain.";
     }
 
     @Override
@@ -159,7 +159,13 @@ public class CardanoBurnTokenTool extends DefaultApplicationPlugin {
             final String tokenName = row.getProperty(getPropertyString("tokenName"));
             final String amountToBurn = WorkflowUtil.processVariable(getPropertyString("amountToBurn"), "", wfAssignment);
             
-            final BigInteger amountToBurnAbs = new BigInteger(amountToBurn).abs();
+            BigInteger amountToBurnAbs;
+            
+            if ("nft".equalsIgnoreCase(getPropertyString("burnType"))) {
+                amountToBurnAbs = BigInteger.ONE;
+            } else {
+                amountToBurnAbs = new BigInteger(amountToBurn).abs();
+            }
             
             //PK is Asset ID. Check against stored policy ID & asset name for validity.
             final String assetId = primaryKey;
