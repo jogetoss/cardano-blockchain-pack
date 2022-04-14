@@ -1,0 +1,18 @@
+{
+    "name":"wfTransactionValidated",
+    "label":"@@cardano.prop.wfMapping.wfTransactionValidated@@",
+    "type":"selectbox",
+    "options_ajax" : "[CONTEXT_PATH]/web/json/console/app[APP_PATH]/workflowVariable/options"
+},
+{
+    "name":"wfTransactionId",
+    "label":"@@cardano.prop.wfMapping.wfTransactionId@@",
+    "type":"selectbox",
+    "options_ajax" : "[CONTEXT_PATH]/web/json/console/app[APP_PATH]/workflowVariable/options"
+},
+{
+    "name":"wfTransactionExplorerUrl",
+    "label":"@@cardano.prop.wfMapping.wfTransactionExplorerUrl@@",
+    "type":"selectbox",
+    "options_ajax" : "[CONTEXT_PATH]/web/json/console/app[APP_PATH]/workflowVariable/options"
+}

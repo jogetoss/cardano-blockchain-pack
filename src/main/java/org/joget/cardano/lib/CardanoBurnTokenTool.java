@@ -262,7 +262,7 @@ public class CardanoBurnTokenTool extends DefaultApplicationPlugin {
                 storeToWorkflowVariable(wfAssignment.getActivityId(), isTest, null, null);
                 return null;
             }
-                
+            
             //Store successful unvalidated txn result first
             storeToWorkflowVariable(wfAssignment.getActivityId(), isTest, transactionResult, null);
             
@@ -449,6 +449,7 @@ public class CardanoBurnTokenTool extends DefaultApplicationPlugin {
     @Override
     public String getPropertyOptions() {
         String backendConfigs = PluginUtil.readGenericBackendConfigs(getClass().getName());
-        return AppUtil.readPluginResource(getClass().getName(), "/properties/CardanoBurnTokenTool.json", new String[]{backendConfigs}, true, PluginUtil.MESSAGE_PATH);
+        String wfVarMappings = PluginUtil.readGenericWorkflowVariableMappings(getClass().getName());
+        return AppUtil.readPluginResource(getClass().getName(), "/properties/CardanoBurnTokenTool.json", new String[]{backendConfigs, wfVarMappings}, true, PluginUtil.MESSAGE_PATH);
     }
 }

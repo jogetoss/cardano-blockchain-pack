@@ -24,6 +24,10 @@ public class PluginUtil {
         return AppUtil.readPluginResource(className, "/properties/genericBackendConfigs.json");
     }
     
+    public static String readGenericWorkflowVariableMappings(String className) {
+        return AppUtil.readPluginResource(className, "/properties/genericWfVarMappings.json");
+    }
+    
     //Feel free to implement more secure encryption algo, and decrypt accordingly
     public static String decrypt(String content) {
         return SecurityUtil.decrypt(content);

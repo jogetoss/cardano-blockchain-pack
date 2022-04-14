@@ -347,6 +347,7 @@ public class CardanoSendTransactionTool extends DefaultApplicationPlugin {
     @Override
     public String getPropertyOptions() {
         String backendConfigs = PluginUtil.readGenericBackendConfigs(getClass().getName());
-        return AppUtil.readPluginResource(getClass().getName(), "/properties/CardanoSendTransactionTool.json", new String[]{backendConfigs}, true, PluginUtil.MESSAGE_PATH);
+        String wfVarMappings = PluginUtil.readGenericWorkflowVariableMappings(getClass().getName());
+        return AppUtil.readPluginResource(getClass().getName(), "/properties/CardanoSendTransactionTool.json", new String[]{backendConfigs, wfVarMappings}, true, PluginUtil.MESSAGE_PATH);
     }
 }
