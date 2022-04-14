@@ -177,15 +177,17 @@ public class CardanoSendTransactionTool extends DefaultApplicationPlugin {
                 transactionResult = transactionHelperService.transfer(paymentTransaction, detailsParams, metadata);
             }
             
+            if (!transactionResult.isSuccessful()) {
+                LogUtil.warn(getClass().getName(), "Transaction failed with status code " + transactionResult.code() + ". Response returned --> " + transactionResult.getResponse());
+                storeToWorkflowVariable(wfAssignment.getActivityId(), isTest, null, null);
+                return null;
+            }
+            
             //Store successful unvalidated txn result first
-            storeToWorkflowVariable(wfAssignment.getActivityId(), props, isTest, transactionResult, null);
+            storeToWorkflowVariable(wfAssignment.getActivityId(), isTest, transactionResult, null);
             
             //Use separate thread to wait for transaction validation
             Thread waitTransactionThread = new PluginThread(() -> {
-                if (!transactionResult.isSuccessful()) {
-                    LogUtil.warn(getClass().getName(), "Transaction failed with status code " + transactionResult.code() + ". Response returned --> " + transactionResult.getResponse());
-                }
-                
                 Result<TransactionContent> validatedTransactionResult = null;
                 
                 try {
@@ -196,10 +198,11 @@ public class CardanoSendTransactionTool extends DefaultApplicationPlugin {
                 
                 if (validatedTransactionResult != null) {
                     //Store validated/confirmed txn result for current activity instance
-                    storeToWorkflowVariable(wfAssignment.getActivityId(), props, isTest, transactionResult, validatedTransactionResult);
+                    storeToWorkflowVariable(wfAssignment.getActivityId(), isTest, transactionResult, validatedTransactionResult);
 
                     //Store validated/confirmed txn result for future running activity instance
-                    storeToWorkflowVariable(workflowManager.getRunningActivityIdByRecordId(primaryKey, wfAssignment.getProcessDefId(), null, null), props, isTest, transactionResult, validatedTransactionResult);
+                    String mostRecentActivityId = workflowManager.getRunningActivityIdByRecordId(primaryKey, wfAssignment.getProcessDefId(), null, null);
+                    storeToWorkflowVariable(mostRecentActivityId, isTest, transactionResult, validatedTransactionResult);
                 }
             });
             waitTransactionThread.start();
@@ -298,7 +301,6 @@ public class CardanoSendTransactionTool extends DefaultApplicationPlugin {
     
     protected void storeToWorkflowVariable(
             String activityId,
-            Map properties, 
             boolean isTest, 
             Result<TransactionResult> transactionResult, 
             Result<TransactionContent> validatedtransactionResult) {
@@ -315,12 +317,12 @@ public class CardanoSendTransactionTool extends DefaultApplicationPlugin {
         storeValuetoActivityVar(
                 activityId, 
                 transactionIdVar, 
-                transactionResult.getValue().getTransactionId()
+                transactionResult != null ? transactionResult.getValue().getTransactionId() : ""
         );
         storeValuetoActivityVar(
                 activityId, 
                 transactionUrlVar, 
-                TransactionUtil.getTransactionExplorerUrl(isTest, transactionResult.getValue().getTransactionId())
+                transactionResult != null ? TransactionUtil.getTransactionExplorerUrl(isTest, transactionResult.getValue().getTransactionId()) : ""
         );
     }
     

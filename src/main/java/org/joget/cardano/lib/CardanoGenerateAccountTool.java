@@ -58,8 +58,8 @@ public class CardanoGenerateAccountTool extends DefaultApplicationPlugin {
         
         final Account account = new Account(network);
         
-        storeToForm(props, isTest, account);
-        storeToWorkflowVariable(wfAssignment.getActivityId(), props, isTest, account);
+        storeToForm(isTest, account);
+        storeToWorkflowVariable(wfAssignment.getActivityId(), isTest, account);
         
         return null;
     }
@@ -69,7 +69,7 @@ public class CardanoGenerateAccountTool extends DefaultApplicationPlugin {
         throw new UnsupportedOperationException("Not supported yet.");
     }
     
-    protected void storeToForm(Map properties, boolean isTest, final Account account) {
+    protected void storeToForm(boolean isTest, final Account account) {
         String formDefId = getPropertyString("formDefId");
         
         if (formDefId == null || formDefId.isEmpty()) {
@@ -113,7 +113,7 @@ public class CardanoGenerateAccountTool extends DefaultApplicationPlugin {
         return row;
     }
     
-    protected void storeToWorkflowVariable(String activityId, Map properties, boolean isTest, final Account account) {
+    protected void storeToWorkflowVariable(String activityId, boolean isTest, final Account account) {
         String isTestAccountVar = getPropertyString("wfIsTestAccount");
 
         storeValuetoActivityVar(activityId, isTestAccountVar, String.valueOf(isTest));
