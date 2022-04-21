@@ -1,4 +1,10 @@
 {
+    "name":"wfTransactionSuccessful",
+    "label":"@@cardano.prop.wfMapping.wfTransactionSuccessful@@",
+    "type":"selectbox",
+    "options_ajax" : "[CONTEXT_PATH]/web/json/console/app[APP_PATH]/workflowVariable/options"
+},
+{
     "name":"wfTransactionValidated",
     "label":"@@cardano.prop.wfMapping.wfTransactionValidated@@",
     "type":"selectbox",

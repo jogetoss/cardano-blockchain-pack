@@ -299,10 +299,16 @@ public class CardanoMintTokenTool extends DefaultApplicationPlugin {
             Result<TransactionResult> transactionResult, 
             Result<TransactionContent> validatedtransactionResult) {
         
+        String transactionSuccessfulVar = getPropertyString("wfTransactionSuccessful");
         String transactionValidatedVar = getPropertyString("wfTransactionValidated");
         String transactionIdVar = getPropertyString("wfTransactionId");
         String transactionUrlVar = getPropertyString("wfTransactionExplorerUrl");
         
+        storeValuetoActivityVar(
+                activityId, 
+                transactionSuccessfulVar, 
+                transactionResult != null ? String.valueOf(transactionResult.isSuccessful()) : "false"
+        );
         storeValuetoActivityVar(
                 activityId, 
                 transactionValidatedVar, 

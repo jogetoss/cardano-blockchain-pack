@@ -403,14 +403,20 @@ public class CardanoBurnTokenTool extends DefaultApplicationPlugin {
     
     protected void storeToWorkflowVariable(
             String activityId,
-            boolean isTest, 
+            boolean isTest,
             Result<String> transactionResult, 
             Result<TransactionContent> validatedtransactionResult) {
         
+        String transactionSuccessfulVar = getPropertyString("wfTransactionSuccessful");
         String transactionValidatedVar = getPropertyString("wfTransactionValidated");
         String transactionIdVar = getPropertyString("wfTransactionId");
         String transactionUrlVar = getPropertyString("wfTransactionExplorerUrl");
-
+        
+        storeValuetoActivityVar(
+                activityId, 
+                transactionSuccessfulVar, 
+                transactionResult != null ? String.valueOf(transactionResult.isSuccessful()) : "false"
+        );
         storeValuetoActivityVar(
                 activityId, 
                 transactionValidatedVar, 
