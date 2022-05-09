@@ -14,9 +14,14 @@ Credits: [https://github.com/bloxbean/cardano-client-lib](https://github.com/blo
 #### Added
 - Added support for Koios backend
 - Adapt code changes to updated cardano library
+- Added flag for transaction execution success status
 
 #### Updates & Fixes
 - Cardano Send Transaction Tool - Added support for multiple receivers (e.g.: airdropping tokens)
+- Cardano Mint Token Tool - Added support for minting NFTs
+- Cardano Send Transaction Tool - Support NFT transfers
+- Cardano Burn Token Tool - Added support for burning NFTs
+- Fixed transactions store bad data to workflow variable despite transaction failure
 
 ## Q1 2022
 #### Added
