@@ -5,21 +5,16 @@ import static com.bloxbean.cardano.client.backend.blockfrost.common.Constants.BL
 import static com.bloxbean.cardano.client.backend.blockfrost.common.Constants.BLOCKFROST_MAINNET_URL;
 import static com.bloxbean.cardano.client.backend.koios.Constants.KOIOS_TESTNET_URL;
 import static com.bloxbean.cardano.client.backend.koios.Constants.KOIOS_MAINNET_URL;
+import static com.bloxbean.cardano.client.backend.gql.Constants.DANDELION_TESTNET_GQL_URL;
+import static com.bloxbean.cardano.client.backend.gql.Constants.DANDELION_MAINNET_GQL_URL;
 import com.bloxbean.cardano.client.backend.blockfrost.service.BFBackendService;
 import com.bloxbean.cardano.client.backend.gql.GqlBackendService;
 import com.bloxbean.cardano.client.backend.koios.KoiosBackendService;
 import com.bloxbean.cardano.client.common.model.Network;
 import com.bloxbean.cardano.client.common.model.Networks;
-import java.io.InputStream;
 import java.util.Map;
-import java.util.Properties;
-import org.joget.commons.util.LogUtil;
-import org.joget.commons.util.SecurityUtil;
 
 public class BackendUtil {
-    
-    public static final String TESTNET_DANDELION_BACKEND = "https://graphql-api.testnet.dandelion.link/";
-    public static final String MAINNET_DANDELION_BACKEND = "https://graphql-api.mainnet.dandelion.link/";
     
     public static boolean isTestnet(Map properties) {
         String networkType = (String) properties.get("networkType");
@@ -47,36 +42,31 @@ public class BackendUtil {
                 backend = getGqlBackendService(graphqlEndpointUrl);
                 break;
             default:
-                final String dandelionGql = getDedicatedDandelionGqlBackend(isTest);
-                if (!dandelionGql.isEmpty()) {
-                    backend = getGqlBackendService(dandelionGql);
-                } else {
-                    backend = getGqlBackendService(isTest ? TESTNET_DANDELION_BACKEND : MAINNET_DANDELION_BACKEND);
-                }
+                backend = getGqlBackendService(isTest ? DANDELION_TESTNET_GQL_URL : DANDELION_MAINNET_GQL_URL);
                 break;
         }
         
         return backend;
     }
     
-    private static String getDedicatedDandelionGqlBackend(boolean isTest) {
-        final Properties secureProp = new Properties();
-        
-        String result = "";
-        
-        try {
-            InputStream inputStream = BackendUtil.class.getClassLoader().getResourceAsStream("secure.properties");
-            secureProp.load(inputStream);
-            
-            result = isTest ? secureProp.getProperty("d-dandelion-gql-testnet") : secureProp.getProperty("d-dandelion-gql-mainnet");
-            
-            result = SecurityUtil.decrypt(result);
-        } catch (Exception ex) {
-            LogUtil.debug(BackendUtil.class.getName(), "Unable to get secure properties. Fallback to community endpoints.");
-        }
-        
-        return result;
-    }
+//    private static String getDedicatedDandelionGqlBackend(boolean isTest) {
+//        final Properties secureProp = new Properties();
+//        
+//        String result = "";
+//        
+//        try {
+//            InputStream inputStream = BackendUtil.class.getClassLoader().getResourceAsStream("secure.properties");
+//            secureProp.load(inputStream);
+//            
+//            result = isTest ? secureProp.getProperty("d-dandelion-gql-testnet") : secureProp.getProperty("d-dandelion-gql-mainnet");
+//            
+//            result = SecurityUtil.decrypt(result);
+//        } catch (Exception ex) {
+//            LogUtil.debug(BackendUtil.class.getName(), "Unable to get secure properties. Fallback to community endpoints.");
+//        }
+//        
+//        return result;
+//    }
     
     private static BackendService getBlockfrostBackendService(String blockfrostEndpointUrl, String blockfrostProjectKey) {
         return new BFBackendService(blockfrostEndpointUrl, blockfrostProjectKey);

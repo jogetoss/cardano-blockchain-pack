@@ -37,7 +37,7 @@
             "label":"@@cardano.prop.backendService.customGraphql@@"
         }
     ],
-    "value":"dandelion"
+    "value":"koios"
 },
 {
     "name":"blockfrostProjectKey",
