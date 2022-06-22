@@ -34,8 +34,6 @@ import org.joget.cardano.service.PluginUtil;
 import org.joget.cardano.service.BackendUtil;
 import org.joget.cardano.service.TransactionUtil;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.joget.apps.app.model.AppDefinition;
 import org.joget.apps.app.service.AppService;
 import org.joget.apps.app.service.AppUtil;
@@ -180,7 +178,9 @@ public class CardanoMintTokenTool extends DefaultApplicationPlugin {
                             .name(nftFileName)
                             .mediaType(nftFileType)
                             .src("ipfs/" + ipfsCid));
-            
+                
+                nft = TransactionUtil.appendNftPropertiesFromFormData(nft, (Object[]) props.get("nftProperties"), row);
+                
                 // See https://cips.cardano.org/cips/cip25/
                 NFTMetadata nftMetadata = NFTMetadata.create()
                         .addNFT(policy.getPolicyId(), nft);
@@ -196,6 +196,7 @@ public class CardanoMintTokenTool extends DefaultApplicationPlugin {
                 CBORMetadata cborMetadata = new CBORMetadata();
                 
                 //Put token name and symbol into metadata
+                /* Check for CIP in future for any native token standard */
                 CBORMetadataMap tokenInfoMap
                         = new CBORMetadataMap()
                         .put("token", tokenName)

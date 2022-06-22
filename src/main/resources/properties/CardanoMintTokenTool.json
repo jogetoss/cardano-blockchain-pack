@@ -206,7 +206,7 @@
                         "label" : "@@process.cardanominttokentool.nftFileType.imageSvgXml@@"
                     }
                 ],
-                "value":"testnet",
+                "value":"image/png",
                 "control_field":"mintType",
                 "control_value":"nft",
                 "control_use_regex":"false"
@@ -219,6 +219,27 @@
                 "required":"True",
                 "options_ajax_on_change":"formDefId",
                 "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options",
+                "control_field":"mintType",
+                "control_value":"nft",
+                "control_use_regex":"false"
+            },
+            {
+                "label" : "@@process.cardanominttokentool.subheader.additionalNftProperties@@",
+                "type" : "header",
+                "control_field":"mintType",
+                "control_value":"nft",
+                "control_use_regex":"false"
+            },
+            {
+                "name":"nftProperties",
+                "label":"@@process.cardanominttokentool.nftProperties@@",
+                "type":"grid",
+                "columns":[{
+                    "key":"fieldId",
+                    "label":"@@process.cardanominttokentool.nftProperties.fieldId@@",
+                    "options_ajax_on_change":"formDefId",
+                    "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options"
+                }],
                 "control_field":"mintType",
                 "control_value":"nft",
                 "control_use_regex":"false"

@@ -6,6 +6,7 @@ import com.bloxbean.cardano.client.api.model.Result;
 import com.bloxbean.cardano.client.backend.api.BlockService;
 import com.bloxbean.cardano.client.backend.api.TransactionService;
 import com.bloxbean.cardano.client.backend.model.TransactionContent;
+import com.bloxbean.cardano.client.cip.cip25.NFT;
 import com.bloxbean.cardano.client.crypto.SecretKey;
 import com.bloxbean.cardano.client.metadata.cbor.CBORMetadataMap;
 import com.bloxbean.cardano.client.util.HexUtil;
@@ -103,6 +104,22 @@ public class TransactionUtil {
         }
         
         return metadataMap;
+    }
+    
+    public static NFT appendNftPropertiesFromFormData(NFT nft, Object[] propertyFields, FormRow row) {
+        //If no properties are found, simply return the same nft object
+        if (propertyFields == null || propertyFields.length == 0) {
+            return nft;
+        }
+        
+        for (Object o : propertyFields) {
+            Map mapping = (HashMap) o;
+            String fieldId = mapping.get("fieldId").toString();
+            
+            nft.property(fieldId, row.getProperty(fieldId));
+        }
+        
+        return nft;
     }
     
     public static String getFilePath(String fileName, String appId, String appVersion, String formDefId, String primaryKeyValue) {
