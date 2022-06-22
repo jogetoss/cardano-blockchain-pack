@@ -43,8 +43,8 @@ public class TransactionUtil {
     }
     
     //Perhaps allow fully-customizable policy name?
-    public static String getFormattedPolicyName(String policyId, String assetName) {
-        return "mintPolicy-" + policyId.substring(0, 6) + "-" + assetName;
+    public static String getFormattedPolicyName(String policyId) {        
+        return "mintPolicy-joget-" + policyId.substring(0, 8);
     }
     
     public static String getTransactionExplorerUrl(boolean isTest, String transactionId) {

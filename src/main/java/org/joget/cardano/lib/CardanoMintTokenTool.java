@@ -14,6 +14,7 @@ import com.bloxbean.cardano.client.cip.cip25.NFTFile;
 import com.bloxbean.cardano.client.cip.cip25.NFTMetadata;
 import com.bloxbean.cardano.client.common.model.Network;
 import com.bloxbean.cardano.client.crypto.SecretKey;
+import com.bloxbean.cardano.client.exception.CborSerializationException;
 import com.bloxbean.cardano.client.metadata.Metadata;
 import com.bloxbean.cardano.client.metadata.cbor.CBORMetadata;
 import com.bloxbean.cardano.client.metadata.cbor.CBORMetadataMap;
@@ -22,7 +23,10 @@ import com.bloxbean.cardano.client.transaction.model.TransactionDetailsParams;
 import com.bloxbean.cardano.client.transaction.spec.Asset;
 import com.bloxbean.cardano.client.transaction.spec.MultiAsset;
 import com.bloxbean.cardano.client.transaction.spec.Policy;
+import com.bloxbean.cardano.client.transaction.spec.script.NativeScript;
 import com.bloxbean.cardano.client.util.PolicyUtil;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.List;
@@ -30,6 +34,8 @@ import org.joget.cardano.service.PluginUtil;
 import org.joget.cardano.service.BackendUtil;
 import org.joget.cardano.service.TransactionUtil;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.joget.apps.app.model.AppDefinition;
 import org.joget.apps.app.service.AppService;
 import org.joget.apps.app.service.AppUtil;
@@ -122,19 +128,38 @@ public class CardanoMintTokenTool extends DefaultApplicationPlugin {
             
             initBackend();
             
-            //Perhaps support multisig policy signing in future? 1 signer for now.
-            Policy policy = PolicyUtil.createMultiSigScriptAllPolicy("", 1);
-            final String policyId = policy.getPolicyId();
-            final List<SecretKey> skeys = policy.getPolicyKeys();
+            Policy policy;
+            
+            if ("reuse".equalsIgnoreCase(getPropertyString("mintingPolicyHandling"))) { //Reuse an existing minting policy
+                String policyId = WorkflowUtil.processVariable(getPropertyString("policyId"), "", wfAssignment);
+                NativeScript policyScript = NativeScript.deserializeJson(
+                        WorkflowUtil.processVariable(getPropertyString("policyScript"), "", wfAssignment)
+                );
+                List<SecretKey> skeys = TransactionUtil.getSecretKeysStringAsList(
+                        PluginUtil.decrypt(
+                                WorkflowUtil.processVariable(getPropertyString("policyKeys"), "", wfAssignment)
+                        )
+                );
+                
+                if (!policyScript.getPolicyId().equals(policyId)) {
+                    LogUtil.warn(getClass().getName(), "Transaction failed! Policy script does not match given policy ID.");
+                    return null;
+                }
+                
+                policy = new Policy(TransactionUtil.getFormattedPolicyName(policyId), policyScript, skeys);
+            } else { // Generate a new minting policy for this minting transaction
+                /* Perhaps support multisig policy signing in future? 1 signer for now. */
+                policy = PolicyUtil.createMultiSigScriptAllPolicy("", 1);
+                
+                policy.setName(TransactionUtil.getFormattedPolicyName(policy.getPolicyId()));
+            }
             
             MultiAsset multiAsset = new MultiAsset();
-            multiAsset.setPolicyId(policyId);
+            multiAsset.setPolicyId(policy.getPolicyId());
             
             Asset asset;
-            
             Metadata metadata;
             
-            /* Mint logic starts here */
             if ("nft".equalsIgnoreCase(getPropertyString("mintType"))) { //For minting NFT
                 //Perhaps consider creating new File Upload form element plugin to support IPFS read/write...
                 final String nftName = row.getProperty(getPropertyString("nftName"));
@@ -158,7 +183,7 @@ public class CardanoMintTokenTool extends DefaultApplicationPlugin {
             
                 // See https://cips.cardano.org/cips/cip25/
                 NFTMetadata nftMetadata = NFTMetadata.create()
-                        .addNFT(policyId, nft);
+                        .addNFT(policy.getPolicyId(), nft);
                 
                 metadata = nftMetadata;
             } else { // For minting native tokens
@@ -185,8 +210,6 @@ public class CardanoMintTokenTool extends DefaultApplicationPlugin {
                 
                 metadata = cborMetadata;
             }
-            
-            policy.setName(TransactionUtil.getFormattedPolicyName(policyId, asset.getName()));
             
             multiAsset.getAssets().add(asset);
             
@@ -226,9 +249,14 @@ public class CardanoMintTokenTool extends DefaultApplicationPlugin {
                 }
                 
                 if (validatedTransactionResult != null) {                    
-                    //Store minting policy data to form
-                    storeToForm(senderAccount, policyId, skeys, asset.getName(), isTest);
-                     
+                    try {
+                        //Store minting policy & asset data to form
+                        storeMintingPolicyToForm(senderAccount, policy, isTest);
+                        storeAssetDataToForm(senderAccount, policy, asset.getName(), isTest);
+                    } catch (Exception ex) {
+                        LogUtil.error(getClass().getName(), ex, "Unable to store data to form. Please check logs.");
+                    }
+                    
                     //Store validated/confirmed txn result for current activity instance
                     storeToWorkflowVariable(wfAssignment.getActivityId(), isTest, transactionResult, validatedTransactionResult);
 
@@ -246,22 +274,70 @@ public class CardanoMintTokenTool extends DefaultApplicationPlugin {
         }
     }
     
-    protected void storeToForm(Account minter, String policyId, List<SecretKey> skeys, String tokenName, boolean isTest) {
-        String formDefId = getPropertyString("formDefIdStoreMintData");
+    protected void storeMintingPolicyToForm(Account minter, Policy policy, boolean isTest) throws CborSerializationException, JsonProcessingException {
+        //If reusing existing minting policy, don't need to store policy again.
+        if ("reuse".equalsIgnoreCase(getPropertyString("mintingPolicyHandling"))) {
+            return;
+        }
+        
+        String formDefId = getPropertyString("formDefIdStoreMintingPolicy");
         
         if (formDefId == null || formDefId.isEmpty()) {
-            LogUtil.warn(getClass().getName(), "Unable to store minting data to form. Encountered blank form ID.");
+            LogUtil.warn(getClass().getName(), "Unable to store minting policy to form. Encountered blank form ID.");
             return;
         }
 
+        String policyId = policy.getPolicyId();
+        NativeScript policyScript = policy.getPolicyScript();
+        List<SecretKey> skeys = policy.getPolicyKeys();
+        
         // Combine all secret key(s) into string delimited by semicolon for storage (e.g.: skey1;skey2;skey3)
         String skeyListAsCborHex = TransactionUtil.getSecretKeysAsCborHexStringList(skeys);
         
-        String minterAccountField = getPropertyString("minterAccountField");
-        String policyIdField = getPropertyString("policyIdField");
+        String policyScriptField = getPropertyString("policyScriptField");
         String policySecretKeyField = getPropertyString("policySecretKeyField");
-        String tokenNameField = getPropertyString("tokenNameField");
+        String minterAccountField = getPropertyString("minterAccountField");
         String isTestnetField = getPropertyString("isTestnetField");
+
+        ObjectMapper mapper = new ObjectMapper();
+        String policyScriptAsJson = mapper.writeValueAsString(policyScript);
+        
+        FormRowSet rowSet = new FormRowSet();
+
+        FormRow row = new FormRow();
+
+        //Policy ID set as Record ID
+        row.setId(policyId);
+
+        row = addRow(row, policyScriptField, policyScriptAsJson);
+        row = addRow(row, policySecretKeyField, PluginUtil.encrypt(skeyListAsCborHex));
+        row = addRow(row, minterAccountField, minter.baseAddress());
+        row = addRow(row, isTestnetField, String.valueOf(isTest));
+
+        rowSet.add(row);
+
+        if (!rowSet.isEmpty()) {
+            FormRowSet storedData = appService.storeFormData(appDef.getId(), appDef.getVersion().toString(), formDefId, rowSet, null);
+            if (storedData == null) {
+                LogUtil.warn(getClass().getName(), "Unable to store minting policy to form. Encountered invalid form ID of '" + formDefId + "'.");
+            }
+        }
+    }
+    
+    protected void storeAssetDataToForm(Account minter, Policy policy, String tokenName, boolean isTest) throws CborSerializationException {
+        String formDefId = getPropertyString("formDefIdStoreAssetData");
+        
+        if (formDefId == null || formDefId.isEmpty()) {
+            LogUtil.warn(getClass().getName(), "Unable to store asset data to form. Encountered blank form ID.");
+            return;
+        }
+
+        String policyId = policy.getPolicyId();
+        
+        String tokenNameField = getPropertyString("tokenNameField");
+        String policyIdFkField = getPropertyString("policyIdFkField");
+        String assetOwnerField = getPropertyString("assetOwnerField");
+        String isAssetOnTestnetField = getPropertyString("isAssetOnTestnetField");
 
         FormRowSet rowSet = new FormRowSet();
 
@@ -270,18 +346,17 @@ public class CardanoMintTokenTool extends DefaultApplicationPlugin {
         //Asset ID set as Record ID
         row.setId(TransactionUtil.getAssetId(policyId, tokenName));
 
-        row = addRow(row, minterAccountField, minter.baseAddress());
-        row = addRow(row, policyIdField, policyId);
-        row = addRow(row, policySecretKeyField, PluginUtil.encrypt(skeyListAsCborHex));
         row = addRow(row, tokenNameField, tokenName);
-        row = addRow(row, isTestnetField, String.valueOf(isTest));
+        row = addRow(row, policyIdFkField, policyId);
+        row = addRow(row, assetOwnerField, minter.baseAddress());
+        row = addRow(row, isAssetOnTestnetField, String.valueOf(isTest));
 
         rowSet.add(row);
 
         if (!rowSet.isEmpty()) {
             FormRowSet storedData = appService.storeFormData(appDef.getId(), appDef.getVersion().toString(), formDefId, rowSet, null);
             if (storedData == null) {
-                LogUtil.warn(getClass().getName(), "Unable to store minting data to form. Encountered invalid form ID of '" + formDefId + "'.");
+                LogUtil.warn(getClass().getName(), "Unable to store asset data to form. Encountered invalid form ID of '" + formDefId + "'.");
             }
         }
     }
