@@ -40,6 +40,7 @@ import org.joget.apps.datalist.model.DataListFilterQueryObject;
 import org.joget.apps.datalist.service.DataListService;
 import org.joget.apps.form.model.FormRow;
 import org.joget.apps.form.model.FormRowSet;
+import org.joget.cardano.service.MetadataUtil;
 import org.joget.commons.util.PluginThread;
 
 public class CardanoSendTransactionTool extends DefaultApplicationPlugin {
@@ -130,7 +131,7 @@ public class CardanoSendTransactionTool extends DefaultApplicationPlugin {
             
             // Need check compliance with cip20 --> https://cips.cardano.org/cips/cip20/
             CBORMetadata cborMetadata = null;
-            CBORMetadataMap formDataMetadata = TransactionUtil.generateMetadataMapFromFormData((Object[]) props.get("metadata"), row);
+            CBORMetadataMap formDataMetadata = MetadataUtil.generateMetadataMapFromFormData((Object[]) props.get("metadata"), row);
             if (formDataMetadata != null) {
                 cborMetadata = new CBORMetadata();
                 cborMetadata.put(BigInteger.ZERO, formDataMetadata);

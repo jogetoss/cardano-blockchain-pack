@@ -39,6 +39,8 @@ import org.joget.apps.app.service.AppService;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.apps.form.model.FormRow;
 import org.joget.apps.form.model.FormRowSet;
+import org.joget.cardano.service.MetadataUtil;
+import static org.joget.cardano.service.MetadataUtil.NFT_FORMDATA_PROPERTY_LABEL;
 import org.joget.commons.util.LogUtil;
 import org.joget.commons.util.PluginThread;
 import org.joget.plugin.base.DefaultApplicationPlugin;
@@ -179,7 +181,10 @@ public class CardanoMintTokenTool extends DefaultApplicationPlugin {
                             .mediaType(nftFileType)
                             .src("ipfs/" + ipfsCid));
                 
-                nft = TransactionUtil.appendNftPropertiesFromFormData(nft, (Object[]) props.get("nftProperties"), row);
+                Map<String, String> nftPropsMap = MetadataUtil.generateNftPropsFromFormData((Object[]) props.get("nftProperties"), row);
+                if (nftPropsMap != null) {
+                    nft.property(NFT_FORMDATA_PROPERTY_LABEL, nftPropsMap);
+                }
                 
                 // See https://cips.cardano.org/cips/cip25/
                 NFTMetadata nftMetadata = NFTMetadata.create()
@@ -204,7 +209,7 @@ public class CardanoMintTokenTool extends DefaultApplicationPlugin {
                 cborMetadata.put(BigInteger.ZERO, tokenInfoMap);
 
                 // Need check compliance with cip20 --> https://cips.cardano.org/cips/cip20/
-                CBORMetadataMap formDataMetadata = TransactionUtil.generateMetadataMapFromFormData((Object[]) props.get("metadata"), row);
+                CBORMetadataMap formDataMetadata = MetadataUtil.generateMetadataMapFromFormData((Object[]) props.get("metadata"), row);
                 if (formDataMetadata != null) {
                     cborMetadata.put(BigInteger.ONE, formDataMetadata);
                 }

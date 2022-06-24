@@ -6,23 +6,12 @@ import com.bloxbean.cardano.client.api.model.Result;
 import com.bloxbean.cardano.client.backend.api.BlockService;
 import com.bloxbean.cardano.client.backend.api.TransactionService;
 import com.bloxbean.cardano.client.backend.model.TransactionContent;
-import com.bloxbean.cardano.client.cip.cip25.NFT;
 import com.bloxbean.cardano.client.crypto.SecretKey;
-import com.bloxbean.cardano.client.metadata.cbor.CBORMetadataMap;
 import com.bloxbean.cardano.client.util.HexUtil;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
-import org.apache.commons.codec.digest.DigestUtils;
-import org.joget.apps.form.model.FormRow;
 
 public class TransactionUtil {
 
@@ -79,71 +68,6 @@ public class TransactionUtil {
         }
         
         return skeys;
-    }
-    
-    public static CBORMetadataMap generateMetadataMapFromFormData(Object[] metadataFields, FormRow row) {
-        if (metadataFields == null || metadataFields.length == 0) {
-            return null;
-        }
-        
-        CBORMetadataMap metadataMap = new CBORMetadataMap();
-        for (Object o : metadataFields) {
-            Map mapping = (HashMap) o;
-            String fieldId = mapping.get("fieldId").toString();
-
-//            String isFile = mapping.get("isFile").toString();
-//            if ("true".equalsIgnoreCase(isFile)) {
-//                String appVersion = appDef.getVersion().toString();
-//                String filePath = getFilePath(row.getProperty(fieldId), appDef.getAppId(), appVersion, formDefId, primaryKey);
-//                metadataMap.put(fieldId, getFileHashSha256(filePath));
-//            } else {
-//                metadataMap.put(fieldId, row.getProperty(fieldId));
-//            }
-            
-            metadataMap.put(fieldId, row.getProperty(fieldId));
-        }
-        
-        return metadataMap;
-    }
-    
-    public static NFT appendNftPropertiesFromFormData(NFT nft, Object[] propertyFields, FormRow row) {
-        //If no properties are found, simply return the same nft object
-        if (propertyFields == null || propertyFields.length == 0) {
-            return nft;
-        }
-        
-        for (Object o : propertyFields) {
-            Map mapping = (HashMap) o;
-            String fieldId = mapping.get("fieldId").toString();
-            
-            nft.property(fieldId, row.getProperty(fieldId));
-        }
-        
-        return nft;
-    }
-    
-    public static String getFilePath(String fileName, String appId, String appVersion, String formDefId, String primaryKeyValue) {
-        if (fileName == null || fileName.isEmpty()) {
-            return null;
-        }
-        
-        String encodedFileName = fileName;
-
-        try {
-            encodedFileName = URLEncoder.encode(fileName, "UTF8").replaceAll("\\+", "%20");
-        } catch (UnsupportedEncodingException ex) {
-            // ignore
-        }
-
-        return "/web/client/app/" + appId + "/" + appVersion + "/form/download/" + formDefId + "/" + primaryKeyValue + "/" + encodedFileName + ".";
-    }
-    
-    public static String getFileHashSha256(String filePath) throws FileNotFoundException, IOException {
-        if (filePath == null || filePath.isEmpty()) {
-            return null;
-        }
-        
-        return DigestUtils.sha256Hex(new FileInputStream(filePath));
     }
     
     public static Result<TransactionContent> waitForTransactionHash(TransactionService transactionService, Result<String> transactionResult) 
