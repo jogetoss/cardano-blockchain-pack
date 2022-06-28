@@ -9,6 +9,7 @@ import com.bloxbean.cardano.client.backend.api.BackendService;
 import com.bloxbean.cardano.client.backend.api.BlockService;
 import com.bloxbean.cardano.client.backend.api.TransactionService;
 import com.bloxbean.cardano.client.backend.model.TransactionContent;
+import com.bloxbean.cardano.client.cip.cip20.MessageMetadata;
 import com.bloxbean.cardano.client.cip.cip25.NFT;
 import com.bloxbean.cardano.client.cip.cip25.NFTFile;
 import com.bloxbean.cardano.client.cip.cip25.NFTMetadata;
@@ -41,6 +42,7 @@ import org.joget.apps.form.model.FormRow;
 import org.joget.apps.form.model.FormRowSet;
 import org.joget.cardano.service.MetadataUtil;
 import static org.joget.cardano.service.MetadataUtil.NFT_FORMDATA_PROPERTY_LABEL;
+import static org.joget.cardano.service.MetadataUtil.TOKEN_INFO_METADATUM_LABEL;
 import org.joget.commons.util.LogUtil;
 import org.joget.commons.util.PluginThread;
 import org.joget.plugin.base.DefaultApplicationPlugin;
@@ -200,18 +202,17 @@ public class CardanoMintTokenTool extends DefaultApplicationPlugin {
                 
                 CBORMetadata cborMetadata = new CBORMetadata();
                 
-                //Put token name and symbol into metadata
                 /* Check for CIP in future for any native token standard */
                 CBORMetadataMap tokenInfoMap
                         = new CBORMetadataMap()
                         .put("token", tokenName)
                         .put("symbol", tokenSymbol);
-                cborMetadata.put(BigInteger.ZERO, tokenInfoMap);
-
-                // Need check compliance with cip20 --> https://cips.cardano.org/cips/cip20/
-                CBORMetadataMap formDataMetadata = MetadataUtil.generateMetadataMapFromFormData((Object[]) props.get("metadata"), row);
-                if (formDataMetadata != null) {
-                    cborMetadata.put(BigInteger.ONE, formDataMetadata);
+                cborMetadata.put(TOKEN_INFO_METADATUM_LABEL, tokenInfoMap);
+                
+                // See https://cips.cardano.org/cips/cip20/
+                MessageMetadata messageMetadata = MetadataUtil.generateMsgMetadataFromFormData((Object[]) props.get("metadata"), row);
+                if (messageMetadata != null) {
+                    cborMetadata = (CBORMetadata) cborMetadata.merge(messageMetadata);
                 }
                 
                 metadata = cborMetadata;

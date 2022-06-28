@@ -23,11 +23,10 @@ import com.bloxbean.cardano.client.backend.api.BackendService;
 import com.bloxbean.cardano.client.backend.api.BlockService;
 import com.bloxbean.cardano.client.backend.api.TransactionService;
 import com.bloxbean.cardano.client.backend.model.TransactionContent;
+import com.bloxbean.cardano.client.cip.cip20.MessageMetadata;
 import com.bloxbean.cardano.client.common.ADAConversionUtil;
 import static com.bloxbean.cardano.client.common.CardanoConstants.LOVELACE;
 import com.bloxbean.cardano.client.metadata.Metadata;
-import com.bloxbean.cardano.client.metadata.cbor.CBORMetadata;
-import com.bloxbean.cardano.client.metadata.cbor.CBORMetadataMap;
 import com.bloxbean.cardano.client.transaction.model.TransactionDetailsParams;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -129,14 +128,12 @@ public class CardanoSendTransactionTool extends DefaultApplicationPlugin {
             
             initBackend();
             
-            // Need check compliance with cip20 --> https://cips.cardano.org/cips/cip20/
-            CBORMetadata cborMetadata = null;
-            CBORMetadataMap formDataMetadata = MetadataUtil.generateMetadataMapFromFormData((Object[]) props.get("metadata"), row);
-            if (formDataMetadata != null) {
-                cborMetadata = new CBORMetadata();
-                cborMetadata.put(BigInteger.ZERO, formDataMetadata);
+            // See https://cips.cardano.org/cips/cip20/
+            Metadata metadata = null;
+            MessageMetadata messageMetadata = MetadataUtil.generateMsgMetadataFromFormData((Object[]) props.get("metadata"), row);
+            if (messageMetadata != null) {
+                metadata = messageMetadata;
             }
-            Metadata metadata = cborMetadata;
             
             long ttl = TransactionUtil.getTtl(blockService, 2000);
             TransactionDetailsParams detailsParams = TransactionDetailsParams.builder().ttl(ttl).build();

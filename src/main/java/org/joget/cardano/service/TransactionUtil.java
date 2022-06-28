@@ -18,10 +18,12 @@ public class TransactionUtil {
     public static final String MAINNET_TX_EXPLORER_URL = "https://explorer.cardano.org/en/transaction";
     public static final String TESTNET_TX_EXPLORER_URL = "https://explorer.cardano-testnet.iohkdev.io/en/transaction";
     
-    public static final long DEFAULT_WAIT_TIME_MS = 2000;
+    public static final long DEFAULT_WAIT_INTERVAL_MS = 2000;
+    
+    public static final int DEFAULT_SLOT_TTL = 1000;
     
     public static long getTtl(BlockService blockService) throws ApiException {
-        return blockService.getLatestBlock().getValue().getSlot() + 1000;
+        return blockService.getLatestBlock().getValue().getSlot() + DEFAULT_SLOT_TTL;
     }
     
     public static long getTtl(BlockService blockService, int numberOfSlots) throws ApiException {
@@ -88,7 +90,7 @@ public class TransactionUtil {
             }
 
             count++;
-            Thread.sleep(DEFAULT_WAIT_TIME_MS);
+            Thread.sleep(DEFAULT_WAIT_INTERVAL_MS);
         }
         
         return null;
@@ -105,14 +107,11 @@ public class TransactionUtil {
         while (count < 60) {
             Result<TransactionContent> txnResult = transactionService.getTransaction(transactionResult.getValue().getTransactionId());
             if (txnResult.isSuccessful()) {
-                //LogUtil.info(getClass().getName(), JsonUtil.getPrettyJson(txnResult.getValue()));
                 return txnResult;
-            } else {
-                //LogUtil.info(getClass().getName(), "Waiting for transaction to be mined....");
             }
 
             count++;
-            Thread.sleep(DEFAULT_WAIT_TIME_MS);
+            Thread.sleep(DEFAULT_WAIT_INTERVAL_MS);
         }
         
         return null;

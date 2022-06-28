@@ -1,6 +1,6 @@
 package org.joget.cardano.service;
 
-import com.bloxbean.cardano.client.metadata.cbor.CBORMetadataMap;
+import com.bloxbean.cardano.client.cip.cip20.MessageMetadata;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -14,34 +14,50 @@ import org.joget.apps.form.model.FormRow;
 
 public class MetadataUtil {
     
-    public static final BigInteger FORMDATA_METADATUM_LABEL = BigInteger.valueOf(0); //CIP20 currently does not specify List type format
-    public static final BigInteger TOKEN_INFO_METADATUM_LABEL = BigInteger.valueOf(1);
+    public static final BigInteger TOKEN_INFO_METADATUM_LABEL = BigInteger.valueOf(1); /* Check for CIP in future for any native token standard */
     public static final String NFT_FORMDATA_PROPERTY_LABEL = "jogetFormData";
     
-    public static CBORMetadataMap generateMetadataMapFromFormData(Object[] metadataFields, FormRow row) {
+    /* Check in future for CIP20 enhancement for List type support */
+    public static MessageMetadata generateMsgMetadataFromFormData(Object[] metadataFields, FormRow row) {
         if (metadataFields == null || metadataFields.length == 0) {
             return null;
         }
         
-        CBORMetadataMap metadataMap = new CBORMetadataMap();
+        MessageMetadata messageMetadata = MessageMetadata.create();
         for (Object o : metadataFields) {
             Map mapping = (HashMap) o;
             String fieldId = mapping.get("fieldId").toString();
 
-//            String isFile = mapping.get("isFile").toString();
-//            if ("true".equalsIgnoreCase(isFile)) {
-//                String appVersion = appDef.getVersion().toString();
-//                String filePath = getFilePath(row.getProperty(fieldId), appDef.getAppId(), appVersion, formDefId, primaryKey);
-//                metadataMap.put(fieldId, getFileHashSha256(filePath));
-//            } else {
-//                metadataMap.put(fieldId, row.getProperty(fieldId));
-//            }
-            
-            metadataMap.put(fieldId, row.getProperty(fieldId));
+            messageMetadata.add(fieldId + ": " + row.getProperty(fieldId));
         }
         
-        return metadataMap;
+        return messageMetadata;
     }
+    
+//    public static CBORMetadataMap generateMetadataMapFromFormData(Object[] metadataFields, FormRow row) {
+//        if (metadataFields == null || metadataFields.length == 0) {
+//            return null;
+//        }
+//        
+//        CBORMetadataMap metadataMap = new CBORMetadataMap();
+//        for (Object o : metadataFields) {
+//            Map mapping = (HashMap) o;
+//            String fieldId = mapping.get("fieldId").toString();
+//
+////            String isFile = mapping.get("isFile").toString();
+////            if ("true".equalsIgnoreCase(isFile)) {
+////                String appVersion = appDef.getVersion().toString();
+////                String filePath = getFilePath(row.getProperty(fieldId), appDef.getAppId(), appVersion, formDefId, primaryKey);
+////                metadataMap.put(fieldId, getFileHashSha256(filePath));
+////            } else {
+////                metadataMap.put(fieldId, row.getProperty(fieldId));
+////            }
+//            
+//            metadataMap.put(fieldId, row.getProperty(fieldId));
+//        }
+//        
+//        return metadataMap;
+//    }
     
     public static Map<String, String> generateNftPropsFromFormData(Object[] propertyFields, FormRow row) {
         if (propertyFields == null || propertyFields.length == 0) {
