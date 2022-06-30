@@ -7,6 +7,7 @@ import com.bloxbean.cardano.client.backend.api.BackendService;
 import com.bloxbean.cardano.client.backend.model.AddressContent;
 import com.bloxbean.cardano.client.common.ADAConversionUtil;
 import com.bloxbean.cardano.client.api.model.Result;
+import com.bloxbean.cardano.client.backend.model.TxContentOutputAmount;
 import java.math.BigInteger;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.apps.form.model.Element;
@@ -19,6 +20,8 @@ import org.joget.apps.form.model.FormRowSet;
 import org.joget.commons.util.LogUtil;
 import org.joget.workflow.util.WorkflowUtil;
 import static com.bloxbean.cardano.client.common.CardanoConstants.LOVELACE;
+import java.util.HashMap;
+import java.util.Map;
 
 public class CardanoAccountLoadBinder extends FormBinder implements FormLoadBinder, FormLoadElementBinder {
 
@@ -67,12 +70,20 @@ public class CardanoAccountLoadBinder extends FormBinder implements FormLoadBind
             final AddressContent addressInfo = addressInfoResult.getValue();
             
             //Get form fields from plugin properties
-            String balanceField = getPropertyString("balanceField");
+            String balanceField = getPropertyString("adaBalanceField");
+            Object[] assetBalances = (Object[]) getProperty("assetBalances");
             String accountType = getPropertyString("accountType");
-
+            
             FormRow row = new FormRow();
-
+            
             row = addRow(row, balanceField, getAdaBalance(addressInfo));
+            for (Object o : assetBalances) {
+                Map mapping = (HashMap) o;
+                String assetId = mapping.get("assetId").toString();
+                String formFieldId = mapping.get("formFieldId").toString();
+                
+                row = addRow(row, formFieldId, getAssetBalance(addressInfo, assetId));
+            }
             // Dandelion missing this info fyi
             row = addRow(row, accountType, getAccountType(addressInfo));
             
@@ -86,23 +97,25 @@ public class CardanoAccountLoadBinder extends FormBinder implements FormLoadBind
         }
     }
     
-    private String getAdaBalance(AddressContent addressInfo) {
+    protected String getAdaBalance(AddressContent addressInfo) {
         if (addressInfo.getAmount().isEmpty()) {
             return "No balance found";
         }
         
-        return String.valueOf(
-                    ADAConversionUtil.lovelaceToAda(
-                        new BigInteger(
-                            addressInfo.getAmount().stream().filter(
-                                accountBalance -> accountBalance.getUnit().equals(LOVELACE)
-                            ).findFirst().get().getQuantity()
-                        )
-                    )
-                );
+        return String.valueOf(ADAConversionUtil.lovelaceToAda(new BigInteger(getAssetBalance(addressInfo, LOVELACE))));
     }
     
-    private String getAccountType(AddressContent addressInfo) {
+    private String getAssetBalance(AddressContent addressInfo, String assetId) {
+        if (addressInfo.getAmount().isEmpty()) {
+            return "No balance found";
+        }
+        
+        return addressInfo.getAmount().stream().filter(
+                        accountBalance -> accountBalance.getUnit().equals(assetId)
+                    ).findFirst().map(TxContentOutputAmount::getQuantity).orElse("No balance found");
+    }
+    
+    protected String getAccountType(AddressContent addressInfo) {
         return (addressInfo.getType() != null) ? addressInfo.getType().name() : "";
     }
     

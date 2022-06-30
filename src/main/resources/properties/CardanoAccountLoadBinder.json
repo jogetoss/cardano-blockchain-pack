@@ -17,15 +17,35 @@
         "title":"@@form.cardanoaccountloadbinder.header.mapToFields@@",
         "properties":[
             {
-                "name":"balanceField",
-                "label":"@@form.cardanoaccountloadbinder.mapToFields.balanceField@@",
-                "type":"textfield",
-                "required":"True"
+                "name":"adaBalanceField",
+                "label":"@@form.cardanoaccountloadbinder.mapToFields.adaBalanceField@@",
+                "type" : "selectbox",
+                "options_callback" : "FormBuilder.getFieldOptions"
+            },
+            {
+                "name":"assetBalances",
+                "label":"@@form.cardanoaccountloadbinder.mapToFields.assetBalances@@",
+                "type":"grid",
+                "columns":[
+                    {
+                        "key":"assetId",
+                        "label":"@@form.cardanoaccountloadbinder.mapToFields.assetBalances.assetId@@",
+                        "required":"True"
+                    },
+                    {
+                        "key":"formFieldId",
+                        "label":"@@form.cardanoaccountloadbinder.mapToFields.assetBalances.formFieldId@@",
+                        "type" : "selectbox",
+                        "options_callback" : "FormBuilder.getFieldOptions",
+                        "required":"True"
+                    }
+                ]
             },
             {
                 "name":"accountType",
                 "label":"@@form.cardanoaccountloadbinder.mapToFields.accountType@@",
-                "type":"textfield"
+                "type" : "selectbox",
+                "options_callback" : "FormBuilder.getFieldOptions"
             }
         ]
     }
