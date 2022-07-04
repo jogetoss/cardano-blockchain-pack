@@ -10,6 +10,8 @@ public class PluginUtil {
     
     public static final String MESSAGE_PATH = "messages/CardanoMessages";
     
+    public static final String FORM_ELEMENT_CATEGORY = "Cardano";
+    
     public static String getProjectVersion(Class classObj) {
         final Properties projectProp = new Properties();
         try {

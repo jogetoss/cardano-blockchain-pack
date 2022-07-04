@@ -13,13 +13,18 @@ public class Activator implements BundleActivator {
     public void start(BundleContext context) {
         registrationList = new ArrayList<ServiceRegistration>();
 
-        //Register plugin here
+        //Process Tool plugins
         registrationList.add(context.registerService(CardanoGenerateAccountTool.class.getName(), new CardanoGenerateAccountTool(), null));
         registrationList.add(context.registerService(CardanoSendTransactionTool.class.getName(), new CardanoSendTransactionTool(), null));
-        registrationList.add(context.registerService(CardanoAccountLoadBinder.class.getName(), new CardanoAccountLoadBinder(), null));
-        registrationList.add(context.registerService(CardanoMetadataLoadBinder.class.getName(), new CardanoMetadataLoadBinder(), null));
         registrationList.add(context.registerService(CardanoMintTokenTool.class.getName(), new CardanoMintTokenTool(), null));
         registrationList.add(context.registerService(CardanoBurnTokenTool.class.getName(), new CardanoBurnTokenTool(), null));
+        
+        //Form Binder plugins
+        registrationList.add(context.registerService(CardanoAccountLoadBinder.class.getName(), new CardanoAccountLoadBinder(), null));
+        registrationList.add(context.registerService(CardanoMetadataLoadBinder.class.getName(), new CardanoMetadataLoadBinder(), null));
+        
+        //Form Element plugins
+        registrationList.add(context.registerService(CardanoExplorerLinkFormElement.class.getName(), new CardanoExplorerLinkFormElement(), null));
     }
 
     public void stop(BundleContext context) {

@@ -1,0 +1,163 @@
+[
+    {
+        "title":"@@form.cardanoexplorerlinkformelement.header.config@@",
+        "properties":[
+            %s
+            ,
+            {
+                "label":"@@form.cardanoexplorerlinkformelement.subheader.transactionIdRetrieval@@",
+                "type":"header",
+                "description":"@@form.cardanoexplorerlinkformelement.subheader.transactionIdRetrieval.caution@@"
+            },
+            {
+                "name":"explorerType",
+                "label":"@@form.cardanoexplorerlinkformelement.explorerType@@",
+                "type":"selectbox",
+                "options":[
+                    {
+                        "value":"native",
+                        "label":"@@form.cardanoexplorerlinkformelement.explorerType.native@@"
+                    },
+                    {
+                        "value":"cardanoscan",
+                        "label":"@@form.cardanoexplorerlinkformelement.explorerType.cardanoscan@@"
+                    },
+                    {
+                        "value":"cexplorer",
+                        "label":"@@form.cardanoexplorerlinkformelement.explorerType.cexplorer@@"
+                    },
+                    {
+                        "value":"adatools",
+                        "label":"@@form.cardanoexplorerlinkformelement.explorerType.adatools@@"
+                    }
+                ],
+                "value":"native"
+            },
+            {
+                "name":"getValueMode",
+                "label":"@@form.cardanoexplorerlinkformelement.getValueMode@@",
+                "type":"selectbox",
+                "options":[
+                    {
+                        "value":"fieldId",
+                        "label":"@@form.cardanoexplorerlinkformelement.getValueMode.fieldId@@"
+                    },
+                    {
+                        "value":"hashVariable",
+                        "label":"@@form.cardanoexplorerlinkformelement.getValueMode.hashVariable@@"
+                    },
+                    {
+                        "value":"workflowVariable",
+                        "label":"@@form.cardanoexplorerlinkformelement.getValueMode.workflowVariable@@"
+                    }
+                ],
+                "value":"fieldId"
+            },
+            {
+                "name" : "getFieldId",
+                "label" : "@@form.cardanoexplorerlinkformelement.getFieldId@@",
+                "type" : "selectbox",
+                "options_callback" : "FormBuilder.getFieldOptions",
+                "required" : "True",
+                "control_field" : "getValueMode",
+                "control_value" : "fieldId",
+                "control_use_regex" : "false"
+            },
+            {
+                "name" : "textHashVariable",
+                "label" : "@@form.cardanoexplorerlinkformelement.textHashVariable@@",
+                "type":"textfield",
+                "required" : "True",
+                "control_field" : "getValueMode",
+                "control_value" : "hashVariable",
+                "control_use_regex" : "false"
+            },
+            {
+                "name" : "workflowVariable",
+                "label" : "@@form.textfield.workflowVariable@@",
+                "type" : "autocomplete",
+                "options_ajax" : "[CONTEXT_PATH]/web/json/console/app[APP_PATH]/workflowVariable/options",
+                "required" : "True",
+                "control_field" : "getValueMode",
+                "control_value" : "workflowVariable",
+                "control_use_regex" : "false"
+            },
+            {
+                "label":"@@form.cardanoexplorerlinkformelement.subheader.customizeLinkUi@@",
+                "type":"header"
+            },
+            {
+                "name":"displayAs",
+                "label":"@@form.cardanoexplorerlinkformelement.displayAs@@",
+                "type":"selectbox",
+                "options":[
+                    {
+                        "value":"button",
+                        "label":"@@form.cardanoexplorerlinkformelement.displayAs.button@@"
+                    },
+                    {
+                        "value":"hyperlink",
+                        "label":"@@form.cardanoexplorerlinkformelement.displayAs.hyperlink@@"
+                    }
+                ],
+                "value":"button"
+            },
+            {
+                "name" : "buttonLabel",
+                "label" : "@@form.cardanoexplorerlinkformelement.buttonLabel@@",
+                "type" : "textfield",
+                "required" : "True",
+                "value" : "Verify Transaction",
+                "control_field" : "displayAs",
+                "control_value" : "button",
+                "control_use_regex" : "false"
+            },
+            {
+                "name" : "hyperlinkLabel",
+                "label" : "@@form.cardanoexplorerlinkformelement.hyperlinkLabel@@",
+                "description" : "@@form.cardanoexplorerlinkformelement.hyperlinkLabel.desc@@",
+                "type" : "textfield",
+                "value" : "Verify Transaction",
+                "control_field" : "displayAs",
+                "control_value" : "hyperlink",
+                "control_use_regex" : "false"
+            },
+            {
+                "name" : "linkTarget",
+                "label" : "@@form.cardanoexplorerlinkformelement.linkTarget@@",
+                "type" : "selectbox",
+                "options":[
+                    {
+                       "value":"currentWindow",
+                       "label":"@@form.cardanoexplorerlinkformelement.linkTarget.currentWindow@@"
+                    },
+                    {
+                       "value":"newTab",
+                       "label":"@@form.cardanoexplorerlinkformelement.linkTarget.newTab@@"
+                    }
+                ],
+                "value":"newTab"
+            },
+            {
+                "name" : "invalidValueBehavior",
+                "label" : "@@form.cardanoexplorerlinkformelement.invalidValueBehavior@@",
+                "type" : "selectbox",
+                "options":[
+                    {
+                       "value":"showAsIs",
+                       "label":"@@form.cardanoexplorerlinkformelement.invalidValueBehavior.showAsIs@@"
+                    },
+                    {
+                       "value":"disableLink",
+                       "label":"@@form.cardanoexplorerlinkformelement.invalidValueBehavior.disableLink@@"
+                    },
+                    {
+                       "value":"hideLink",
+                       "label":"@@form.cardanoexplorerlinkformelement.invalidValueBehavior.hideLink@@"
+                    }
+                ],
+                "value":"hideLink"
+            }
+        ]
+    }
+]
