@@ -120,15 +120,8 @@ public class CardanoBurnTokenTool extends DefaultApplicationPlugin {
     public Object execute(Map props) {
         initUtils(props);
         
-        //Pull data from minting policy form table
         String formDefId = getPropertyString("formDefId");
-        final String primaryKey = WorkflowUtil.processVariable(getPropertyString("assetId"), "", wfAssignment);
-        
-        //Prevent error thrown from empty value and invalid hash variable
-        if (primaryKey.isEmpty() || primaryKey.startsWith("#")) {
-            LogUtil.warn(getClass().getName(), "Token burning aborted. Asset ID contains invalid value/hash variable.");
-            return null;
-        }
+        final String primaryKey = appService.getOriginProcessId(wfAssignment.getProcessId());
         
         FormRowSet rowSet = appService.loadFormData(appDef.getAppId(), appDef.getVersion().toString(), formDefId, primaryKey);
         
@@ -154,24 +147,26 @@ public class CardanoBurnTokenTool extends DefaultApplicationPlugin {
                 return null;
             }
             
+            final String assetId = row.getProperty(getPropertyString("assetId"));
             final String policyId = row.getProperty(getPropertyString("policyId"));
-            final String policySigningKey = PluginUtil.decrypt(row.getProperty(getPropertyString("policySigningKey")));
-            final String tokenName = row.getProperty(getPropertyString("tokenName"));
-            final String amountToBurn = WorkflowUtil.processVariable(getPropertyString("amountToBurn"), "", wfAssignment);
+            final String policySigningKey = PluginUtil.decrypt(WorkflowUtil.processVariable(getPropertyString("policySigningKey"), "", wfAssignment));
+            final String derivedPolicyId = AssetUtil.getPolicyIdAndAssetName(assetId)._1;
+            final String tokenNameInHex = AssetUtil.getPolicyIdAndAssetName(assetId)._2;
+            final String derivedTokenName = new String(HexUtil.decodeHexString(tokenNameInHex), StandardCharsets.UTF_8);
+            final String amountToBurn = row.getProperty(getPropertyString("amountToBurn"));
+            
+            //Check if retrieved policy ID matches the derived policy ID from asset ID.
+            if (!policyId.equals(derivedPolicyId)) {
+                LogUtil.warn(getClass().getName(), "Token burning aborted. Retrieved policy ID does not match the derived policy ID from asset ID.");
+                return null;
+            }
             
             BigInteger amountToBurnAbs;
             
             if ("nft".equalsIgnoreCase(getPropertyString("burnType"))) {
-                amountToBurnAbs = BigInteger.ONE;
+                amountToBurnAbs = BigInteger.ONE; //NFT = Exactly 1 amount of native token
             } else {
                 amountToBurnAbs = new BigInteger(amountToBurn).abs();
-            }
-            
-            //PK is Asset ID. Check against stored policy ID & asset name for validity.
-            final String assetId = primaryKey;
-            if (!assetId.equals(TransactionUtil.getAssetId(policyId, tokenName))) {
-                LogUtil.warn(getClass().getName(), "Token burning aborted. Asset ID does not match the retrieved policy ID and asset name.");
-                return null;
             }
             
             initBackend();
@@ -187,7 +182,7 @@ public class CardanoBurnTokenTool extends DefaultApplicationPlugin {
             MultiAsset multiAsset = new MultiAsset();
             multiAsset.setPolicyId(policyId);
             //negative amount required
-            multiAsset.getAssets().add(new Asset(tokenName, amountToBurnAbs.negate()));
+            multiAsset.getAssets().add(new Asset(derivedTokenName, amountToBurnAbs.negate()));
         
             //Get utxos for such asset ID
             UtxoSelectionStrategy utxoSelectionStrategy = new DefaultUtxoSelectionStrategyImpl(utxoSupplier);
@@ -222,7 +217,7 @@ public class CardanoBurnTokenTool extends DefaultApplicationPlugin {
                     .stream().filter(mulAsset -> mulAsset.getPolicyId().equals(policyId))
                     .forEach(ma -> {
                         Optional<Asset> assetOptional = ma.getAssets().stream().filter(ast ->
-                                ast.getName().equals(HexUtil.encodeHexString(tokenName.getBytes(StandardCharsets.UTF_8), true)))
+                                ast.getName().equals(HexUtil.encodeHexString(derivedTokenName.getBytes(StandardCharsets.UTF_8), true)))
                                 .findFirst();
                         if (assetOptional.isPresent()) {
                             Asset asset = assetOptional.get();

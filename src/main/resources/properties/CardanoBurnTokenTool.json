@@ -56,8 +56,10 @@
                 "name":"assetId",
                 "label":"@@process.cardanoburntokentool.assetId@@",
                 "description":"@@process.cardanoburntokentool.assetId.desc@@",
-                "type":"textfield",
-                "required":"True"
+                "type":"selectbox",
+                "required":"True",
+                "options_ajax_on_change":"formDefId",
+                "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options"
             },
             {
                 "name":"policyId",
@@ -72,26 +74,17 @@
                 "name":"policySigningKey",
                 "label":"@@process.cardanoburntokentool.policySigningKey@@",
                 "description":"@@process.cardanoburntokentool.policySigningKey.desc@@",
-                "type":"selectbox",
-                "required":"True",
-                "options_ajax_on_change":"formDefId",
-                "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options"
-            },
-            {
-                "name":"tokenName",
-                "label":"@@process.cardanoburntokentool.tokenName@@",
-                "description":"@@process.cardanoburntokentool.tokenName.desc@@",
-                "type":"selectbox",
-                "required":"True",
-                "options_ajax_on_change":"formDefId",
-                "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options"
+                "type":"textfield",
+                "required":"True"
             },
             {
                 "name":"amountToBurn",
                 "label":"@@process.cardanoburntokentool.amountToBurn@@",
                 "description":"@@process.cardanoburntokentool.amountToBurn.desc@@",
-                "type":"textfield",
+                "type":"selectbox",
                 "required":"True",
+                "options_ajax_on_change":"formDefId",
+                "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options",
                 "control_field":"burnType",
                 "control_value":"nativeToken",
                 "control_use_regex":"false"
