@@ -1,6 +1,7 @@
 [
     {
         "title":"@@form.cardanoexplorerlinkformelement.header.config@@",
+        "helplink": "@@form.cardanoexplorerlinkformelement.helplink@@",
         "properties":[
             %s
             ,

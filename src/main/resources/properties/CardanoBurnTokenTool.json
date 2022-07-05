@@ -1,6 +1,7 @@
 [
     {
        "title":"@@process.cardanoburntokentool.header.config@@",
+       "helplink": "@@process.cardanoburntokentool.helplink@@",
        "properties":[
             %s
         ]

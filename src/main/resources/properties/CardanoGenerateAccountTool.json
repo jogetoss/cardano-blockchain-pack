@@ -1,6 +1,7 @@
 [
     {
        "title":"@@process.cardanogenerateaccounttool.header.config@@",
+       "helplink": "@@process.cardanogenerateaccounttool.helplink@@",
        "properties":[
             {
                 "name":"networkType",

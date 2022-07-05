@@ -1,6 +1,7 @@
 [
     {
        "title":"@@process.cardanosendtransactiontool.header.config@@",
+       "helplink": "@@process.cardanosendtransactiontool.helplink@@",
        "properties":[
             %s
         ]

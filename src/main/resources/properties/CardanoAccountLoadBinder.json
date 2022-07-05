@@ -1,6 +1,7 @@
 [
     {
        "title":"@@form.cardanoaccountloadbinder.header.config@@",
+       "helplink": "@@form.cardanoaccountloadbinder.helplink@@",
        "properties":[
             %s
             ,
