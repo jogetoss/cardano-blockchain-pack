@@ -67,23 +67,27 @@ public class CardanoExplorerLinkFormElement extends Element implements FormBuild
         
         String transactionId;
         
-        switch (getValueMode) {
-            case "fieldId" :
-                String fieldId = getPropertyString("getFieldId");
-                
-                Form form = FormUtil.findRootForm(this);
-                Element fieldElement = FormUtil.findElement(fieldId, form, formData);
-                
-                transactionId = FormUtil.getElementPropertyValue(fieldElement, formData);
-                break;
-            case "hashVariable" :
-                String textHashVariable = getPropertyString("textHashVariable");
-                transactionId = WorkflowUtil.processVariable(textHashVariable, "", wfAssignment);
-                break;
-            default:
-                String workflowVariable = getPropertyString("workflowVariable");
-                transactionId = workflowManager.getProcessVariable(wfAssignment.getProcessId(), workflowVariable);
-                break;
+        if (FormUtil.isFormBuilderActive()) { // Don't need to unnecessarily retrieve value when in Form Builder
+            transactionId = "";
+        } else {
+            switch (getValueMode) {
+                case "fieldId" :
+                    String fieldId = getPropertyString("getFieldId");
+
+                    Form form = FormUtil.findRootForm(this);
+                    Element fieldElement = FormUtil.findElement(fieldId, form, formData);
+
+                    transactionId = FormUtil.getElementPropertyValue(fieldElement, formData);
+                    break;
+                case "hashVariable" :
+                    String textHashVariable = getPropertyString("textHashVariable");
+                    transactionId = WorkflowUtil.processVariable(textHashVariable, "", wfAssignment);
+                    break;
+                default:
+                    String workflowVariable = getPropertyString("workflowVariable");
+                    transactionId = workflowManager.getProcessVariable(wfAssignment.getProcessId(), workflowVariable);
+                    break;
+            }
         }
         
         initBackend();

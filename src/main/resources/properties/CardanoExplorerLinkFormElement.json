@@ -3,6 +3,15 @@
         "title":"@@form.cardanoexplorerlinkformelement.header.config@@",
         "helplink": "@@form.cardanoexplorerlinkformelement.helplink@@",
         "properties":[
+            {
+                "name":"id",
+                "label":"ID",
+                "type":"autocomplete",
+                "required":"True",
+                "regex_validation":"^[a-zA-Z0-9_]+$",
+                "validation_message":"@@form.textfield.invalidId@@",
+                "options_callback":"FormBuilder.getAllFieldOptions"
+            },
             %s
             ,
             {
