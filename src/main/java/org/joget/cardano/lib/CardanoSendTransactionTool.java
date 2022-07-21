@@ -43,6 +43,7 @@ import org.joget.apps.datalist.service.DataListService;
 import org.joget.apps.form.model.FormRow;
 import org.joget.apps.form.model.FormRowSet;
 import org.joget.cardano.service.MetadataUtil;
+import org.joget.cardano.service.TokenUtil;
 import org.joget.commons.util.PluginThread;
 
 public class CardanoSendTransactionTool extends DefaultApplicationPlugin {
@@ -309,7 +310,7 @@ public class CardanoSendTransactionTool extends DefaultApplicationPlugin {
     }
     
     protected String getPaymentUnit() {
-        return getPropertyString("paymentUnit").equalsIgnoreCase(LOVELACE) ? LOVELACE : TransactionUtil.getAssetId(getPropertyString("policyId"), getPropertyString("assetName"));
+        return getPropertyString("paymentUnit").equalsIgnoreCase(LOVELACE) ? LOVELACE : TokenUtil.getAssetId(getPropertyString("policyId"), getPropertyString("assetName"));
     }
     
     protected void storeToWorkflowVariable(

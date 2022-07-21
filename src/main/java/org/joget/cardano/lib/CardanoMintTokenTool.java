@@ -46,6 +46,7 @@ import org.joget.apps.form.model.FormRowSet;
 import org.joget.cardano.service.MetadataUtil;
 import static org.joget.cardano.service.MetadataUtil.NFT_FORMDATA_PROPERTY_LABEL;
 import static org.joget.cardano.service.MetadataUtil.TOKEN_INFO_METADATUM_LABEL;
+import org.joget.cardano.service.TokenUtil;
 import org.joget.commons.util.LogUtil;
 import org.joget.commons.util.PluginThread;
 import org.joget.plugin.base.DefaultApplicationPlugin;
@@ -152,7 +153,7 @@ public class CardanoMintTokenTool extends DefaultApplicationPlugin {
                 NativeScript policyScript = NativeScript.deserializeJson(
                         WorkflowUtil.processVariable(getPropertyString("policyScript"), "", wfAssignment)
                 );
-                List<SecretKey> skeys = TransactionUtil.getSecretKeysStringAsList(
+                List<SecretKey> skeys = TokenUtil.getSecretKeysStringAsList(
                         PluginUtil.decrypt(
                                 WorkflowUtil.processVariable(getPropertyString("policyKeys"), "", wfAssignment)
                         )
@@ -163,12 +164,12 @@ public class CardanoMintTokenTool extends DefaultApplicationPlugin {
                     return null;
                 }
                 
-                policy = new Policy(TransactionUtil.getFormattedPolicyName(policyId), policyScript, skeys);
+                policy = new Policy(TokenUtil.getFormattedPolicyName(policyId), policyScript, skeys);
             } else { // Generate a new minting policy for this minting transaction
                 /* Perhaps support multisig policy signing in future? 1 signer for now. */
                 policy = PolicyUtil.createMultiSigScriptAllPolicy("", 1);
                 
-                policy.setName(TransactionUtil.getFormattedPolicyName(policy.getPolicyId()));
+                policy.setName(TokenUtil.getFormattedPolicyName(policy.getPolicyId()));
             }
             
             MultiAsset multiAsset = new MultiAsset();
@@ -314,7 +315,7 @@ public class CardanoMintTokenTool extends DefaultApplicationPlugin {
         List<SecretKey> skeys = policy.getPolicyKeys();
         
         // Combine all secret key(s) into string delimited by semicolon for storage (e.g.: skey1;skey2;skey3)
-        String skeyListAsCborHex = TransactionUtil.getSecretKeysAsCborHexStringList(skeys);
+        String skeyListAsCborHex = TokenUtil.getSecretKeysAsCborHexStringList(skeys);
         
         String policyScriptField = getPropertyString("policyScriptField");
         String policySecretKeyField = getPropertyString("policySecretKeyField");
@@ -366,7 +367,7 @@ public class CardanoMintTokenTool extends DefaultApplicationPlugin {
         FormRow row = new FormRow();
 
         //Asset ID set as Record ID
-        row.setId(TransactionUtil.getAssetId(policyId, tokenName));
+        row.setId(TokenUtil.getAssetId(policyId, tokenName));
 
         row = addRow(row, tokenNameField, tokenName);
         row = addRow(row, policyIdFkField, policyId);

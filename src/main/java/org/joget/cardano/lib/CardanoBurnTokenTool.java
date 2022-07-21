@@ -56,6 +56,7 @@ import org.joget.apps.app.service.AppService;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.apps.form.model.FormRow;
 import org.joget.apps.form.model.FormRowSet;
+import org.joget.cardano.service.TokenUtil;
 import org.joget.commons.util.LogUtil;
 import org.joget.commons.util.PluginThread;
 import org.joget.plugin.base.DefaultApplicationPlugin;
@@ -171,7 +172,7 @@ public class CardanoBurnTokenTool extends DefaultApplicationPlugin {
             
             initBackend();
             
-            final List<SecretKey> skeys = TransactionUtil.getSecretKeysStringAsList(policySigningKey);
+            final List<SecretKey> skeys = TokenUtil.getSecretKeysStringAsList(policySigningKey);
             ScriptAll scriptAll = new ScriptAll();
             for (SecretKey skey : skeys) {
                 VerificationKey vkey = KeyGenUtil.getPublicKeyFromPrivateKey(skey);
