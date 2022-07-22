@@ -42,6 +42,7 @@ import org.joget.apps.datalist.model.DataListFilterQueryObject;
 import org.joget.apps.datalist.service.DataListService;
 import org.joget.apps.form.model.FormRow;
 import org.joget.apps.form.model.FormRowSet;
+import org.joget.cardano.service.ExplorerLinkUtil;
 import org.joget.cardano.service.MetadataUtil;
 import org.joget.cardano.service.TokenUtil;
 import org.joget.commons.util.PluginThread;
@@ -342,7 +343,7 @@ public class CardanoSendTransactionTool extends DefaultApplicationPlugin {
         storeValuetoActivityVar(
                 activityId, 
                 transactionUrlVar, 
-                transactionResult != null ? TransactionUtil.getTransactionExplorerUrl(isTest, transactionResult.getValue().getTransactionId()) : ""
+                transactionResult != null ? ExplorerLinkUtil.getTransactionExplorerUrl(isTest, transactionResult.getValue().getTransactionId()) : ""
         );
     }
     

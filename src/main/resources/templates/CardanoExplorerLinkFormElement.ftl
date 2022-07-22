@@ -7,19 +7,19 @@
     <#assign linkTarget = element.properties.linkTarget>
     <#assign invalidValueBehavior = element.properties.invalidValueBehavior>
 
-    <#if !isValidTxId && invalidValueBehavior == "hideLink">
+    <#if !isValidValue && invalidValueBehavior == "hideLink">
         <#-- Don't show anything -->
     <#else>
         <#if displayAs == "button">
             <#assign buttonLabel = element.properties.buttonLabel>
             
             <#if linkTarget == "newTab">
-                <#assign onclickFunction = "window.open('${txExplorerUrl!}','_blank'); return false;">
+                <#assign onclickFunction = "window.open('${explorerUrl!}','_blank'); return false;">
             <#else>
-                <#assign onclickFunction = "window.location.href='${txExplorerUrl!}'; return false;">
+                <#assign onclickFunction = "window.location.href='${explorerUrl!}'; return false;">
             </#if>
             
-            <#if !isValidTxId && invalidValueBehavior == "disableLink">
+            <#if !isValidValue && invalidValueBehavior == "disableLink">
                 <#assign disableAttr = "disabled">
             </#if>
 
@@ -28,7 +28,7 @@
             <#assign hyperlinkLabel = element.properties.hyperlinkLabel>
 
             <#if !hyperlinkLabel?has_content>
-                <#assign hyperlinkLabel = txExplorerUrl>
+                <#assign hyperlinkLabel = explorerUrl>
             </#if>
             
             <#if linkTarget == "newTab">
@@ -37,11 +37,11 @@
                 <#assign clickTarget = "_self">
             </#if>
 
-            <#if !isValidTxId && invalidValueBehavior == "disableLink">
+            <#if !isValidValue && invalidValueBehavior == "disableLink">
                 <#assign url = "javascript:void(0)">
                 <#assign clickTarget = "_self">
             <#else>
-                <#assign url = txExplorerUrl>
+                <#assign url = explorerUrl>
             </#if>
 
             <a id="explorer_link_${element.properties.elementUniqueKey!}" ${elementMetaData!} class="explorer-link-hyperlink" href="${url!}" target="${clickTarget!}">${hyperlinkLabel!}</a>

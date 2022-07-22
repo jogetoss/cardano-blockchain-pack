@@ -15,9 +15,9 @@
             %s
             ,
             {
-                "label":"@@form.cardanoexplorerlinkformelement.subheader.transactionIdRetrieval@@",
+                "label":"@@form.cardanoexplorerlinkformelement.subheader.valueRetrieval@@",
                 "type":"header",
-                "description":"@@form.cardanoexplorerlinkformelement.subheader.transactionIdRetrieval.caution@@"
+                "description":"@@form.cardanoexplorerlinkformelement.subheader.valueRetrieval.caution@@"
             },
             {
                 "name":"explorerType",
@@ -35,13 +35,33 @@
                     {
                         "value":"cexplorer",
                         "label":"@@form.cardanoexplorerlinkformelement.explorerType.cexplorer@@"
-                    },
-                    {
-                        "value":"adatools",
-                        "label":"@@form.cardanoexplorerlinkformelement.explorerType.adatools@@"
                     }
                 ],
                 "value":"native"
+            },
+            {
+                "name":"valueType",
+                "label":"@@form.cardanoexplorerlinkformelement.valueType@@",
+                "type":"selectbox",
+                "options":[
+                    {
+                        "value":"transactionId",
+                        "label":"@@form.cardanoexplorerlinkformelement.valueType.transactionId@@"
+                    },
+                    {
+                        "value":"accountAddress",
+                        "label":"@@form.cardanoexplorerlinkformelement.valueType.accountAddress@@"
+                    },
+                    {
+                        "value":"tokenPolicy",
+                        "label":"@@form.cardanoexplorerlinkformelement.valueType.tokenPolicy@@"
+                    },
+                    {
+                        "value":"assetId",
+                        "label":"@@form.cardanoexplorerlinkformelement.valueType.assetId@@"
+                    }
+                ],
+                "value":"transactionId"
             },
             {
                 "name":"getValueMode",
@@ -117,7 +137,7 @@
                 "label" : "@@form.cardanoexplorerlinkformelement.buttonLabel@@",
                 "type" : "textfield",
                 "required" : "True",
-                "value" : "Verify Transaction",
+                "value" : "Verify on Explorer",
                 "control_field" : "displayAs",
                 "control_value" : "button",
                 "control_use_regex" : "false"
@@ -127,7 +147,7 @@
                 "label" : "@@form.cardanoexplorerlinkformelement.hyperlinkLabel@@",
                 "description" : "@@form.cardanoexplorerlinkformelement.hyperlinkLabel.desc@@",
                 "type" : "textfield",
-                "value" : "Verify Transaction",
+                "value" : "Verify on Explorer",
                 "control_field" : "displayAs",
                 "control_value" : "hyperlink",
                 "control_use_regex" : "false"

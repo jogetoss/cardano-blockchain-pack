@@ -56,6 +56,7 @@ import org.joget.apps.app.service.AppService;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.apps.form.model.FormRow;
 import org.joget.apps.form.model.FormRowSet;
+import org.joget.cardano.service.ExplorerLinkUtil;
 import org.joget.cardano.service.TokenUtil;
 import org.joget.commons.util.LogUtil;
 import org.joget.commons.util.PluginThread;
@@ -426,7 +427,7 @@ public class CardanoBurnTokenTool extends DefaultApplicationPlugin {
         storeValuetoActivityVar(
                 activityId, 
                 transactionUrlVar, 
-                transactionResult != null ? TransactionUtil.getTransactionExplorerUrl(isTest, transactionResult.getValue()) : ""
+                transactionResult != null ? ExplorerLinkUtil.getTransactionExplorerUrl(isTest, transactionResult.getValue()) : ""
         );
     }
     
