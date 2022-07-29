@@ -27,14 +27,6 @@
         {
             "value":"koios",
             "label":"@@cardano.prop.backendService.koios@@"
-        },
-        {
-            "value":"dandelion",
-            "label":"@@cardano.prop.backendService.dandelion@@"
-        },
-        {
-            "value":"customGraphQl",
-            "label":"@@cardano.prop.backendService.customGraphql@@"
         }
     ],
     "value":"koios"
@@ -47,14 +39,5 @@
     "required":"True",
     "control_field":"backendService",
     "control_value":"blockfrost",
-    "control_use_regex":"false"
-},
-{
-    "name":"graphqlEndpointUrl",
-    "label":"@@cardano.prop.graphqlEndpointUrl@@",
-    "type":"textfield",
-    "required":"True",
-    "control_field":"backendService",
-    "control_value":"customGraphQl",
     "control_use_regex":"false"
 }

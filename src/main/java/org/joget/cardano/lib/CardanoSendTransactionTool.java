@@ -15,15 +15,12 @@ import org.joget.workflow.util.WorkflowUtil;
 import com.bloxbean.cardano.client.common.model.Network;
 import com.bloxbean.cardano.client.transaction.model.PaymentTransaction;
 import com.bloxbean.cardano.client.account.Account;
-import com.bloxbean.cardano.client.api.ProtocolParamsSupplier;
 import com.bloxbean.cardano.client.api.helper.FeeCalculationService;
 import com.bloxbean.cardano.client.api.helper.TransactionHelperService;
 import com.bloxbean.cardano.client.api.helper.model.TransactionResult;
-import com.bloxbean.cardano.client.api.model.ProtocolParams;
 import com.bloxbean.cardano.client.api.model.Result;
 import com.bloxbean.cardano.client.backend.api.BackendService;
 import com.bloxbean.cardano.client.backend.api.BlockService;
-import com.bloxbean.cardano.client.backend.api.DefaultProtocolParamsSupplier;
 import com.bloxbean.cardano.client.backend.api.TransactionService;
 import com.bloxbean.cardano.client.backend.model.TransactionContent;
 import com.bloxbean.cardano.client.cip.cip20.MessageMetadata;
@@ -68,17 +65,6 @@ public class CardanoSendTransactionTool extends DefaultApplicationPlugin {
         
         blockService = backendService.getBlockService();
         transactionHelperService = backendService.getTransactionHelperService();
-        
-        //Vasil temp workaround for Blockfrost API
-        transactionHelperService.getTransactionBuilder().setProtocolParamsSupplier(new ProtocolParamsSupplier() {
-            @Override
-            public ProtocolParams getProtocolParams() {
-                DefaultProtocolParamsSupplier protocolParamsSupplier =  new DefaultProtocolParamsSupplier(backendService.getEpochService());
-                ProtocolParams protocolParams = protocolParamsSupplier.getProtocolParams();
-                protocolParams.setCoinsPerUtxoWord("34482");
-                return protocolParams;
-            }
-        });
         
         feeCalculationService = backendService.getFeeCalculationService();
         transactionService = backendService.getTransactionService();
