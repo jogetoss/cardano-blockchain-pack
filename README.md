@@ -11,12 +11,16 @@ Credits: [https://github.com/bloxbean/cardano-client-lib](https://github.com/blo
 # Changelog
 
 ## Q3 2022 (In Progress)
-[Pending changes for Vasil upgrade]
 #### Added
 - Cardano Account Load Binder - Added support to load native asset balances
 - Added new Form Element plugin - Cardano Explorer Link
 - Cardano Burn Token Tool - Simplify plugin configurations
 - Added convenient helplinks to documentation for all plugins
+- Cardano Explorer Link - Support checking policy, address, asset on explorers
+- Support Vasil HF
+
+#### Fixes
+- Cardano Explorer Link - Fixed NPE when edit element in Form Builder
 
 ## Q2 2022
 #### Added
