@@ -13,6 +13,7 @@ import com.bloxbean.cardano.client.cip.cip20.MessageMetadata;
 import com.bloxbean.cardano.client.cip.cip25.NFT;
 import com.bloxbean.cardano.client.cip.cip25.NFTFile;
 import com.bloxbean.cardano.client.cip.cip25.NFTMetadata;
+import com.bloxbean.cardano.client.common.ADAConversionUtil;
 import com.bloxbean.cardano.client.common.model.Network;
 import com.bloxbean.cardano.client.crypto.SecretKey;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
@@ -28,6 +29,7 @@ import com.bloxbean.cardano.client.transaction.spec.script.NativeScript;
 import com.bloxbean.cardano.client.util.PolicyUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.List;
@@ -45,6 +47,7 @@ import org.joget.cardano.service.MetadataUtil;
 import static org.joget.cardano.service.MetadataUtil.NFT_FORMDATA_PROPERTY_LABEL;
 import static org.joget.cardano.service.MetadataUtil.TOKEN_INFO_METADATUM_LABEL;
 import org.joget.cardano.service.TokenUtil;
+import static org.joget.cardano.service.TransactionUtil.MAX_FEE_LIMIT;
 import org.joget.commons.util.LogUtil;
 import org.joget.commons.util.PluginThread;
 import org.joget.plugin.base.DefaultApplicationPlugin;
@@ -235,6 +238,16 @@ public class CardanoMintTokenTool extends DefaultApplicationPlugin {
             TransactionDetailsParams detailsParams = TransactionDetailsParams.builder().ttl(ttl).build();
 
             final BigInteger fee = feeCalculationService.calculateFee(mintTransaction, detailsParams, metadata);
+            
+            BigInteger feeLimit = MAX_FEE_LIMIT;
+            if (!getPropertyString("feeLimit").isBlank()) {
+                feeLimit = ADAConversionUtil.adaToLovelace(new BigDecimal(getPropertyString("feeLimit")));
+            }
+            if (!TransactionUtil.checkFeeLimit(fee, feeLimit)) {
+                LogUtil.warn(getClass().getName(), "Mint transaction aborted. Transaction fee in units of lovelace of " + fee.toString() + " exceeded set fee limit of " + feeLimit.toString() + ".");
+                storeToWorkflowVariable(wfAssignment.getActivityId(), isTest, null, null);
+                return null;
+            }
             mintTransaction.setFee(fee);
 
             final Result<TransactionResult> transactionResult = transactionHelperService.mintToken(mintTransaction, detailsParams, metadata);

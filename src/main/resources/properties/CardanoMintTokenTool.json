@@ -84,6 +84,12 @@
                 "control_use_regex":"false"
             },
             {
+                "name":"feeLimit",
+                "label":"@@cardano.prop.feeLimit@@",
+                "description":"@@cardano.prop.feeLimit.desc@@",
+                "type":"textfield"
+            },
+            {
                 "name":"mintType",
                 "label":"@@process.cardanominttokentool.mintType@@",
                 "type":"selectbox",

@@ -42,6 +42,7 @@ import org.joget.apps.form.model.FormRowSet;
 import org.joget.cardano.service.ExplorerLinkUtil;
 import org.joget.cardano.service.MetadataUtil;
 import org.joget.cardano.service.TokenUtil;
+import static org.joget.cardano.service.TransactionUtil.MAX_FEE_LIMIT;
 import org.joget.commons.util.PluginThread;
 
 public class CardanoSendTransactionTool extends DefaultApplicationPlugin {
@@ -142,19 +143,16 @@ public class CardanoSendTransactionTool extends DefaultApplicationPlugin {
             TransactionDetailsParams detailsParams = TransactionDetailsParams.builder().ttl(ttl).build();
             
             Result<TransactionResult> transactionResult;
+            List<PaymentTransaction> paymentList = new ArrayList<>();
             
             if ("true".equalsIgnoreCase(getPropertyString("multipleReceiverMode"))) { // If enabled multi receiver mode
-                List<PaymentTransaction> paymentList = getPaymentListFromBinderData(senderAccount);
+                //Consider pulling binder plugin/configs directly from user selected Datalist
+                paymentList = getPaymentListFromBinderData(senderAccount);
                 
                 if (paymentList == null || paymentList.isEmpty()) {
                     LogUtil.warn(getClass().getName(), "Transaction aborted. No valid receiver records found from binder.");
                     return null;
                 }
-                
-                final BigInteger fee = feeCalculationService.calculateFee(paymentList, detailsParams, metadata);
-                paymentList.get(0).setFee(fee);
-                
-                transactionResult = transactionHelperService.transfer(paymentList, detailsParams, metadata);
             } else { // If not enabled multi receiver mode (single receiver only)
                 String tempReceiverAddress;
                 
@@ -172,11 +170,23 @@ public class CardanoSendTransactionTool extends DefaultApplicationPlugin {
                             .unit(getPaymentUnit())
                             .build();
                 
-                final BigInteger fee = feeCalculationService.calculateFee(paymentTransaction, detailsParams, metadata);
-                paymentTransaction.setFee(fee);
-                
-                transactionResult = transactionHelperService.transfer(paymentTransaction, detailsParams, metadata);
+                paymentList.add(paymentTransaction);
             }
+            
+            final BigInteger fee = feeCalculationService.calculateFee(paymentList, detailsParams, metadata);
+            
+            BigInteger feeLimit = MAX_FEE_LIMIT;
+            if (!getPropertyString("feeLimit").isBlank()) {
+                feeLimit = ADAConversionUtil.adaToLovelace(new BigDecimal(getPropertyString("feeLimit")));
+            }
+            if (!TransactionUtil.checkFeeLimit(fee, feeLimit)) {
+                LogUtil.warn(getClass().getName(), "Send transaction aborted. Transaction fee in units of lovelace of " + fee.toString() + " exceeded set fee limit of " + feeLimit.toString() + ".");
+                storeToWorkflowVariable(wfAssignment.getActivityId(), isTest, null, null);
+                return null;
+            }
+            paymentList.get(0).setFee(fee);
+
+            transactionResult = transactionHelperService.transfer(paymentList, detailsParams, metadata);
             
             if (!transactionResult.isSuccessful()) {
                 LogUtil.warn(getClass().getName(), "Transaction failed with status code " + transactionResult.code() + ". Response returned --> " + transactionResult.getResponse());

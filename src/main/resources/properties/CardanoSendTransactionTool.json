@@ -141,6 +141,12 @@
                 "control_use_regex":"false"
             },
             {
+                "name":"feeLimit",
+                "label":"@@cardano.prop.feeLimit@@",
+                "description":"@@cardano.prop.feeLimit.desc@@",
+                "type":"textfield"
+            },
+            {
                 "label" : "@@process.cardanosendtransactiontool.subheader.additionalMetadata@@",
                 "type" : "header"
             },

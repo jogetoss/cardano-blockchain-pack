@@ -16,6 +16,7 @@ import com.bloxbean.cardano.client.backend.api.UtxoService;
 import com.bloxbean.cardano.client.coinselection.UtxoSelectionStrategy;
 import com.bloxbean.cardano.client.coinselection.impl.DefaultUtxoSelectionStrategyImpl;
 import com.bloxbean.cardano.client.backend.model.TransactionContent;
+import com.bloxbean.cardano.client.common.ADAConversionUtil;
 import static com.bloxbean.cardano.client.common.CardanoConstants.LOVELACE;
 import com.bloxbean.cardano.client.common.MinAdaCalculator;
 import com.bloxbean.cardano.client.common.model.Network;
@@ -38,6 +39,7 @@ import com.bloxbean.cardano.client.transaction.spec.script.ScriptPubkey;
 import com.bloxbean.cardano.client.util.AssetUtil;
 import com.bloxbean.cardano.client.util.HexUtil;
 import com.bloxbean.cardano.client.util.Tuple;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -58,6 +60,7 @@ import org.joget.apps.form.model.FormRow;
 import org.joget.apps.form.model.FormRowSet;
 import org.joget.cardano.service.ExplorerLinkUtil;
 import org.joget.cardano.service.TokenUtil;
+import static org.joget.cardano.service.TransactionUtil.MAX_FEE_LIMIT;
 import org.joget.commons.util.LogUtil;
 import org.joget.commons.util.PluginThread;
 import org.joget.plugin.base.DefaultApplicationPlugin;
@@ -250,6 +253,18 @@ public class CardanoBurnTokenTool extends DefaultApplicationPlugin {
 
             calculateEstimatedFeeAndMinAdaRequirementAndUpdateTxnOutput(senderAccount, skeys, utxoSelectionStrategy, utxos, transaction);
 
+            final BigInteger fee = transaction.getBody().getFee();
+            
+            BigInteger feeLimit = MAX_FEE_LIMIT;
+            if (!getPropertyString("feeLimit").isBlank()) {
+                feeLimit = ADAConversionUtil.adaToLovelace(new BigDecimal(getPropertyString("feeLimit")));
+            }
+            if (!TransactionUtil.checkFeeLimit(fee, feeLimit)) {
+                LogUtil.warn(getClass().getName(), "Burn transaction aborted. Transaction fee in units of lovelace of " + fee.toString() + " exceeded set fee limit of " + feeLimit.toString() + ".");
+                storeToWorkflowVariable(wfAssignment.getActivityId(), isTest, null, null);
+                return null;
+            }
+            
             byte[] signedCBorBytes = signTransactionWithSenderAndSecretKey(senderAccount, skeys, transaction).serialize();
 
             final Result<String> transactionResult = transactionService.submitTransaction(signedCBorBytes);

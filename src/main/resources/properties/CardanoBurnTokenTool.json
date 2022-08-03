@@ -89,6 +89,12 @@
                 "control_field":"burnType",
                 "control_value":"nativeToken",
                 "control_use_regex":"false"
+            },
+            {
+                "name":"feeLimit",
+                "label":"@@cardano.prop.feeLimit@@",
+                "description":"@@cardano.prop.feeLimit.desc@@",
+                "type":"textfield"
             }
         ]
     },

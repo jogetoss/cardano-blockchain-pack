@@ -6,9 +6,12 @@ import com.bloxbean.cardano.client.api.model.Result;
 import com.bloxbean.cardano.client.backend.api.BlockService;
 import com.bloxbean.cardano.client.backend.api.TransactionService;
 import com.bloxbean.cardano.client.backend.model.TransactionContent;
+import java.math.BigInteger;
 import org.joget.apps.form.service.FormUtil;
 
 public class TransactionUtil {
+    
+    public static final BigInteger MAX_FEE_LIMIT = BigInteger.valueOf(999999999);
     
     public static final long DEFAULT_WAIT_INTERVAL_MS = 2000;
     
@@ -35,6 +38,14 @@ public class TransactionUtil {
         }
         
         return false;
+    }
+    
+    public static boolean checkFeeLimit(BigInteger fee, BigInteger limit) {
+        if (fee == null || limit == null) {
+            return false;
+        }
+        
+        return fee.compareTo(limit) <= 0;
     }
     
     public static Result<TransactionContent> waitForTransactionHash(TransactionService transactionService, Result<String> transactionResult) 
