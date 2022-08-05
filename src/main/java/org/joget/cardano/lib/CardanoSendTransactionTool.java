@@ -28,14 +28,21 @@ import com.bloxbean.cardano.client.common.ADAConversionUtil;
 import static com.bloxbean.cardano.client.common.CardanoConstants.LOVELACE;
 import com.bloxbean.cardano.client.metadata.Metadata;
 import com.bloxbean.cardano.client.transaction.model.TransactionDetailsParams;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import org.joget.apps.app.dao.DatalistDefinitionDao;
 import org.joget.apps.app.model.AppDefinition;
+import org.joget.apps.app.model.DatalistDefinition;
 import org.joget.apps.app.service.AppService;
+import org.joget.apps.datalist.model.DataList;
 import org.joget.apps.datalist.model.DataListBinder;
 import org.joget.apps.datalist.model.DataListCollection;
-import org.joget.apps.datalist.model.DataListFilterQueryObject;
+import org.joget.apps.datalist.model.DataListColumn;
 import org.joget.apps.datalist.service.DataListService;
 import org.joget.apps.form.model.FormRow;
 import org.joget.apps.form.model.FormRowSet;
@@ -44,8 +51,13 @@ import org.joget.cardano.service.MetadataUtil;
 import org.joget.cardano.service.TokenUtil;
 import static org.joget.cardano.service.TransactionUtil.MAX_FEE_LIMIT;
 import org.joget.commons.util.PluginThread;
+import org.joget.plugin.base.PluginWebSupport;
+import org.joget.workflow.model.service.WorkflowUserManager;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.springframework.beans.BeansException;
 
-public class CardanoSendTransactionTool extends DefaultApplicationPlugin {
+public class CardanoSendTransactionTool extends DefaultApplicationPlugin implements PluginWebSupport {
     
     protected DataListBinder binder = null;
     
@@ -225,39 +237,37 @@ public class CardanoSendTransactionTool extends DefaultApplicationPlugin {
         }
     }
     
-    protected DataListBinder getBinder() {
-        if (binder == null) {
-            Object binderMap = getProperty("binder");
-            if (binderMap != null && binderMap instanceof Map) {
-                Map bdMap = (Map) binderMap;
-                if (bdMap.containsKey("className") && !bdMap.get("className").toString().isEmpty()) {
-                    binder = dataListService.getBinder(bdMap.get("className").toString());
-                    if (binder != null) {
-                        Map bdProps = (Map) bdMap.get("properties");
-                        binder.setProperties(bdProps);
-                    }
-                }
-            }
+    protected DataList getDataList() throws BeansException {
+        DataList datalist = null;
+        
+        ApplicationContext ac = AppUtil.getApplicationContext();
+        DatalistDefinitionDao datalistDefinitionDao = (DatalistDefinitionDao) ac.getBean("datalistDefinitionDao");
+        final String datalistId = getPropertyString("datalistId");
+        DatalistDefinition datalistDefinition = datalistDefinitionDao.loadById(datalistId, appDef);
+
+        if (datalistDefinition != null) {
+            datalist = dataListService.fromJson(datalistDefinition.getJson());
         }
         
-        return binder;
+        return datalist;
     }
     
-    //Get receiver(s) & their respective amounts to send from user-selected binder
+    //Get receiver(s) & their respective amounts to send from binder from user-selected datalist
     protected List<PaymentTransaction> getPaymentListFromBinderData(Account senderAccount) {
         List<PaymentTransaction> paymentList = new ArrayList<>();
             
         try {
-            DataListCollection node = getBinder().getData(null, getBinder().getProperties(), new DataListFilterQueryObject[]{}, null, null, null, null);
-
-            if (node == null || node.isEmpty()) {
+            DataList datalist = getDataList();
+            DataListCollection binderData = datalist.getRows();
+            
+            if (binderData == null || binderData.isEmpty()) {
                 return null;
             }
             
             // Unit var placed outside of for-loop to avoid redundant calls just to get payment unit
             String unit = getPaymentUnit();
             
-            for (Object r : node) {
+            for (Object r : binderData) {
                 String receiverAddress = (String) DataListService.evaluateColumnValueFromRow(r, getPropertyString("receiverAddressColumn"));
                 String amount = (String) DataListService.evaluateColumnValueFromRow(r, getPropertyString("amountColumn"));
 
@@ -285,10 +295,55 @@ public class CardanoSendTransactionTool extends DefaultApplicationPlugin {
                 paymentList.add(paymentTransaction);
             }
         } catch (Exception ex) {
-            LogUtil.error(getClass().getName(), ex, "Unable to retrieve transaction receivers data from binder.");
+            LogUtil.error(getClass().getName(), ex, "Unable to retrieve transaction receivers data from datalist binder.");
         }
         
         return paymentList;
+    }
+    
+    @Override
+    public void webService(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        boolean isAdmin = WorkflowUtil.isCurrentUserInRole(WorkflowUserManager.ROLE_ADMIN);
+        if (!isAdmin) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
+        }
+        
+        String action = request.getParameter("action");
+        if ("getDatalistColumns".equals(action)) {
+            try {
+                ApplicationContext ac = AppUtil.getApplicationContext();
+                AppDefinition appDef = AppUtil.getCurrentAppDefinition();
+                DatalistDefinitionDao datalistDefinitionDao = (DatalistDefinitionDao) ac.getBean("datalistDefinitionDao");
+                DataListService dataListService = (DataListService) ac.getBean("dataListService");
+                
+                String datalistId = request.getParameter("id");
+                DatalistDefinition datalistDefinition = datalistDefinitionDao.loadById(datalistId, appDef);
+                
+                DataList datalist;
+                if (datalistDefinition != null) {
+                    datalist = dataListService.fromJson(datalistDefinition.getJson());
+                    DataListColumn[] datalistcolumns = datalist.getColumns();
+                    
+                    //JSONObject jsonObject = new JSONObject();
+                    JSONArray columns = new JSONArray();
+                    for (DataListColumn datalistcolumn : datalistcolumns) {
+                        JSONObject column = new JSONObject();
+                        column.put("value", datalistcolumn.getName());
+                        column.put("label", datalistcolumn.getLabel());
+                        columns.put(column);
+                    }
+                    columns.write(response.getWriter());
+                } else {
+                    JSONArray columns = new JSONArray();
+                    columns.write(response.getWriter());
+                }
+            } catch (Exception e) {
+                LogUtil.error(getClass().getName(), e, "Unable to retrieve datalist columns for plugin properties.");
+            } 
+        } else {
+            response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+        }
     }
     
     protected BigInteger getPaymentAmount(String amount) {

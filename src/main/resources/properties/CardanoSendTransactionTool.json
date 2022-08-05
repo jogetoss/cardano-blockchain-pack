@@ -94,12 +94,11 @@
                 "control_use_regex":"true"
             },
             {
-                "name": "binder",
-                "label": "@@process.cardanosendtransactiontool.binder@@",
-                "type": "elementselect",
-                "required": "True",
-                "options_ajax": "[CONTEXT_PATH]/web/property/json/getElements?classname=org.joget.apps.datalist.model.DataListBinderDefault",
-                "url": "[CONTEXT_PATH]/web/property/json[APP_PATH]/getPropertyOptions",
+                "name" : "datalistId",
+                "label" : "@@process.cardanosendtransactiontool.datalistId@@",
+                "type" : "selectbox",
+                "required" : "true",
+                "options_ajax" : "[CONTEXT_PATH]/web/json/console/app[APP_PATH]/datalist/options",
                 "control_field":"multipleReceiverMode",
                 "control_value":"true",
                 "control_use_regex":"false"
@@ -174,30 +173,18 @@
                 "label" : "@@process.cardanosendtransactiontool.receiverAddressColumn@@",
                 "type" : "selectbox",
                 "required":"True",
-                "options_ajax_on_change" : "id:binder.className;binderId:binder.className;binderJson:binder.properties",
-                "options_ajax" : "[CONTEXT_PATH]/web/json/console/app[APP_PATH]/builder/binder/columns",
-                "options_ajax_mapping": {
-                    "arrayObj" : "columns",
-                    "value" : "name",
-                    "label" : "label",
-                    "addEmpty" : "true"
-                },
-                "options_ajax_method": "POST"
+                "options_ajax_on_change":"id:datalistId",
+                "options_ajax":"[CONTEXT_PATH]/web/json/app[APP_PATH]/plugin/org.joget.cardano.lib.CardanoSendTransactionTool/service?action=getDatalistColumns",
+                "options_ajax_method":"POST"
             },
             {
                 "name" : "amountColumn",
                 "label" : "@@process.cardanosendtransactiontool.amountColumn@@",
                 "type" : "selectbox",
                 "required":"True",
-                "options_ajax_on_change" : "id:binder.className;binderId:binder.className;binderJson:binder.properties",
-                "options_ajax" : "[CONTEXT_PATH]/web/json/console/app[APP_PATH]/builder/binder/columns",
-                "options_ajax_mapping": {
-                    "arrayObj" : "columns",
-                    "value" : "name",
-                    "label" : "label",
-                    "addEmpty" : "true"
-                },
-                "options_ajax_method" : "POST"
+                "options_ajax_on_change":"id:datalistId",
+                "options_ajax":"[CONTEXT_PATH]/web/json/app[APP_PATH]/plugin/org.joget.cardano.lib.CardanoSendTransactionTool/service?action=getDatalistColumns",
+                "options_ajax_method":"POST"
             }
         ]
     },
