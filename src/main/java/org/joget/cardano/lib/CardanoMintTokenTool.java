@@ -297,7 +297,7 @@ public class CardanoMintTokenTool extends DefaultApplicationPlugin {
         }
     }
     
-    protected void storeMintingPolicyToForm(Account minter, Policy policy, boolean isTest) throws CborSerializationException, JsonProcessingException {
+    private void storeMintingPolicyToForm(Account minter, Policy policy, boolean isTest) throws CborSerializationException, JsonProcessingException {
         //If reusing existing minting policy, don't need to store policy again.
         if ("reuse".equalsIgnoreCase(getPropertyString("mintingPolicyHandling"))) {
             return;
@@ -347,7 +347,7 @@ public class CardanoMintTokenTool extends DefaultApplicationPlugin {
         }
     }
     
-    protected void storeAssetDataToForm(Account minter, Policy policy, String tokenName, boolean isTest) throws CborSerializationException {
+    private void storeAssetDataToForm(Account minter, Policy policy, String tokenName, boolean isTest) throws CborSerializationException {
         String formDefId = getPropertyString("formDefIdStoreAssetData");
         
         if (formDefId == null || formDefId.isEmpty()) {
