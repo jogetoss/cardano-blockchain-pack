@@ -1,3 +1,8 @@
+# Important
+
+> :warning: **Due to the recently broken testnet (now called "legacy testnet"), there are now 2 new testnets called PREVIEW & PREPROD.
+Currently fix applied only works for Blockfrost. Please reconfigure your plugins accordingly.**
+
 # Description
 
 The Cardano Blockchain Pack integrates Cardano with Joget, and allows you to design Joget apps that interacts with the Cardano blockchain.
@@ -18,9 +23,13 @@ Credits: [https://github.com/bloxbean/cardano-client-lib](https://github.com/blo
 - Added convenient helplinks to documentation for all plugins
 - Cardano Explorer Link - Support checking policy, address, asset on explorers
 - Support Vasil HF
+- Transactions - Support setting maximum fee limit
+- Cardano Send Transaction Tool - Simplify configs for multiple receivers mode
+- Temporary workaround for new testnet endpoints (PREVIEW & PREPROD)
 
 #### Fixes
 - Cardano Explorer Link - Fixed NPE when edit element in Form Builder
+- Cardano Mint Token Tool - Fixed regression for multi-tenant setups
 
 ## Q2 2022
 #### Added
