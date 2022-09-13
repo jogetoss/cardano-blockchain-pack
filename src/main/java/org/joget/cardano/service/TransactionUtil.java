@@ -8,6 +8,7 @@ import com.bloxbean.cardano.client.backend.api.TransactionService;
 import com.bloxbean.cardano.client.backend.model.TransactionContent;
 import java.math.BigInteger;
 import org.joget.apps.form.service.FormUtil;
+import org.joget.commons.util.LogUtil;
 
 public class TransactionUtil {
     
@@ -48,41 +49,31 @@ public class TransactionUtil {
         return fee.compareTo(limit) <= 0;
     }
     
-    public static Result<TransactionContent> waitForTransactionHash(TransactionService transactionService, Result<String> transactionResult) 
+    public static Result<TransactionContent> waitForTransaction(TransactionService transactionService, Result transactionResult) 
             throws ApiException, InterruptedException {
         if (!transactionResult.isSuccessful()) {
+            return null;
+        }
+        
+        String transactionId;
+        
+        if (transactionResult.getValue() instanceof TransactionResult) {
+            TransactionResult txResultObj = (TransactionResult) transactionResult.getValue();
+            transactionId = txResultObj.getTransactionId();
+        } else if (transactionResult.getValue() instanceof String) {
+            String txResultObj = (String) transactionResult.getValue();
+            transactionId = txResultObj;
+        } else {
+            LogUtil.warn(TransactionUtil.class.getName(), "Something went wrong. Unknown tx result type found!");
             return null;
         }
         
         //Wait for transaction to be mined
         int count = 0;
         while (count < 60) {
-            Result<TransactionContent> txnResult = transactionService.getTransaction(transactionResult.getValue());
+            Result<TransactionContent> txnResult = transactionService.getTransaction(transactionId);
             if (txnResult.isSuccessful()) {
                 //LogUtil.info(getClass().getName(), JsonUtil.getPrettyJson(txnResult.getValue()));
-                return txnResult;
-            } else {
-                //LogUtil.info(getClass().getName(), "Waiting for transaction to be mined....");
-            }
-
-            count++;
-            Thread.sleep(DEFAULT_WAIT_INTERVAL_MS);
-        }
-        
-        return null;
-    }
-    
-    public static Result<TransactionContent> waitForTransaction(TransactionService transactionService, Result<TransactionResult> transactionResult) 
-            throws ApiException, InterruptedException {
-        if (!transactionResult.isSuccessful()) {
-            return null;
-        }
-        
-        //Wait for transaction to be mined
-        int count = 0;
-        while (count < 60) {
-            Result<TransactionContent> txnResult = transactionService.getTransaction(transactionResult.getValue().getTransactionId());
-            if (txnResult.isSuccessful()) {
                 return txnResult;
             }
 

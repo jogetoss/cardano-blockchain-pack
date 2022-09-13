@@ -61,7 +61,7 @@ public abstract class CardanoFormElementAbstract extends Element implements Form
                 result = renderElement(formData, dataModel);
             }
         } catch (Exception ex) {
-            LogUtil.error(getClassName(), ex, "Error executing process tool plugin...");
+            LogUtil.error(getClassName(), ex, "Error executing form element plugin...");
         }
         
         return result;

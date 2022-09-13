@@ -295,7 +295,7 @@ public class CardanoBurnTokenTool extends CardanoProcessToolAbstract {
             Result<TransactionContent> validatedTransactionResult = null;
 
             try {
-                validatedTransactionResult = TransactionUtil.waitForTransactionHash(transactionService, transactionResult);
+                validatedTransactionResult = TransactionUtil.waitForTransaction(transactionService, transactionResult);
             } catch (Exception ex) {
                 LogUtil.error(getClassName(), ex, "Error waiting for transaction validation...");
             }
