@@ -1,13 +1,10 @@
 package org.joget.cardano.lib;
 
 import com.bloxbean.cardano.client.account.Account;
-import com.bloxbean.cardano.client.api.helper.FeeCalculationService;
-import com.bloxbean.cardano.client.api.helper.TransactionHelperService;
+import com.bloxbean.cardano.client.api.exception.ApiException;
 import com.bloxbean.cardano.client.api.helper.model.TransactionResult;
 import com.bloxbean.cardano.client.api.model.Result;
 import com.bloxbean.cardano.client.backend.api.BackendService;
-import com.bloxbean.cardano.client.backend.api.BlockService;
-import com.bloxbean.cardano.client.backend.api.TransactionService;
 import com.bloxbean.cardano.client.backend.model.TransactionContent;
 import com.bloxbean.cardano.client.cip.cip20.MessageMetadata;
 import com.bloxbean.cardano.client.cip.cip25.NFT;
@@ -16,6 +13,8 @@ import com.bloxbean.cardano.client.cip.cip25.NFTMetadata;
 import com.bloxbean.cardano.client.common.ADAConversionUtil;
 import com.bloxbean.cardano.client.common.model.Network;
 import com.bloxbean.cardano.client.crypto.SecretKey;
+import com.bloxbean.cardano.client.exception.AddressExcepion;
+import com.bloxbean.cardano.client.exception.CborDeserializationException;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
 import com.bloxbean.cardano.client.metadata.Metadata;
 import com.bloxbean.cardano.client.metadata.cbor.CBORMetadata;
@@ -42,6 +41,7 @@ import org.joget.apps.app.service.AppService;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.apps.form.model.FormRow;
 import org.joget.apps.form.model.FormRowSet;
+import org.joget.cardano.model.CardanoProcessToolAbstract;
 import org.joget.cardano.service.ExplorerLinkUtil;
 import org.joget.cardano.service.MetadataUtil;
 import static org.joget.cardano.service.MetadataUtil.NFT_FORMDATA_PROPERTY_LABEL;
@@ -50,33 +50,33 @@ import org.joget.cardano.service.TokenUtil;
 import static org.joget.cardano.service.TransactionUtil.MAX_FEE_LIMIT;
 import org.joget.commons.util.LogUtil;
 import org.joget.commons.util.PluginThread;
-import org.joget.plugin.base.DefaultApplicationPlugin;
 import org.joget.workflow.model.WorkflowAssignment;
 import org.joget.workflow.model.service.WorkflowManager;
 import org.joget.workflow.util.WorkflowUtil;
 import org.springframework.context.ApplicationContext;
 
-public class CardanoMintTokenTool extends DefaultApplicationPlugin {
-
-    BackendService backendService;
-    BlockService blockService;
-    TransactionHelperService transactionHelperService;
-    FeeCalculationService feeCalculationService;
-    TransactionService transactionService;
+public class CardanoMintTokenTool extends CardanoProcessToolAbstract {
     
     AppService appService;
     WorkflowAssignment wfAssignment;
     AppDefinition appDef;
     WorkflowManager workflowManager;
     
-    protected void initBackend() {
-        backendService = BackendUtil.getBackendService(getProperties());
-        
-        blockService = backendService.getBlockService();
-        transactionHelperService = backendService.getTransactionHelperService();
-        
-        feeCalculationService = backendService.getFeeCalculationService();
-        transactionService = backendService.getTransactionService();
+    @Override
+    public String getName() {
+        return "Cardano Mint Token Tool";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Mint native tokens and NFTs on the Cardano blockchain.";
+    }
+
+    @Override
+    public String getPropertyOptions() {
+        String backendConfigs = PluginUtil.readGenericBackendConfigs(getClassName());
+        String wfVarMappings = PluginUtil.readGenericWorkflowVariableMappings(getClassName());
+        return AppUtil.readPluginResource(getClassName(), "/properties/CardanoMintTokenTool.json", new String[]{backendConfigs, wfVarMappings}, true, PluginUtil.MESSAGE_PATH);
     }
     
     protected void initUtils(Map props) {        
@@ -89,22 +89,7 @@ public class CardanoMintTokenTool extends DefaultApplicationPlugin {
     }
     
     @Override
-    public String getName() {
-        return "Cardano Mint Token Tool";
-    }
-
-    @Override
-    public String getVersion() {
-        return PluginUtil.getProjectVersion(this.getClass());
-    }
-
-    @Override
-    public String getDescription() {
-        return "Mint native tokens and NFTs on the Cardano blockchain.";
-    }
-
-    @Override
-    public Object execute(Map props) {
+    public boolean isInputDataValid(Map props, WorkflowAssignment wfAssignment) {
         initUtils(props);
         
         String formDefId = getPropertyString("formDefId");
@@ -113,8 +98,8 @@ public class CardanoMintTokenTool extends DefaultApplicationPlugin {
         FormRowSet rowSet = appService.loadFormData(appDef.getAppId(), appDef.getVersion().toString(), formDefId, primaryKey);
         
         if (rowSet == null || rowSet.isEmpty()) {
-            LogUtil.warn(getClass().getName(), "Token minting aborted. No record found with record ID '" + primaryKey + "' from this form '" + formDefId + "'.");
-            return null;
+            LogUtil.warn(getClassName(), "Mint transaction aborted. No record found with record ID '" + primaryKey + "' from this form '" + formDefId + "'.");
+            return false;
         }
         
         FormRow row = rowSet.get(0);
@@ -122,179 +107,201 @@ public class CardanoMintTokenTool extends DefaultApplicationPlugin {
         final String senderAddress = row.getProperty(getPropertyString("senderAddress"));
         final String accountMnemonic = PluginUtil.decrypt(WorkflowUtil.processVariable(getPropertyString("accountMnemonic"), "", wfAssignment));
         
-        try {
-            final boolean isTest = BackendUtil.isTestnet(props);
-            
-            final Network network = BackendUtil.getNetwork(isTest);
-            
-            final Account senderAccount = new Account(network, accountMnemonic);
-            
-            if (!senderAddress.equals(senderAccount.baseAddress())) {
-                LogUtil.warn(getClass().getName(), "Transaction failed! Minter account encountered invalid mnemonic phrase.");
+        final boolean isTest = BackendUtil.isTestnet(props);
+        final Network network = BackendUtil.getNetwork(isTest);
+
+        final Account senderAccount = new Account(network, accountMnemonic);
+
+        if (!senderAddress.equals(senderAccount.baseAddress())) {
+            LogUtil.warn(getClassName(), "Mint transaction aborted. Minter account encountered invalid mnemonic phrase.");
+            return false;
+        }
+        
+        return true;
+    }
+    
+    @Override
+    public void initBackendServices(BackendService backendService) {
+        blockService = backendService.getBlockService();
+        transactionHelperService = backendService.getTransactionHelperService();
+        feeCalculationService = backendService.getFeeCalculationService();
+        transactionService = backendService.getTransactionService();
+    }
+    
+    @Override
+    public Object runTool(Map props, WorkflowAssignment wfAssignment) 
+            throws ApiException, CborSerializationException, CborDeserializationException, JsonProcessingException, AddressExcepion {
+        
+        initUtils(props);
+        
+        String formDefId = getPropertyString("formDefId");
+        final String primaryKey = appService.getOriginProcessId(wfAssignment.getProcessId());
+
+        FormRowSet rowSet = appService.loadFormData(appDef.getAppId(), appDef.getVersion().toString(), formDefId, primaryKey);
+        
+        FormRow row = rowSet.get(0);
+        
+        final String accountMnemonic = PluginUtil.decrypt(WorkflowUtil.processVariable(getPropertyString("accountMnemonic"), "", wfAssignment));
+        final boolean reusePolicy = "reuse".equalsIgnoreCase(getPropertyString("mintingPolicyHandling"));
+        final boolean mintTypeNft = "nft".equalsIgnoreCase(getPropertyString("mintType"));
+        
+        final boolean isTest = BackendUtil.isTestnet(props);
+        final Network network = BackendUtil.getNetwork(isTest);
+
+        final Account senderAccount = new Account(network, accountMnemonic);
+
+        Policy policy;
+
+        if (reusePolicy) { //Reuse an existing minting policy
+            String policyId = WorkflowUtil.processVariable(getPropertyString("policyId"), "", wfAssignment);
+            NativeScript policyScript = NativeScript.deserializeJson(
+                    WorkflowUtil.processVariable(getPropertyString("policyScript"), "", wfAssignment)
+            );
+            List<SecretKey> skeys = TokenUtil.getSecretKeysStringAsList(
+                    PluginUtil.decrypt(
+                            WorkflowUtil.processVariable(getPropertyString("policyKeys"), "", wfAssignment)
+                    )
+            );
+
+            if (!policyScript.getPolicyId().equals(policyId)) {
+                LogUtil.warn(getClassName(), "Transaction failed! Policy script does not match given policy ID.");
                 return null;
             }
-            
-            initBackend();
-            
-            Policy policy;
-            
-            if ("reuse".equalsIgnoreCase(getPropertyString("mintingPolicyHandling"))) { //Reuse an existing minting policy
-                String policyId = WorkflowUtil.processVariable(getPropertyString("policyId"), "", wfAssignment);
-                NativeScript policyScript = NativeScript.deserializeJson(
-                        WorkflowUtil.processVariable(getPropertyString("policyScript"), "", wfAssignment)
-                );
-                List<SecretKey> skeys = TokenUtil.getSecretKeysStringAsList(
-                        PluginUtil.decrypt(
-                                WorkflowUtil.processVariable(getPropertyString("policyKeys"), "", wfAssignment)
-                        )
-                );
-                
-                if (!policyScript.getPolicyId().equals(policyId)) {
-                    LogUtil.warn(getClass().getName(), "Transaction failed! Policy script does not match given policy ID.");
-                    return null;
-                }
-                
-                policy = new Policy(TokenUtil.getFormattedPolicyName(policyId), policyScript, skeys);
-            } else { // Generate a new minting policy for this minting transaction
-                /* Perhaps support multisig policy signing in future? 1 signer for now. */
-                policy = PolicyUtil.createMultiSigScriptAllPolicy("", 1);
-                
-                policy.setName(TokenUtil.getFormattedPolicyName(policy.getPolicyId()));
-            }
-            
-            MultiAsset multiAsset = new MultiAsset();
-            multiAsset.setPolicyId(policy.getPolicyId());
-            
-            Asset asset;
-            Metadata metadata;
-            
-            if ("nft".equalsIgnoreCase(getPropertyString("mintType"))) { //For minting NFT
-                //Perhaps consider creating new File Upload form element plugin to support IPFS read/write...
-                final String nftName = row.getProperty(getPropertyString("nftName"));
-                final String nftDescription = row.getProperty(getPropertyString("nftDescription"));
-                final String nftFileName = row.getProperty(getPropertyString("nftFileName"));
-                final String nftFileType = getPropertyString("nftFileType"); // Check for other common supported mime types
-                final String ipfsCid = row.getProperty(getPropertyString("ipfsCid")); // Typically looks like --> Qmcv6hwtmdVumrNeb42R1KmCEWdYWGcqNgs17Y3hj6CkP4
-                
-                asset = new Asset(nftName, BigInteger.ONE);
-                
-                NFT nft = NFT.create()
-                    .assetName(nftName)
-                    .name(nftName)
-                    .description(nftDescription)
-                    .image("ipfs://" + ipfsCid)
-                    .mediaType(nftFileType)
-                    .addFile(NFTFile.create()
-                            .name(nftFileName)
-                            .mediaType(nftFileType)
-                            .src("ipfs/" + ipfsCid));
-                
-                Map<String, String> nftPropsMap = MetadataUtil.generateNftPropsFromFormData((Object[]) props.get("nftProperties"), row);
-                if (nftPropsMap != null) {
-                    nft.property(NFT_FORMDATA_PROPERTY_LABEL, nftPropsMap);
-                }
-                
-                // See https://cips.cardano.org/cips/cip25/
-                NFTMetadata nftMetadata = NFTMetadata.create()
-                        .addNFT(policy.getPolicyId(), nft);
-                
-                metadata = nftMetadata;
-            } else { // For minting native tokens
-                final String tokenName = row.getProperty(getPropertyString("tokenName"));
-                final String tokenSymbol = row.getProperty(getPropertyString("tokenSymbol"));
-                final String amountToMint = row.getProperty(getPropertyString("amountToMint"));
-                
-                asset = new Asset(tokenName, new BigInteger(amountToMint));
-                
-                CBORMetadata cborMetadata = new CBORMetadata();
-                
-                /* Check for CIP in future for any native token standard */
-                CBORMetadataMap tokenInfoMap
-                        = new CBORMetadataMap()
-                        .put("token", tokenName)
-                        .put("symbol", tokenSymbol);
-                cborMetadata.put(TOKEN_INFO_METADATUM_LABEL, tokenInfoMap);
-                
-                // See https://cips.cardano.org/cips/cip20/
-                MessageMetadata messageMetadata = MetadataUtil.generateMsgMetadataFromFormData((Object[]) props.get("metadata"), row);
-                if (messageMetadata != null) {
-                    cborMetadata = (CBORMetadata) cborMetadata.merge(messageMetadata);
-                }
-                
-                metadata = cborMetadata;
-            }
-            
-            multiAsset.getAssets().add(asset);
-            
-            MintTransaction mintTransaction =
-                MintTransaction.builder()
-                        .sender(senderAccount)
-                        .receiver(senderAccount.baseAddress())
-                        .mintAssets(Arrays.asList(multiAsset))
-                        .policy(policy)
-                        .build();
-            
-            long ttl = TransactionUtil.getTtl(blockService, 2000);
-            TransactionDetailsParams detailsParams = TransactionDetailsParams.builder().ttl(ttl).build();
 
-            final BigInteger fee = feeCalculationService.calculateFee(mintTransaction, detailsParams, metadata);
-            
-            BigInteger feeLimit = MAX_FEE_LIMIT;
-            if (!getPropertyString("feeLimit").isBlank()) {
-                feeLimit = ADAConversionUtil.adaToLovelace(new BigDecimal(getPropertyString("feeLimit")));
-            }
-            if (!TransactionUtil.checkFeeLimit(fee, feeLimit)) {
-                LogUtil.warn(getClass().getName(), "Mint transaction aborted. Transaction fee in units of lovelace of " + fee.toString() + " exceeded set fee limit of " + feeLimit.toString() + ".");
-                storeToWorkflowVariable(wfAssignment.getActivityId(), isTest, null, null);
-                return null;
-            }
-            mintTransaction.setFee(fee);
+            policy = new Policy(TokenUtil.getFormattedPolicyName(policyId), policyScript, skeys);
+        } else { // Generate a new minting policy for this minting transaction
+            /* Perhaps support multisig policy signing in future? 1 signer for now. */
+            policy = PolicyUtil.createMultiSigScriptAllPolicy("", 1);
 
-            final Result<TransactionResult> transactionResult = transactionHelperService.mintToken(mintTransaction, detailsParams, metadata);
+            policy.setName(TokenUtil.getFormattedPolicyName(policy.getPolicyId()));
+        }
 
-            if (!transactionResult.isSuccessful()) {
-                LogUtil.warn(getClass().getName(), "Transaction failed with status code " + transactionResult.code() + ". Response returned --> " + transactionResult.getResponse());
-                storeToWorkflowVariable(wfAssignment.getActivityId(), isTest, null, null);
-                return null;
+        MultiAsset multiAsset = new MultiAsset();
+        multiAsset.setPolicyId(policy.getPolicyId());
+
+        Asset asset;
+        Metadata metadata;
+
+        if (mintTypeNft) { //For minting NFT
+            //Perhaps consider creating new File Upload form element plugin to support IPFS read/write...
+            final String nftName = row.getProperty(getPropertyString("nftName"));
+            final String nftDescription = row.getProperty(getPropertyString("nftDescription"));
+            final String nftFileName = row.getProperty(getPropertyString("nftFileName"));
+            final String nftFileType = getPropertyString("nftFileType"); // Check for other common supported mime types
+            final String ipfsCid = row.getProperty(getPropertyString("ipfsCid")); // Typically looks like --> Qmcv6hwtmdVumrNeb42R1KmCEWdYWGcqNgs17Y3hj6CkP4
+
+            asset = new Asset(nftName, BigInteger.ONE);
+
+            NFT nft = NFT.create()
+                .assetName(nftName)
+                .name(nftName)
+                .description(nftDescription)
+                .image("ipfs://" + ipfsCid)
+                .mediaType(nftFileType)
+                .addFile(NFTFile.create()
+                        .name(nftFileName)
+                        .mediaType(nftFileType)
+                        .src("ipfs/" + ipfsCid));
+
+            Map<String, String> nftPropsMap = MetadataUtil.generateNftPropsFromFormData((Object[]) props.get("nftProperties"), row);
+            if (nftPropsMap != null) {
+                nft.property(NFT_FORMDATA_PROPERTY_LABEL, nftPropsMap);
             }
-            
-            //Store successful unvalidated txn result first
-            storeToWorkflowVariable(wfAssignment.getActivityId(), isTest, transactionResult, null);
-            
-            //Use separate thread to wait for transaction validation
-            Thread waitTransactionThread = new PluginThread(() -> {
-                Result<TransactionContent> validatedTransactionResult = null;
-                
-                try {
-                    validatedTransactionResult = TransactionUtil.waitForTransaction(transactionService, transactionResult);
-                } catch (Exception ex) {
-                    LogUtil.error(getClass().getName(), ex, "Error waiting for transaction validation...");
-                }
-                
-                if (validatedTransactionResult != null) {                    
-                    try {
-                        //Store minting policy & asset data to form
-                        storeMintingPolicyToForm(senderAccount, policy, isTest);
-                        storeAssetDataToForm(senderAccount, policy, asset.getName(), isTest);
-                    } catch (Exception ex) {
-                        LogUtil.error(getClass().getName(), ex, "Unable to store data to form. Please check logs.");
-                    }
-                    
-                    //Store validated/confirmed txn result for current activity instance
-                    storeToWorkflowVariable(wfAssignment.getActivityId(), isTest, transactionResult, validatedTransactionResult);
 
-                    //Store validated/confirmed txn result for future running activity instance
-                    String mostRecentActivityId = workflowManager.getRunningActivityIdByRecordId(primaryKey, wfAssignment.getProcessDefId(), null, null);
-                    storeToWorkflowVariable(mostRecentActivityId, isTest, transactionResult, validatedTransactionResult);
-                }
-            });
-            waitTransactionThread.start();
-            
-            return transactionResult;
-        } catch (Exception ex) {
-            LogUtil.error(getClass().getName(), ex, "Error executing plugin...");
+            // See https://cips.cardano.org/cips/cip25/
+            metadata = NFTMetadata.create().addNFT(policy.getPolicyId(), nft);
+        } else { // For minting native tokens
+            final String tokenName = row.getProperty(getPropertyString("tokenName"));
+            final String tokenSymbol = row.getProperty(getPropertyString("tokenSymbol"));
+            final String amountToMint = row.getProperty(getPropertyString("amountToMint"));
+
+            asset = new Asset(tokenName, new BigInteger(amountToMint));
+
+            CBORMetadata cborMetadata = new CBORMetadata();
+
+            /* Check for CIP in future for any native token standard */
+            CBORMetadataMap tokenInfoMap
+                    = new CBORMetadataMap()
+                    .put("token", tokenName)
+                    .put("symbol", tokenSymbol);
+            cborMetadata.put(TOKEN_INFO_METADATUM_LABEL, tokenInfoMap);
+
+            // See https://cips.cardano.org/cips/cip20/
+            MessageMetadata messageMetadata = MetadataUtil.generateMsgMetadataFromFormData((Object[]) props.get("metadata"), row);
+            if (messageMetadata != null) {
+                cborMetadata = (CBORMetadata) cborMetadata.merge(messageMetadata);
+            }
+
+            metadata = cborMetadata;
+        }
+
+        multiAsset.getAssets().add(asset);
+
+        MintTransaction mintTransaction =
+            MintTransaction.builder()
+                    .sender(senderAccount)
+                    .receiver(senderAccount.baseAddress())
+                    .mintAssets(Arrays.asList(multiAsset))
+                    .policy(policy)
+                    .build();
+
+        long ttl = TransactionUtil.getTtl(blockService, 2000);
+        TransactionDetailsParams detailsParams = TransactionDetailsParams.builder().ttl(ttl).build();
+
+        final BigInteger fee = feeCalculationService.calculateFee(mintTransaction, detailsParams, metadata);
+
+        BigInteger feeLimit = MAX_FEE_LIMIT;
+        if (!getPropertyString("feeLimit").isBlank()) {
+            feeLimit = ADAConversionUtil.adaToLovelace(new BigDecimal(getPropertyString("feeLimit")));
+        }
+        if (!TransactionUtil.checkFeeLimit(fee, feeLimit)) {
+            LogUtil.warn(getClassName(), "Mint transaction aborted. Transaction fee in units of lovelace of " + fee.toString() + " exceeded set fee limit of " + feeLimit.toString() + ".");
+            storeToWorkflowVariable(wfAssignment.getActivityId(), isTest, null, null);
             return null;
         }
+        mintTransaction.setFee(fee);
+
+        final Result<TransactionResult> transactionResult = transactionHelperService.mintToken(mintTransaction, detailsParams, metadata);
+
+        if (!transactionResult.isSuccessful()) {
+            LogUtil.warn(getClassName(), "Transaction failed with status code " + transactionResult.code() + ". Response returned --> " + transactionResult.getResponse());
+            storeToWorkflowVariable(wfAssignment.getActivityId(), isTest, null, null);
+            return null;
+        }
+
+        //Store successful unvalidated txn result first
+        storeToWorkflowVariable(wfAssignment.getActivityId(), isTest, transactionResult, null);
+
+        //Use separate thread to wait for transaction validation
+        Thread waitTransactionThread = new PluginThread(() -> {
+            Result<TransactionContent> validatedTransactionResult = null;
+
+            try {
+                validatedTransactionResult = TransactionUtil.waitForTransaction(transactionService, transactionResult);
+            } catch (Exception ex) {
+                LogUtil.error(getClassName(), ex, "Error waiting for transaction validation...");
+            }
+
+            if (validatedTransactionResult != null) {                    
+                try {
+                    //Store minting policy & asset data to form
+                    storeMintingPolicyToForm(senderAccount, policy, isTest);
+                    storeAssetDataToForm(senderAccount, policy, asset.getName(), isTest);
+                } catch (Exception ex) {
+                    LogUtil.error(getClassName(), ex, "Unable to store data to form. Please check logs.");
+                }
+
+                //Store validated/confirmed txn result for current activity instance
+                storeToWorkflowVariable(wfAssignment.getActivityId(), isTest, transactionResult, validatedTransactionResult);
+
+                //Store validated/confirmed txn result for future running activity instance
+                String mostRecentActivityId = workflowManager.getRunningActivityIdByRecordId(primaryKey, wfAssignment.getProcessDefId(), null, null);
+                storeToWorkflowVariable(mostRecentActivityId, isTest, transactionResult, validatedTransactionResult);
+            }
+        });
+        waitTransactionThread.start();
+
+        return transactionResult;
     }
     
     private void storeMintingPolicyToForm(Account minter, Policy policy, boolean isTest) throws CborSerializationException, JsonProcessingException {
@@ -306,7 +313,7 @@ public class CardanoMintTokenTool extends DefaultApplicationPlugin {
         String formDefId = getPropertyString("formDefIdStoreMintingPolicy");
         
         if (formDefId == null || formDefId.isEmpty()) {
-            LogUtil.warn(getClass().getName(), "Unable to store minting policy to form. Encountered blank form ID.");
+            LogUtil.warn(getClassName(), "Unable to store minting policy to form. Encountered blank form ID.");
             return;
         }
 
@@ -342,7 +349,7 @@ public class CardanoMintTokenTool extends DefaultApplicationPlugin {
         if (!rowSet.isEmpty()) {
             FormRowSet storedData = appService.storeFormData(appDef.getId(), appDef.getVersion().toString(), formDefId, rowSet, null);
             if (storedData == null) {
-                LogUtil.warn(getClass().getName(), "Unable to store minting policy to form. Encountered invalid form ID of '" + formDefId + "'.");
+                LogUtil.warn(getClassName(), "Unable to store minting policy to form. Encountered invalid form ID of '" + formDefId + "'.");
             }
         }
     }
@@ -351,7 +358,7 @@ public class CardanoMintTokenTool extends DefaultApplicationPlugin {
         String formDefId = getPropertyString("formDefIdStoreAssetData");
         
         if (formDefId == null || formDefId.isEmpty()) {
-            LogUtil.warn(getClass().getName(), "Unable to store asset data to form. Encountered blank form ID.");
+            LogUtil.warn(getClassName(), "Unable to store asset data to form. Encountered blank form ID.");
             return;
         }
 
@@ -379,7 +386,7 @@ public class CardanoMintTokenTool extends DefaultApplicationPlugin {
         if (!rowSet.isEmpty()) {
             FormRowSet storedData = appService.storeFormData(appDef.getId(), appDef.getVersion().toString(), formDefId, rowSet, null);
             if (storedData == null) {
-                LogUtil.warn(getClass().getName(), "Unable to store asset data to form. Encountered invalid form ID of '" + formDefId + "'.");
+                LogUtil.warn(getClassName(), "Unable to store asset data to form. Encountered invalid form ID of '" + formDefId + "'.");
             }
         }
     }
@@ -430,22 +437,5 @@ public class CardanoMintTokenTool extends DefaultApplicationPlugin {
         }
         
         workflowManager.activityVariable(activityId, variable, value);
-    }
-    
-    @Override
-    public String getLabel() {
-        return getName();
-    }
-
-    @Override
-    public String getClassName() {
-        return getClass().getName();
-    }
-
-    @Override
-    public String getPropertyOptions() {
-        String backendConfigs = PluginUtil.readGenericBackendConfigs(getClass().getName());
-        String wfVarMappings = PluginUtil.readGenericWorkflowVariableMappings(getClass().getName());
-        return AppUtil.readPluginResource(getClass().getName(), "/properties/CardanoMintTokenTool.json", new String[]{backendConfigs, wfVarMappings}, true, PluginUtil.MESSAGE_PATH);
     }
 }

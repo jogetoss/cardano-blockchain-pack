@@ -1,19 +1,16 @@
 package org.joget.cardano.lib;
 
+import com.bloxbean.cardano.client.api.exception.ApiException;
 import org.joget.cardano.service.PluginUtil;
-import org.joget.cardano.service.BackendUtil;
-import com.bloxbean.cardano.client.backend.api.AddressService;
-import com.bloxbean.cardano.client.backend.api.BackendService;
 import com.bloxbean.cardano.client.backend.model.AddressContent;
 import com.bloxbean.cardano.client.common.ADAConversionUtil;
 import com.bloxbean.cardano.client.api.model.Result;
+import com.bloxbean.cardano.client.backend.api.BackendService;
 import com.bloxbean.cardano.client.backend.model.TxContentOutputAmount;
 import java.math.BigInteger;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.apps.form.model.Element;
-import org.joget.apps.form.model.FormBinder;
 import org.joget.apps.form.model.FormData;
-import org.joget.apps.form.model.FormLoadBinder;
 import org.joget.apps.form.model.FormLoadElementBinder;
 import org.joget.apps.form.model.FormRow;
 import org.joget.apps.form.model.FormRowSet;
@@ -22,17 +19,9 @@ import org.joget.workflow.util.WorkflowUtil;
 import static com.bloxbean.cardano.client.common.CardanoConstants.LOVELACE;
 import java.util.HashMap;
 import java.util.Map;
+import org.joget.cardano.model.CardanoFormBinderAbstract;
 
-public class CardanoAccountLoadBinder extends FormBinder implements FormLoadBinder, FormLoadElementBinder {
-
-    BackendService backendService;
-    AddressService addressService;
-    
-    protected void initBackend() {
-        backendService = BackendUtil.getBackendService(getProperties());
-        
-        addressService = backendService.getAddressService();
-    }
+public class CardanoAccountLoadBinder extends CardanoFormBinderAbstract implements FormLoadElementBinder {
     
     @Override
     public String getName() {
@@ -40,61 +29,64 @@ public class CardanoAccountLoadBinder extends FormBinder implements FormLoadBind
     }
 
     @Override
-    public String getVersion() {
-        return PluginUtil.getProjectVersion(this.getClass());
-    }
-
-    @Override
     public String getDescription() {
         return "Load account data from the Cardano blockchain into a form.";
     }
-
+    
     @Override
-    public FormRowSet load(Element element, String primaryKey, FormData formData) {
-        try {
-            final String accountAddress = WorkflowUtil.processVariable(getPropertyString("accountAddress"), "", null);
+    public String getPropertyOptions() {
+        String backendConfigs = PluginUtil.readGenericBackendConfigs(getClassName());
+        return AppUtil.readPluginResource(getClassName(), "/properties/CardanoAccountLoadBinder.json", new String[]{backendConfigs}, true, PluginUtil.MESSAGE_PATH);
+    }
+    
+    @Override
+    public boolean isInputDataValid() {
+        final String accountAddress = WorkflowUtil.processVariable(getPropertyString("accountAddress"), "", null);
 
-            //Prevent error thrown from empty value and invalid hash variable
-            if (accountAddress.isEmpty() || accountAddress.startsWith("#")) {
-                return null;
-            }
+        //Prevent error thrown from empty value and invalid hash variable
+        return !accountAddress.isEmpty() && !accountAddress.startsWith("#");
+    }
+    
+    @Override
+    public void initBackendServices(BackendService backendService) {
+        addressService = backendService.getAddressService();
+    }
+    
+    @Override
+    public FormRowSet loadData(Element element, String primaryKey, FormData formData)
+            throws ApiException {
 
-            initBackend();
-            
-            //Get account data from blockchain
-            final Result<AddressContent> addressInfoResult = addressService.getAddressInfo(accountAddress);
-            if (!addressInfoResult.isSuccessful()) {
-                LogUtil.warn(getClass().getName(), "Unable to retrieve address info. Response returned --> " + addressInfoResult.getResponse());
-                return null;
-            }
-            final AddressContent addressInfo = addressInfoResult.getValue();
-            
-            //Get form fields from plugin properties
-            String balanceField = getPropertyString("adaBalanceField");
-            Object[] assetBalances = (Object[]) getProperty("assetBalances");
-            String accountType = getPropertyString("accountType");
-            
-            FormRow row = new FormRow();
-            
-            row = addRow(row, balanceField, getAdaBalance(addressInfo));
-            for (Object o : assetBalances) {
-                Map mapping = (HashMap) o;
-                String assetId = mapping.get("assetId").toString();
-                String formFieldId = mapping.get("formFieldId").toString();
-                
-                row = addRow(row, formFieldId, getAssetBalance(addressInfo, assetId));
-            }
-            // Dandelion missing this info fyi
-            row = addRow(row, accountType, getAccountType(addressInfo));
-            
-            FormRowSet rows = new FormRowSet();
-            rows.add(row);
-            
-            return rows;
-        } catch (Exception ex) {
-            LogUtil.error(getClass().getName(), ex, "Error executing plugin...");
+        final String accountAddress = WorkflowUtil.processVariable(getPropertyString("accountAddress"), "", null);
+
+        final Result<AddressContent> addressInfoResult = addressService.getAddressInfo(accountAddress);
+        if (!addressInfoResult.isSuccessful()) {
+            LogUtil.warn(getClassName(), "Unable to retrieve address info. Response returned --> " + addressInfoResult.getResponse());
             return null;
         }
+        
+        final AddressContent addressInfo = addressInfoResult.getValue();
+
+        //Get form fields from plugin properties
+        String balanceField = getPropertyString("adaBalanceField");
+        Object[] assetBalances = (Object[]) getProperty("assetBalances");
+        String accountType = getPropertyString("accountType");
+
+        FormRow row = new FormRow();
+
+        row = addRow(row, balanceField, getAdaBalance(addressInfo));
+        for (Object o : assetBalances) {
+            Map mapping = (HashMap) o;
+            String assetId = mapping.get("assetId").toString();
+            String formFieldId = mapping.get("formFieldId").toString();
+
+            row = addRow(row, formFieldId, getAssetBalance(addressInfo, assetId));
+        }
+        row = addRow(row, accountType, getAccountType(addressInfo));
+
+        FormRowSet rows = new FormRowSet();
+        rows.add(row);
+
+        return rows;
     }
     
     protected String getAdaBalance(AddressContent addressInfo) {
@@ -123,22 +115,7 @@ public class CardanoAccountLoadBinder extends FormBinder implements FormLoadBind
         if (row != null && !field.isEmpty()) {
             row.put(field, value);
         }
+        
         return row;
-    }
-    
-    @Override
-    public String getLabel() {
-        return getName();
-    }
-
-    @Override
-    public String getClassName() {
-        return getClass().getName();
-    }
-
-    @Override
-    public String getPropertyOptions() {
-        String backendConfigs = PluginUtil.readGenericBackendConfigs(getClass().getName());
-        return AppUtil.readPluginResource(getClass().getName(), "/properties/CardanoAccountLoadBinder.json", new String[]{backendConfigs}, true, PluginUtil.MESSAGE_PATH);
     }
 }

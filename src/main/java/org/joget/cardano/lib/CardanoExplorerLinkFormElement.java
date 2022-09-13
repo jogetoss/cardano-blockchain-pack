@@ -1,18 +1,15 @@
 package org.joget.cardano.lib;
 
 import com.bloxbean.cardano.client.api.exception.ApiException;
-import com.bloxbean.cardano.client.backend.api.AddressService;
-import com.bloxbean.cardano.client.backend.api.AssetService;
 import com.bloxbean.cardano.client.backend.api.BackendService;
-import com.bloxbean.cardano.client.backend.api.TransactionService;
 import java.util.Map;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.apps.form.model.Element;
 import org.joget.apps.form.model.Form;
-import org.joget.apps.form.model.FormBuilderPaletteElement;
 import org.joget.apps.form.model.FormContainer;
 import org.joget.apps.form.model.FormData;
 import org.joget.apps.form.service.FormUtil;
+import org.joget.cardano.model.CardanoFormElementAbstract;
 import org.joget.cardano.service.AccountUtil;
 import org.joget.cardano.service.BackendUtil;
 import org.joget.cardano.service.ExplorerLinkUtil;
@@ -25,27 +22,30 @@ import org.joget.workflow.model.service.WorkflowManager;
 import org.joget.workflow.util.WorkflowUtil;
 import org.springframework.context.ApplicationContext;
 
-public class CardanoExplorerLinkFormElement extends Element implements FormBuilderPaletteElement, FormContainer {
+public class CardanoExplorerLinkFormElement extends CardanoFormElementAbstract implements FormContainer {
     
     private static final String TX_ID_TYPE = "transactionId";
     private static final String ADDRESS_TYPE = "accountAddress";
     private static final String POLICY_TYPE = "tokenPolicy";
     private static final String ASSET_TYPE = "assetId";
     
-    BackendService backendService;
-    TransactionService transactionService;
-    AssetService assetService;
-    AddressService addressService;
-    
     WorkflowAssignment wfAssignment;
     WorkflowManager workflowManager;
+
+    @Override
+    public String getName() {
+        return "Cardano Explorer Link";
+    }
+
+    @Override
+    public String getDescription() {
+        return "A clickable button or link in a form to navigate to several popular Cardano explorers to verify information.";
+    }
     
-    protected void initBackend() {
-        backendService = BackendUtil.getBackendService(getProperties());
-        
-        transactionService = backendService.getTransactionService();
-        assetService = backendService.getAssetService();
-        addressService = backendService.getAddressService();
+    @Override
+    public String getPropertyOptions() {
+        String backendConfigs = PluginUtil.readGenericBackendConfigs(getClassName());
+        return AppUtil.readPluginResource(getClassName(), "/properties/CardanoExplorerLinkFormElement.json", new String[]{backendConfigs}, true, PluginUtil.MESSAGE_PATH);
     }
     
     protected void initUtils(Map props) {
@@ -56,22 +56,14 @@ public class CardanoExplorerLinkFormElement extends Element implements FormBuild
     }
     
     @Override
-    public String getName() {
-        return "Cardano Explorer Link";
-    }
-
-    @Override
-    public String getVersion() {
-        return PluginUtil.getProjectVersion(this.getClass());
-    }
-
-    @Override
-    public String getDescription() {
-        return "A clickable button or link in a form to navigate to several popular Cardano explorers to verify information.";
+    public void initBackendServices(BackendService backendService) {        
+        transactionService = backendService.getTransactionService();
+        assetService = backendService.getAssetService();
+        addressService = backendService.getAddressService();
     }
     
     @Override
-    public String renderTemplate(FormData formData, Map dataModel) {
+    public String renderElement(FormData formData, Map dataModel) {
         initUtils(getProperties());
         
         boolean isTest = BackendUtil.isTestnet(getProperties());
@@ -105,11 +97,10 @@ public class CardanoExplorerLinkFormElement extends Element implements FormBuild
             }
         }
         
-        initBackend();
-        
         dataModel.put("element", this);
         dataModel.put("isValidValue", checkValueExist(valueType, retrievedValue));
         dataModel.put("explorerUrl", getExplorerUrl(valueType, isTest, retrievedValue, explorerType));
+        
         return FormUtil.generateElementHtml(this, formData, "CardanoExplorerLinkFormElement.ftl", dataModel);
     }
     
@@ -135,9 +126,9 @@ public class CardanoExplorerLinkFormElement extends Element implements FormBuild
                 Since retrieved value can be pretty much anything, simply ignore any errors thrown from API
                 See if can differentiate between legit API call problem VS simply no valid result returned
             */
-            //LogUtil.error(getClass().getName(), ex, "Error retrieving on-chain data from backend.");
+            //LogUtil.error(getClassName(), ex, "Error retrieving on-chain data from backend.");
         } catch (Exception ex) {
-            LogUtil.error(getClass().getName(), ex, "Error retrieving on-chain data from backend.");
+            LogUtil.error(getClassName(), ex, "Error retrieving on-chain data from backend.");
         }
         
         return false;
@@ -160,11 +151,6 @@ public class CardanoExplorerLinkFormElement extends Element implements FormBuild
                 return ExplorerLinkUtil.getTransactionExplorerUrl(isTest, retrievedValue, explorerType);
         }
     }
-    
-    @Override
-    public String getFormBuilderCategory() {
-        return PluginUtil.FORM_ELEMENT_CATEGORY;
-    }
 
     @Override
     public int getFormBuilderPosition() {
@@ -179,21 +165,5 @@ public class CardanoExplorerLinkFormElement extends Element implements FormBuild
     @Override
     public String getFormBuilderTemplate() {
         return "<span class='form-floating-label'>Cardano Explorer Link</span>";
-    }
-    
-    @Override
-    public String getLabel() {
-        return getName();
-    }
-
-    @Override
-    public String getClassName() {
-        return getClass().getName();
-    }
-
-    @Override
-    public String getPropertyOptions() {
-        String backendConfigs = PluginUtil.readGenericBackendConfigs(getClass().getName());
-        return AppUtil.readPluginResource(getClass().getName(), "/properties/CardanoExplorerLinkFormElement.json", new String[]{backendConfigs}, true, PluginUtil.MESSAGE_PATH);
     }
 }

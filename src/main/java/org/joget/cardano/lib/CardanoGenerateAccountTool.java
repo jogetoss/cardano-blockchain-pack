@@ -3,35 +3,26 @@ package org.joget.cardano.lib;
 import org.joget.cardano.service.PluginUtil;
 import org.joget.cardano.service.BackendUtil;
 import java.util.Map;
-import org.joget.plugin.base.DefaultApplicationPlugin;
 import com.bloxbean.cardano.client.account.Account;
+import com.bloxbean.cardano.client.backend.api.BackendService;
 import com.bloxbean.cardano.client.common.model.Network;
 import org.joget.apps.app.model.AppDefinition;
 import org.joget.apps.app.service.AppService;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.apps.form.model.FormRow;
 import org.joget.apps.form.model.FormRowSet;
+import org.joget.cardano.model.CardanoProcessToolAbstract;
 import org.joget.commons.util.LogUtil;
 import org.joget.workflow.model.WorkflowAssignment;
 import org.joget.workflow.model.service.WorkflowManager;
 import org.joget.workflow.util.WorkflowUtil;
 import org.springframework.context.ApplicationContext;
 
-public class CardanoGenerateAccountTool extends DefaultApplicationPlugin {
+public class CardanoGenerateAccountTool extends CardanoProcessToolAbstract {
 
     AppService appService;
-    WorkflowAssignment wfAssignment;
     AppDefinition appDef;
     WorkflowManager workflowManager;
-    
-    protected void initUtils(Map props) {
-        ApplicationContext ac = AppUtil.getApplicationContext();
-        
-        appService = (AppService) ac.getBean("appService");
-        wfAssignment = (WorkflowAssignment) props.get("workflowAssignment");
-        appDef = (AppDefinition) props.get("appDef");
-        workflowManager = (WorkflowManager) ac.getBean("workflowManager");
-    }
     
     @Override
     public String getName() {
@@ -39,17 +30,40 @@ public class CardanoGenerateAccountTool extends DefaultApplicationPlugin {
     }
 
     @Override
-    public String getVersion() {
-        return PluginUtil.getProjectVersion(this.getClass());
-    }
-
-    @Override
     public String getDescription() {
         return "Generates a new account on the Cardano blockchain.";
     }
-
+    
     @Override
-    public Object execute(Map props) {
+    public String getPropertyOptions() {
+        return AppUtil.readPluginResource(getClassName(), "/properties/CardanoGenerateAccountTool.json", null, true, PluginUtil.MESSAGE_PATH);
+    }
+    
+    protected void initUtils(Map props) {
+        ApplicationContext ac = AppUtil.getApplicationContext();
+        
+        appService = (AppService) ac.getBean("appService");
+        appDef = (AppDefinition) props.get("appDef");
+        workflowManager = (WorkflowManager) ac.getBean("workflowManager");
+    }
+    
+    @Override
+    public boolean isInputDataValid(Map props, WorkflowAssignment wfAssignment) {
+        String formDefId = getPropertyString("formDefId");
+        
+        if (formDefId == null || formDefId.isEmpty()) {
+            LogUtil.warn(getClassName(), "Unable to store account data to form. Encountered blank form ID.");
+            return false;
+        }
+        
+        return true;
+    }
+    
+    @Override
+    public void initBackendServices(BackendService backendService) { /* Do nothing */ }
+    
+    @Override
+    public Object runTool(Map props, WorkflowAssignment wfAssignment) {
         initUtils(props);
         
         boolean isTest = BackendUtil.isTestnet(props);
@@ -58,32 +72,25 @@ public class CardanoGenerateAccountTool extends DefaultApplicationPlugin {
         
         final Account account = new Account(network);
         
-        storeToForm(isTest, account);
+        storeToForm(isTest, account, wfAssignment);
         storeToWorkflowVariable(wfAssignment.getActivityId(), isTest, account);
         
         return null;
     }
     
-    private void fundTestAccount(String faucetUrl, String testBaseAddress) {
+    private void fundTestAccount(String faucetUrl, String testAddress) {
         //Not supported. Must be manually done at https://testnets.cardano.org/en/testnets/cardano/tools/faucet/
         throw new UnsupportedOperationException("Not supported yet.");
     }
     
-    protected void storeToForm(boolean isTest, final Account account) {
+    protected void storeToForm(boolean isTest, final Account account, WorkflowAssignment wfAssignment) {
         String formDefId = getPropertyString("formDefId");
         
-        if (formDefId == null || formDefId.isEmpty()) {
-            LogUtil.warn(getClass().getName(), "Unable to store account data to form. Encountered blank form ID.");
-            return;
-        }
-
         String accountMnemonicField = getPropertyString("accountMnemonicField");
         String accountOwnerField = getPropertyString("accountOwnerField");
         String accountOwnerValue = WorkflowUtil.processVariable(getPropertyString("accountOwnerValue"), "", wfAssignment);
         String isTestAccountField = getPropertyString("isTestAccount");
         String accountEAddressField = getPropertyString("accountEnterpriseAddress");
-
-        FormRowSet rowSet = new FormRowSet();
 
         FormRow row = new FormRow();
 
@@ -96,12 +103,13 @@ public class CardanoGenerateAccountTool extends DefaultApplicationPlugin {
         row = addRow(row, isTestAccountField, String.valueOf(isTest));
         row = addRow(row, accountEAddressField, account.enterpriseAddress());
 
+        FormRowSet rowSet = new FormRowSet();
         rowSet.add(row);
 
         if (!rowSet.isEmpty()) {
             FormRowSet storedData = appService.storeFormData(appDef.getId(), appDef.getVersion().toString(), formDefId, rowSet, null);
             if (storedData == null) {
-                LogUtil.warn(getClass().getName(), "Unable to store account data to form. Encountered invalid form ID of '" + formDefId + "'.");
+                LogUtil.warn(getClassName(), "Unable to store account data to form. Encountered invalid form ID of '" + formDefId + "'.");
             }
         }
     }
@@ -110,6 +118,7 @@ public class CardanoGenerateAccountTool extends DefaultApplicationPlugin {
         if (row != null && !field.isEmpty()) {
             row.put(field, value);
         }
+        
         return row;
     }
     
@@ -125,20 +134,5 @@ public class CardanoGenerateAccountTool extends DefaultApplicationPlugin {
         }
         
         workflowManager.activityVariable(activityId, variable, value);
-    }
-    
-    @Override
-    public String getLabel() {
-        return getName();
-    }
-
-    @Override
-    public String getClassName() {
-        return getClass().getName();
-    }
-
-    @Override
-    public String getPropertyOptions() {
-        return AppUtil.readPluginResource(getClass().getName(), "/properties/CardanoGenerateAccountTool.json", null, true, PluginUtil.MESSAGE_PATH);
     }
 }
