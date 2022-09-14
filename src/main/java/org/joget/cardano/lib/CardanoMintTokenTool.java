@@ -58,7 +58,6 @@ import org.springframework.context.ApplicationContext;
 public class CardanoMintTokenTool extends CardanoProcessToolAbstract {
     
     AppService appService;
-    WorkflowAssignment wfAssignment;
     AppDefinition appDef;
     WorkflowManager workflowManager;
     
@@ -83,7 +82,6 @@ public class CardanoMintTokenTool extends CardanoProcessToolAbstract {
         ApplicationContext ac = AppUtil.getApplicationContext();
         
         appService = (AppService) ac.getBean("appService");
-        wfAssignment = (WorkflowAssignment) props.get("workflowAssignment");
         appDef = (AppDefinition) props.get("appDef");
         workflowManager = (WorkflowManager) ac.getBean("workflowManager");
     }
