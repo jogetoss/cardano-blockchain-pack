@@ -50,6 +50,15 @@ public abstract class CardanoProcessToolAbstract extends DefaultApplicationPlugi
     }
     
     /**
+     * Used to indicate if backend service is required. This method is wrapped by execute().
+     * 
+     * @return A boolean value to call backend service or not. Default value is true.
+     */
+    public boolean requiresBackend() {
+        return true;
+    }
+    
+    /**
      * Used to initiatize required backend services prior to executing logic. This method is wrapped by execute().
      * 
      * @param backendService The backend service to execute queries and actions with the blockchain
@@ -81,12 +90,13 @@ public abstract class CardanoProcessToolAbstract extends DefaultApplicationPlugi
         Object result = null;
         
         try {
-            final BackendService backendService = BackendUtil.getBackendService(props);
-            
-            if (backendService != null) {
+            if (requiresBackend()) {
+                final BackendService backendService = BackendUtil.getBackendService(props);
                 initBackendServices(backendService);
-                result = runTool(props, wfAssignment);
             }
+
+            result = runTool(props, wfAssignment);
+            
         } catch (Exception ex) {
             LogUtil.error(getClassName(), ex, "Error executing process tool plugin...");
         }

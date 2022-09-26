@@ -60,6 +60,11 @@ public class CardanoGenerateAccountTool extends CardanoProcessToolAbstract {
     }
     
     @Override
+    public boolean requiresBackend() {
+        return false;
+    }
+    
+    @Override
     public void initBackendServices(BackendService backendService) { /* Do nothing */ }
     
     @Override
