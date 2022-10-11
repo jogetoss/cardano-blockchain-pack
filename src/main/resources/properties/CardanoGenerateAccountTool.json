@@ -8,14 +8,17 @@
                 "label":"@@cardano.prop.networkType@@",
                 "description":"@@cardano.prop.networkType.desc@@",
                 "type":"selectbox",
-                "options":[{
-                    "value":"mainnet",
-                    "label":"@@cardano.prop.networkType.mainnet@@"
-                },{
-                    "value":"testnet",
-                    "label":"@@cardano.prop.networkType.testnet@@"
-                }],
-                "value":"testnet"
+                "options":[
+                    {
+                        "value":"mainnet",
+                        "label":"@@cardano.prop.networkType.mainnet@@"
+                    },
+                    {
+                        "value":"previewTestnet",
+                        "label":"@@cardano.prop.networkType.previewTestnet@@"
+                    }
+                ],
+                "value":"previewTestnet"
             }
         ]
     },

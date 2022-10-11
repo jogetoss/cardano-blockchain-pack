@@ -2,6 +2,8 @@ package org.joget.cardano.service;
 
 import com.bloxbean.cardano.client.backend.api.BackendService;
 import static com.bloxbean.cardano.client.backend.blockfrost.common.Constants.BLOCKFROST_MAINNET_URL;
+import static com.bloxbean.cardano.client.backend.blockfrost.common.Constants.BLOCKFROST_PREVIEW_URL;
+import static com.bloxbean.cardano.client.backend.blockfrost.common.Constants.BLOCKFROST_PREPOD_URL;
 import static com.bloxbean.cardano.client.backend.koios.Constants.KOIOS_TESTNET_URL;
 import static com.bloxbean.cardano.client.backend.koios.Constants.KOIOS_MAINNET_URL;
 import com.bloxbean.cardano.client.backend.blockfrost.service.BFBackendService;
@@ -12,8 +14,7 @@ import java.util.Map;
 
 public class BackendUtil {
     
-    public static final String BLOCKFROST_PREVIEW_TESTNET_URL = "https://cardano-preview.blockfrost.io/api/v0/";
-    public static final String BLOCKFROST_PREPROD_TESTNET_URL = "https://cardano-preprod.blockfrost.io/api/v0/";
+    //TO-DO: Support using preprod testnet
     
     //Still waiting for koios to update their APIs
     public static final String KOIOS_PREVIEW_TESTNET_URL = "";
@@ -22,7 +23,9 @@ public class BackendUtil {
     public static boolean isTestnet(Map properties) {
         String networkType = (String) properties.get("networkType");
         
-        return "testnet".equalsIgnoreCase(networkType) || "preprod_testnet".equalsIgnoreCase(networkType);
+        return "testnet".equalsIgnoreCase(networkType) || //Don't delete this, to prevent loss of existing configs from previous versions
+                "previewTestnet".equalsIgnoreCase(networkType) || 
+                "preprodTestnet".equalsIgnoreCase(networkType);
     }
     
     public static BackendService getBackendService(Map properties) {
@@ -35,7 +38,7 @@ public class BackendUtil {
         
         switch (backendServiceName) {
             case "blockfrost":
-                backend = getBlockfrostBackendService(isTest ? BLOCKFROST_PREVIEW_TESTNET_URL : BLOCKFROST_MAINNET_URL, blockfrostProjectKey);
+                backend = getBlockfrostBackendService(isTest ? BLOCKFROST_PREVIEW_URL : BLOCKFROST_MAINNET_URL, blockfrostProjectKey);
                 break;
             case "koios":
             default:
@@ -55,6 +58,6 @@ public class BackendUtil {
     }
     
     public static Network getNetwork(boolean isTest) {
-        return isTest ? Networks.testnet() : Networks.mainnet();
+        return isTest ? Networks.preview() : Networks.mainnet();
     }
 }

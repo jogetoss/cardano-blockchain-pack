@@ -9,11 +9,11 @@
             "label":"@@cardano.prop.networkType.mainnet@@"
         },
         {
-            "value":"testnet",
-            "label":"@@cardano.prop.networkType.testnet@@"
+            "value":"previewTestnet",
+            "label":"@@cardano.prop.networkType.previewTestnet@@"
         }
     ],
-    "value":"testnet"
+    "value":"previewTestnet"
 },
 {
     "name":"backendService",
