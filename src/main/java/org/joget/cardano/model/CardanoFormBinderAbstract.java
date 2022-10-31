@@ -1,6 +1,5 @@
 package org.joget.cardano.model;
 
-import com.bloxbean.cardano.client.api.exception.ApiException;
 import com.bloxbean.cardano.client.api.helper.FeeCalculationService;
 import com.bloxbean.cardano.client.api.helper.TransactionHelperService;
 import com.bloxbean.cardano.client.api.helper.UtxoTransactionBuilder;
@@ -62,8 +61,7 @@ public abstract class CardanoFormBinderAbstract extends FormBinder implements Fo
      * 
      * @return A Collection of Map objects. Each Map object contains property=value pairs to represent a data row.
      */
-    public abstract FormRowSet loadData(Element element, String primaryKey, FormData formData)
-            throws ApiException;
+    public abstract FormRowSet loadData(Element element, String primaryKey, FormData formData);
     
     @Override
     public FormRowSet load(Element element, String primaryKey, FormData formData) {

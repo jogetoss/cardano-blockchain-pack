@@ -132,111 +132,115 @@ public class CardanoSendTransactionTool extends CardanoProcessToolAbstract imple
     
     @Override
     public Object runTool(Map props, WorkflowAssignment wfAssignment) 
-            throws ApiException, CborSerializationException, AddressExcepion {
+            throws RuntimeException {
         
-        initUtils(props);
-        
-        String formDefId = getPropertyString("formDefId");
-        final String primaryKey = appService.getOriginProcessId(wfAssignment.getProcessId());
-        
-        FormRowSet rowSet = appService.loadFormData(appDef.getAppId(), appDef.getVersion().toString(), formDefId, primaryKey);
-        
-        FormRow row = rowSet.get(0);
-        
-        final String accountMnemonic = PluginUtil.decrypt(WorkflowUtil.processVariable(getPropertyString("accountMnemonic"), "", wfAssignment));
-        final String receiverAddress = row.getProperty(getPropertyString("receiverAddress"));
-        final String nftReceiverAddress = row.getProperty(getPropertyString("nftReceiverAddress")); // separate property to workaround multi-condition in properties options
-        final String amount = row.getProperty(getPropertyString("amount"));
-        final boolean multipleReceiverMode = "true".equalsIgnoreCase(getPropertyString("multipleReceiverMode"));
-        final boolean paymentUnitNft = "nft".equalsIgnoreCase(getPropertyString("paymentUnit"));
-        
-        final boolean isTest = BackendUtil.isTestnet(props);
-        final Network network = BackendUtil.getNetwork(isTest);
+        try {
+            initUtils(props);
 
-        final Account senderAccount = new Account(network, accountMnemonic);
+            String formDefId = getPropertyString("formDefId");
+            final String primaryKey = appService.getOriginProcessId(wfAssignment.getProcessId());
 
-        List<PaymentTransaction> paymentList = new ArrayList<>();
+            FormRowSet rowSet = appService.loadFormData(appDef.getAppId(), appDef.getVersion().toString(), formDefId, primaryKey);
 
-        if (multipleReceiverMode) { // If enabled multi receiver mode
-            //Consider pulling binder plugin/configs directly from user selected Datalist
-            paymentList = getPaymentListFromBinderData(senderAccount);
+            FormRow row = rowSet.get(0);
 
-            if (paymentList == null || paymentList.isEmpty()) {
-                LogUtil.warn(getClassName(), "Send transaction aborted. No valid receiver records found from binder.");
+            final String accountMnemonic = PluginUtil.decrypt(WorkflowUtil.processVariable(getPropertyString("accountMnemonic"), "", wfAssignment));
+            final String receiverAddress = row.getProperty(getPropertyString("receiverAddress"));
+            final String nftReceiverAddress = row.getProperty(getPropertyString("nftReceiverAddress")); // separate property to workaround multi-condition in properties options
+            final String amount = row.getProperty(getPropertyString("amount"));
+            final boolean multipleReceiverMode = "true".equalsIgnoreCase(getPropertyString("multipleReceiverMode"));
+            final boolean paymentUnitNft = "nft".equalsIgnoreCase(getPropertyString("paymentUnit"));
+
+            final boolean isTest = BackendUtil.isTestnet(props);
+            final Network network = BackendUtil.getNetwork(isTest);
+
+            final Account senderAccount = new Account(network, accountMnemonic);
+
+            List<PaymentTransaction> paymentList = new ArrayList<>();
+
+            if (multipleReceiverMode) { // If enabled multi receiver mode
+                //Consider pulling binder plugin/configs directly from user selected Datalist
+                paymentList = getPaymentListFromBinderData(senderAccount);
+
+                if (paymentList == null || paymentList.isEmpty()) {
+                    LogUtil.warn(getClassName(), "Send transaction aborted. No valid receiver records found from binder.");
+                    return null;
+                }
+            } else { // If not enabled multi receiver mode (single receiver only)
+                String tempReceiverAddress;
+
+                if (paymentUnitNft) {
+                    tempReceiverAddress = nftReceiverAddress;
+                } else {
+                    tempReceiverAddress = receiverAddress;
+                }
+
+                PaymentTransaction paymentTransaction =
+                    PaymentTransaction.builder()
+                            .sender(senderAccount)
+                            .receiver(tempReceiverAddress)
+                            .amount(getPaymentAmount(amount))
+                            .unit(getPaymentUnit())
+                            .build();
+
+                paymentList.add(paymentTransaction);
+            }
+
+            long ttl = TransactionUtil.getTtl(blockService, 2000);
+            TransactionDetailsParams detailsParams = TransactionDetailsParams.builder().ttl(ttl).build();
+
+            // See https://cips.cardano.org/cips/cip20/
+            Metadata metadata = MetadataUtil.generateMsgMetadataFromFormData((Object[]) props.get("metadata"), row);
+
+            final BigInteger fee = feeCalculationService.calculateFee(paymentList, detailsParams, metadata);
+
+            BigInteger feeLimit = MAX_FEE_LIMIT;
+            if (!getPropertyString("feeLimit").isBlank()) {
+                feeLimit = ADAConversionUtil.adaToLovelace(new BigDecimal(getPropertyString("feeLimit")));
+            }
+            if (!TransactionUtil.checkFeeLimit(fee, feeLimit)) {
+                LogUtil.warn(getClassName(), "Send transaction aborted. Transaction fee in units of lovelace of " + fee.toString() + " exceeded set fee limit of " + feeLimit.toString() + ".");
+                storeToWorkflowVariable(wfAssignment.getActivityId(), isTest, null, null);
                 return null;
             }
-        } else { // If not enabled multi receiver mode (single receiver only)
-            String tempReceiverAddress;
+            paymentList.get(0).setFee(fee);
 
-            if (paymentUnitNft) {
-                tempReceiverAddress = nftReceiverAddress;
-            } else {
-                tempReceiverAddress = receiverAddress;
+            Result<TransactionResult> transactionResult = transactionHelperService.transfer(paymentList, detailsParams, metadata);
+
+            if (!transactionResult.isSuccessful()) {
+                LogUtil.warn(getClassName(), "Transaction failed with status code " + transactionResult.code() + ". Response returned --> " + transactionResult.getResponse());
+                storeToWorkflowVariable(wfAssignment.getActivityId(), isTest, null, null);
+                return null;
             }
 
-            PaymentTransaction paymentTransaction =
-                PaymentTransaction.builder()
-                        .sender(senderAccount)
-                        .receiver(tempReceiverAddress)
-                        .amount(getPaymentAmount(amount))
-                        .unit(getPaymentUnit())
-                        .build();
+            //Store successful unvalidated txn result first
+            storeToWorkflowVariable(wfAssignment.getActivityId(), isTest, transactionResult, null);
 
-            paymentList.add(paymentTransaction);
+            //Use separate thread to wait for transaction validation
+            Thread waitTransactionThread = new PluginThread(() -> {
+                Result<TransactionContent> validatedTransactionResult = null;
+
+                try {
+                    validatedTransactionResult = TransactionUtil.waitForTransaction(transactionService, transactionResult);
+                } catch (Exception ex) {
+                    LogUtil.error(getClassName(), ex, "Error waiting for transaction validation...");
+                }
+
+                if (validatedTransactionResult != null) {
+                    //Store validated/confirmed txn result for current activity instance
+                    storeToWorkflowVariable(wfAssignment.getActivityId(), isTest, transactionResult, validatedTransactionResult);
+
+                    //Store validated/confirmed txn result for future running activity instance
+                    String mostRecentActivityId = workflowManager.getRunningActivityIdByRecordId(primaryKey, wfAssignment.getProcessDefId(), null, null);
+                    storeToWorkflowVariable(mostRecentActivityId, isTest, transactionResult, validatedTransactionResult);
+                }
+            });
+            waitTransactionThread.start();
+
+            return transactionResult;
+        } catch (ApiException | CborSerializationException | AddressExcepion e) {
+            throw new RuntimeException(e.getClass().getName() + " : " + e.getMessage());
         }
-
-        long ttl = TransactionUtil.getTtl(blockService, 2000);
-        TransactionDetailsParams detailsParams = TransactionDetailsParams.builder().ttl(ttl).build();
-        
-        // See https://cips.cardano.org/cips/cip20/
-        Metadata metadata = MetadataUtil.generateMsgMetadataFromFormData((Object[]) props.get("metadata"), row);
-        
-        final BigInteger fee = feeCalculationService.calculateFee(paymentList, detailsParams, metadata);
-
-        BigInteger feeLimit = MAX_FEE_LIMIT;
-        if (!getPropertyString("feeLimit").isBlank()) {
-            feeLimit = ADAConversionUtil.adaToLovelace(new BigDecimal(getPropertyString("feeLimit")));
-        }
-        if (!TransactionUtil.checkFeeLimit(fee, feeLimit)) {
-            LogUtil.warn(getClassName(), "Send transaction aborted. Transaction fee in units of lovelace of " + fee.toString() + " exceeded set fee limit of " + feeLimit.toString() + ".");
-            storeToWorkflowVariable(wfAssignment.getActivityId(), isTest, null, null);
-            return null;
-        }
-        paymentList.get(0).setFee(fee);
-
-        Result<TransactionResult> transactionResult = transactionHelperService.transfer(paymentList, detailsParams, metadata);
-
-        if (!transactionResult.isSuccessful()) {
-            LogUtil.warn(getClassName(), "Transaction failed with status code " + transactionResult.code() + ". Response returned --> " + transactionResult.getResponse());
-            storeToWorkflowVariable(wfAssignment.getActivityId(), isTest, null, null);
-            return null;
-        }
-
-        //Store successful unvalidated txn result first
-        storeToWorkflowVariable(wfAssignment.getActivityId(), isTest, transactionResult, null);
-
-        //Use separate thread to wait for transaction validation
-        Thread waitTransactionThread = new PluginThread(() -> {
-            Result<TransactionContent> validatedTransactionResult = null;
-
-            try {
-                validatedTransactionResult = TransactionUtil.waitForTransaction(transactionService, transactionResult);
-            } catch (Exception ex) {
-                LogUtil.error(getClassName(), ex, "Error waiting for transaction validation...");
-            }
-
-            if (validatedTransactionResult != null) {
-                //Store validated/confirmed txn result for current activity instance
-                storeToWorkflowVariable(wfAssignment.getActivityId(), isTest, transactionResult, validatedTransactionResult);
-
-                //Store validated/confirmed txn result for future running activity instance
-                String mostRecentActivityId = workflowManager.getRunningActivityIdByRecordId(primaryKey, wfAssignment.getProcessDefId(), null, null);
-                storeToWorkflowVariable(mostRecentActivityId, isTest, transactionResult, validatedTransactionResult);
-            }
-        });
-        waitTransactionThread.start();
-
-        return transactionResult;
     }
     
     protected DataList getDataList() throws BeansException {

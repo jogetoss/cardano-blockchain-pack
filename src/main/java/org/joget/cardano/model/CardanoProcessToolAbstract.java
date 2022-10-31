@@ -1,6 +1,5 @@
 package org.joget.cardano.model;
 
-import com.bloxbean.cardano.client.api.exception.ApiException;
 import com.bloxbean.cardano.client.api.helper.FeeCalculationService;
 import com.bloxbean.cardano.client.api.helper.TransactionHelperService;
 import com.bloxbean.cardano.client.api.helper.UtxoTransactionBuilder;
@@ -14,10 +13,6 @@ import com.bloxbean.cardano.client.backend.api.MetadataService;
 import com.bloxbean.cardano.client.backend.api.NetworkInfoService;
 import com.bloxbean.cardano.client.backend.api.TransactionService;
 import com.bloxbean.cardano.client.backend.api.UtxoService;
-import com.bloxbean.cardano.client.exception.AddressExcepion;
-import com.bloxbean.cardano.client.exception.CborDeserializationException;
-import com.bloxbean.cardano.client.exception.CborSerializationException;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import java.util.Map;
 import org.joget.cardano.service.BackendUtil;
 import org.joget.cardano.service.PluginUtil;
@@ -75,8 +70,7 @@ public abstract class CardanoProcessToolAbstract extends DefaultApplicationPlugi
      * 
      * @return is not used for now
      */
-    public abstract Object runTool(Map props, WorkflowAssignment wfAssignment)
-            throws ApiException, CborSerializationException, CborDeserializationException, JsonProcessingException, AddressExcepion;
+    public abstract Object runTool(Map props, WorkflowAssignment wfAssignment);
     
     @Override
     public Object execute(Map props) {

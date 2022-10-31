@@ -18,7 +18,6 @@ import com.bloxbean.cardano.client.common.model.Network;
 import com.bloxbean.cardano.client.crypto.KeyGenUtil;
 import com.bloxbean.cardano.client.crypto.SecretKey;
 import com.bloxbean.cardano.client.crypto.VerificationKey;
-import com.bloxbean.cardano.client.exception.CborDeserializationException;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
 import com.bloxbean.cardano.client.transaction.TransactionSigner;
 import com.bloxbean.cardano.client.transaction.spec.Asset;
@@ -154,215 +153,222 @@ public class CardanoBurnTokenTool extends CardanoProcessToolAbstract {
     
     @Override
     public Object runTool(Map props, WorkflowAssignment wfAssignment) 
-            throws CborSerializationException, ApiException, CborDeserializationException {
+            throws RuntimeException {
         
-        initUtils(props);
-        
-        String formDefId = getPropertyString("formDefId");
-        final String primaryKey = appService.getOriginProcessId(wfAssignment.getProcessId());
-        
-        FormRowSet rowSet = appService.loadFormData(appDef.getAppId(), appDef.getVersion().toString(), formDefId, primaryKey);
-        
-        FormRow row = rowSet.get(0);
-        
-        final String senderAddress = row.getProperty(getPropertyString("senderAddress"));
-        final String accountMnemonic = PluginUtil.decrypt(WorkflowUtil.processVariable(getPropertyString("accountMnemonic"), "", wfAssignment));
-        final String assetId = row.getProperty(getPropertyString("assetId"));
-        final String policyId = row.getProperty(getPropertyString("policyId"));
-        final String policySigningKey = PluginUtil.decrypt(WorkflowUtil.processVariable(getPropertyString("policySigningKey"), "", wfAssignment));
-        final String tokenNameInHex = AssetUtil.getPolicyIdAndAssetName(assetId)._2;
-        final String derivedTokenName = new String(HexUtil.decodeHexString(tokenNameInHex), StandardCharsets.UTF_8);
-        final String amountToBurn = row.getProperty(getPropertyString("amountToBurn"));
-        final boolean burnTypeNft = "nft".equalsIgnoreCase(getPropertyString("burnType"));
-        
-        final boolean isTest = BackendUtil.isTestnet(props);
-        final Network network = BackendUtil.getNetwork(isTest);
+        try {
+            initUtils(props);
 
-        final Account senderAccount = new Account(network, accountMnemonic);
+            String formDefId = getPropertyString("formDefId");
+            final String primaryKey = appService.getOriginProcessId(wfAssignment.getProcessId());
 
-        BigInteger amountToBurnAbs;
+            FormRowSet rowSet = appService.loadFormData(appDef.getAppId(), appDef.getVersion().toString(), formDefId, primaryKey);
 
-        if (burnTypeNft) {
-            amountToBurnAbs = BigInteger.ONE; //NFT = Exactly 1 amount of native token
-        } else {
-            amountToBurnAbs = new BigInteger(amountToBurn).abs();
-        }
+            FormRow row = rowSet.get(0);
 
-        final List<SecretKey> skeys = TokenUtil.getSecretKeysStringAsList(policySigningKey);
-        ScriptAll scriptAll = new ScriptAll();
-        for (SecretKey skey : skeys) {
-            VerificationKey vkey = KeyGenUtil.getPublicKeyFromPrivateKey(skey);
-            scriptAll.addScript(ScriptPubkey.create(vkey));
-        }
+            final String senderAddress = row.getProperty(getPropertyString("senderAddress"));
+            final String accountMnemonic = PluginUtil.decrypt(WorkflowUtil.processVariable(getPropertyString("accountMnemonic"), "", wfAssignment));
+            final String assetId = row.getProperty(getPropertyString("assetId"));
+            final String policyId = row.getProperty(getPropertyString("policyId"));
+            final String policySigningKey = PluginUtil.decrypt(WorkflowUtil.processVariable(getPropertyString("policySigningKey"), "", wfAssignment));
+            final String tokenNameInHex = AssetUtil.getPolicyIdAndAssetName(assetId)._2;
+            final String derivedTokenName = new String(HexUtil.decodeHexString(tokenNameInHex), StandardCharsets.UTF_8);
+            final String amountToBurn = row.getProperty(getPropertyString("amountToBurn"));
+            final boolean burnTypeNft = "nft".equalsIgnoreCase(getPropertyString("burnType"));
 
-        /* Burn logic starts here */
-        MultiAsset multiAsset = new MultiAsset();
-        multiAsset.setPolicyId(policyId);
-        //negative amount required
-        multiAsset.getAssets().add(new Asset(derivedTokenName, amountToBurnAbs.negate()));
+            final boolean isTest = BackendUtil.isTestnet(props);
+            final Network network = BackendUtil.getNetwork(isTest);
 
-        //Get utxos for such asset ID
-        UtxoSelectionStrategy utxoSelectionStrategy = new DefaultUtxoSelectionStrategyImpl(utxoSupplier);
-        List<Utxo> utxos = utxoSelectionStrategy.selectUtxos(senderAddress, assetId, amountToBurnAbs, Collections.EMPTY_SET);
+            final Account senderAccount = new Account(network, accountMnemonic);
 
-        //Create inputs
-        List<TransactionInput> inputs = new ArrayList<>();
-        utxos.forEach(utxo -> {
-            TransactionInput transactionInput = TransactionInput.builder()
-                    .transactionId(utxo.getTxHash())
-                    .index(utxo.getOutputIndex())
+            BigInteger amountToBurnAbs;
+
+            if (burnTypeNft) {
+                amountToBurnAbs = BigInteger.ONE; //NFT = Exactly 1 amount of native token
+            } else {
+                amountToBurnAbs = new BigInteger(amountToBurn).abs();
+            }
+
+            final List<SecretKey> skeys = TokenUtil.getSecretKeysStringAsList(policySigningKey);
+            ScriptAll scriptAll = new ScriptAll();
+            for (SecretKey skey : skeys) {
+                VerificationKey vkey = KeyGenUtil.getPublicKeyFromPrivateKey(skey);
+                scriptAll.addScript(ScriptPubkey.create(vkey));
+            }
+
+            /* Burn logic starts here */
+            MultiAsset multiAsset = new MultiAsset();
+            multiAsset.setPolicyId(policyId);
+            //negative amount required
+            multiAsset.getAssets().add(new Asset(derivedTokenName, amountToBurnAbs.negate()));
+
+            //Get utxos for such asset ID
+            UtxoSelectionStrategy utxoSelectionStrategy = new DefaultUtxoSelectionStrategyImpl(utxoSupplier);
+            List<Utxo> utxos = utxoSelectionStrategy.selectUtxos(senderAddress, assetId, amountToBurnAbs, Collections.EMPTY_SET);
+
+            //Create inputs
+            List<TransactionInput> inputs = new ArrayList<>();
+            utxos.forEach(utxo -> {
+                TransactionInput transactionInput = TransactionInput.builder()
+                        .transactionId(utxo.getTxHash())
+                        .index(utxo.getOutputIndex())
+                        .build();
+
+                inputs.add(transactionInput);
+            });
+
+            //Create outputs
+            List<TransactionOutput> outputs = new ArrayList<>();
+            TransactionOutput transactionOutput = TransactionOutput.builder()
+                    .address(senderAddress)
+                    .value(Value.builder()
+                            .multiAssets(new ArrayList<>())
+                            .coin(BigInteger.ZERO)
+                            .build())
                     .build();
 
-            inputs.add(transactionInput);
-        });
+            //Copy selected utxos content to transactionoutput
+            utxos.forEach(utxo -> copyUtxoValuesToChangeOutput(transactionOutput, utxo));
 
-        //Create outputs
-        List<TransactionOutput> outputs = new ArrayList<>();
-        TransactionOutput transactionOutput = TransactionOutput.builder()
-                .address(senderAddress)
-                .value(Value.builder()
-                        .multiAssets(new ArrayList<>())
-                        .coin(BigInteger.ZERO)
-                        .build())
+            //Update asset value. Deduct burn amount
+            transactionOutput.getValue().getMultiAssets()
+                    .stream().filter(mulAsset -> mulAsset.getPolicyId().equals(policyId))
+                    .forEach(ma -> {
+                        Optional<Asset> assetOptional = ma.getAssets().stream().filter(ast ->
+                                ast.getName().equals(HexUtil.encodeHexString(derivedTokenName.getBytes(StandardCharsets.UTF_8), true)))
+                                .findFirst();
+                        if (assetOptional.isPresent()) {
+                            Asset asset = assetOptional.get();
+                            asset.setValue(asset.getValue().add(amountToBurnAbs.negate()));
+                        }
+                    });
+            outputs.add(transactionOutput);
+
+            long ttl = TransactionUtil.getTtl(blockService);
+
+            TransactionBody body = TransactionBody.builder()
+                .inputs(inputs)
+                .outputs(outputs)
+                .mint(Arrays.asList(multiAsset))
+                .ttl(ttl)
+                .fee(BigInteger.valueOf(170000)) //dummy fee to calculate actual fee
                 .build();
 
-        //Copy selected utxos content to transactionoutput
-        utxos.forEach(utxo -> copyUtxoValuesToChangeOutput(transactionOutput, utxo));
+            //Add script witness
+            TransactionWitnessSet transactionWitnessSet = TransactionWitnessSet.builder()
+                    .nativeScripts(Arrays.asList(scriptAll))
+                    .build();
 
-        //Update asset value. Deduct burn amount
-        transactionOutput.getValue().getMultiAssets()
-                .stream().filter(mulAsset -> mulAsset.getPolicyId().equals(policyId))
-                .forEach(ma -> {
-                    Optional<Asset> assetOptional = ma.getAssets().stream().filter(ast ->
-                            ast.getName().equals(HexUtil.encodeHexString(derivedTokenName.getBytes(StandardCharsets.UTF_8), true)))
-                            .findFirst();
-                    if (assetOptional.isPresent()) {
-                        Asset asset = assetOptional.get();
-                        asset.setValue(asset.getValue().add(amountToBurnAbs.negate()));
-                    }
-                });
-        outputs.add(transactionOutput);
+            Transaction transaction = Transaction.builder()
+                    .body(body)
+                    .witnessSet(transactionWitnessSet)
+                    .build();
 
-        long ttl = TransactionUtil.getTtl(blockService);
+            calculateEstimatedFeeAndMinAdaRequirementAndUpdateTxnOutput(senderAccount, skeys, utxoSelectionStrategy, utxos, transaction);
 
-        TransactionBody body = TransactionBody.builder()
-            .inputs(inputs)
-            .outputs(outputs)
-            .mint(Arrays.asList(multiAsset))
-            .ttl(ttl)
-            .fee(BigInteger.valueOf(170000)) //dummy fee to calculate actual fee
-            .build();
+            final BigInteger fee = transaction.getBody().getFee();
 
-        //Add script witness
-        TransactionWitnessSet transactionWitnessSet = TransactionWitnessSet.builder()
-                .nativeScripts(Arrays.asList(scriptAll))
-                .build();
-
-        Transaction transaction = Transaction.builder()
-                .body(body)
-                .witnessSet(transactionWitnessSet)
-                .build();
-
-        calculateEstimatedFeeAndMinAdaRequirementAndUpdateTxnOutput(senderAccount, skeys, utxoSelectionStrategy, utxos, transaction);
-
-        final BigInteger fee = transaction.getBody().getFee();
-
-        BigInteger feeLimit = MAX_FEE_LIMIT;
-        if (!getPropertyString("feeLimit").isBlank()) {
-            feeLimit = ADAConversionUtil.adaToLovelace(new BigDecimal(getPropertyString("feeLimit")));
-        }
-        if (!TransactionUtil.checkFeeLimit(fee, feeLimit)) {
-            LogUtil.warn(getClassName(), "Burn transaction aborted. Transaction fee in units of lovelace of " + fee.toString() + " exceeded set fee limit of " + feeLimit.toString() + ".");
-            storeToWorkflowVariable(wfAssignment.getActivityId(), isTest, null, null);
-            return null;
-        }
-
-        byte[] signedCBorBytes = signTransactionWithSenderAndSecretKey(senderAccount, skeys, transaction).serialize();
-
-        final Result<String> transactionResult = transactionService.submitTransaction(signedCBorBytes);
-
-        if (!transactionResult.isSuccessful()) {
-            LogUtil.warn(getClassName(), "Transaction failed with status code " + transactionResult.code() + ". Response returned --> " + transactionResult.getResponse());
-            storeToWorkflowVariable(wfAssignment.getActivityId(), isTest, null, null);
-            return null;
-        }
-
-        //Store successful unvalidated txn result first
-        storeToWorkflowVariable(wfAssignment.getActivityId(), isTest, transactionResult, null);
-
-        //Use separate thread to wait for transaction validation
-        Thread waitTransactionThread = new PluginThread(() -> {
-            Result<TransactionContent> validatedTransactionResult = null;
-
-            try {
-                validatedTransactionResult = TransactionUtil.waitForTransaction(transactionService, transactionResult);
-            } catch (Exception ex) {
-                LogUtil.error(getClassName(), ex, "Error waiting for transaction validation...");
+            BigInteger feeLimit = MAX_FEE_LIMIT;
+            if (!getPropertyString("feeLimit").isBlank()) {
+                feeLimit = ADAConversionUtil.adaToLovelace(new BigDecimal(getPropertyString("feeLimit")));
+            }
+            if (!TransactionUtil.checkFeeLimit(fee, feeLimit)) {
+                LogUtil.warn(getClassName(), "Burn transaction aborted. Transaction fee in units of lovelace of " + fee.toString() + " exceeded set fee limit of " + feeLimit.toString() + ".");
+                storeToWorkflowVariable(wfAssignment.getActivityId(), isTest, null, null);
+                return null;
             }
 
-            if (validatedTransactionResult != null) {
-                //Store validated/confirmed txn result for current activity instance
-                storeToWorkflowVariable(wfAssignment.getActivityId(), isTest, transactionResult, validatedTransactionResult);
+            byte[] signedCBorBytes = signTransactionWithSenderAndSecretKey(senderAccount, skeys, transaction).serialize();
 
-                //Store validated/confirmed txn result for future running activity instance
-                String mostRecentActivityId = workflowManager.getRunningActivityIdByRecordId(appService.getOriginProcessId(wfAssignment.getProcessId()), wfAssignment.getProcessDefId(), null, null);
-                storeToWorkflowVariable(mostRecentActivityId, isTest, transactionResult, validatedTransactionResult);
+            final Result<String> transactionResult = transactionService.submitTransaction(signedCBorBytes);
+
+            if (!transactionResult.isSuccessful()) {
+                LogUtil.warn(getClassName(), "Transaction failed with status code " + transactionResult.code() + ". Response returned --> " + transactionResult.getResponse());
+                storeToWorkflowVariable(wfAssignment.getActivityId(), isTest, null, null);
+                return null;
             }
-        });
-        waitTransactionThread.start();
 
-        return transactionResult;
+            //Store successful unvalidated txn result first
+            storeToWorkflowVariable(wfAssignment.getActivityId(), isTest, transactionResult, null);
+
+            //Use separate thread to wait for transaction validation
+            Thread waitTransactionThread = new PluginThread(() -> {
+                Result<TransactionContent> validatedTransactionResult = null;
+
+                try {
+                    validatedTransactionResult = TransactionUtil.waitForTransaction(transactionService, transactionResult);
+                } catch (Exception ex) {
+                    LogUtil.error(getClassName(), ex, "Error waiting for transaction validation...");
+                }
+
+                if (validatedTransactionResult != null) {
+                    //Store validated/confirmed txn result for current activity instance
+                    storeToWorkflowVariable(wfAssignment.getActivityId(), isTest, transactionResult, validatedTransactionResult);
+
+                    //Store validated/confirmed txn result for future running activity instance
+                    String mostRecentActivityId = workflowManager.getRunningActivityIdByRecordId(appService.getOriginProcessId(wfAssignment.getProcessId()), wfAssignment.getProcessDefId(), null, null);
+                    storeToWorkflowVariable(mostRecentActivityId, isTest, transactionResult, validatedTransactionResult);
+                }
+            });
+            waitTransactionThread.start();
+
+            return transactionResult;
+        } catch (ApiException | CborSerializationException e) {
+            throw new RuntimeException(e.getClass().getName() + " : " + e.getMessage());
+        }
     }
     
     private void calculateEstimatedFeeAndMinAdaRequirementAndUpdateTxnOutput(Account minter, List<SecretKey> skeys, UtxoSelectionStrategy utxoSelectionStrategy,
                                                                              List<Utxo> utxos, Transaction transaction) 
-            throws ApiException, CborSerializationException, CborDeserializationException {
+            throws RuntimeException {
         
-        List<TransactionInput> inputs = transaction.getBody().getInputs();
-        TransactionOutput transactionOutput = transaction.getBody().getOutputs().get(0);
+        try {
+            List<TransactionInput> inputs = transaction.getBody().getInputs();
+            TransactionOutput transactionOutput = transaction.getBody().getOutputs().get(0);
 
-        //Calculate fee with signed transaction
-        BigInteger estimatedFee = feeCalculationService.calculateFee(signTransactionWithSenderAndSecretKey(minter, skeys, transaction));
+            //Calculate fee with signed transaction
+            BigInteger estimatedFee = feeCalculationService.calculateFee(signTransactionWithSenderAndSecretKey(minter, skeys, transaction));
 
-        //Check if min-ada is there in transaction output. If not, get some additional utxos
-        ProtocolParams protocolParams = epochService.getProtocolParameters().getValue();
-        MinAdaCalculator minAdaCalculator = new MinAdaCalculator(protocolParams);
-        BigInteger minAda = minAdaCalculator.calculateMinAda(transactionOutput);
+            //Check if min-ada is there in transaction output. If not, get some additional utxos
+            ProtocolParams protocolParams = epochService.getProtocolParameters().getValue();
+            MinAdaCalculator minAdaCalculator = new MinAdaCalculator(protocolParams);
+            BigInteger minAda = minAdaCalculator.calculateMinAda(transactionOutput);
 
-        Set<Utxo> utxosToExclude = new HashSet<>();
-        utxosToExclude.addAll(utxos);
+            Set<Utxo> utxosToExclude = new HashSet<>();
+            utxosToExclude.addAll(utxos);
 
-        //Check if not enough lovelace in the transaction output. Get some additional utxos and recalculate fee again and iterate
-        while (minAda.compareTo(transactionOutput.getValue().getCoin().subtract(estimatedFee)) == 1) {
-            //Get some additional utxos
-            BigInteger reqAdditionalLovelace = minAda.subtract(transactionOutput.getValue().getCoin().subtract(estimatedFee));
-            List<Utxo> additionalUtxos = utxoSelectionStrategy.selectUtxos(minter.baseAddress(), LOVELACE, reqAdditionalLovelace, utxosToExclude);
-            if (!additionalUtxos.isEmpty()) {
-                additionalUtxos.forEach(utxo -> {
-                    TransactionInput transactionInput = TransactionInput.builder()
-                            .transactionId(utxo.getTxHash())
-                            .index(utxo.getOutputIndex())
-                            .build();
-                    inputs.add(transactionInput);
+            //Check if not enough lovelace in the transaction output. Get some additional utxos and recalculate fee again and iterate
+            while (minAda.compareTo(transactionOutput.getValue().getCoin().subtract(estimatedFee)) == 1) {
+                //Get some additional utxos
+                BigInteger reqAdditionalLovelace = minAda.subtract(transactionOutput.getValue().getCoin().subtract(estimatedFee));
+                List<Utxo> additionalUtxos = utxoSelectionStrategy.selectUtxos(minter.baseAddress(), LOVELACE, reqAdditionalLovelace, utxosToExclude);
+                if (!additionalUtxos.isEmpty()) {
+                    additionalUtxos.forEach(utxo -> {
+                        TransactionInput transactionInput = TransactionInput.builder()
+                                .transactionId(utxo.getTxHash())
+                                .index(utxo.getOutputIndex())
+                                .build();
+                        inputs.add(transactionInput);
 
-                    copyUtxoValuesToChangeOutput(transactionOutput, utxo);
-                });
-                utxosToExclude.addAll(additionalUtxos);
+                        copyUtxoValuesToChangeOutput(transactionOutput, utxo);
+                    });
+                    utxosToExclude.addAll(additionalUtxos);
 
-                //Calculate fee again as new utxos were added
-                estimatedFee = feeCalculationService.calculateFee(signTransactionWithSenderAndSecretKey(minter, skeys, transaction));
+                    //Calculate fee again as new utxos were added
+                    estimatedFee = feeCalculationService.calculateFee(signTransactionWithSenderAndSecretKey(minter, skeys, transaction));
+                }
+                minAda = minAdaCalculator.calculateMinAda(transactionOutput);
             }
-            minAda = minAdaCalculator.calculateMinAda(transactionOutput);
-        }
 
-        //Set final estimated fee and lovelace amount in output
-        transaction.getBody().setFee(estimatedFee);
-        transactionOutput.getValue().setCoin(transactionOutput.getValue().getCoin().subtract(estimatedFee));
+            //Set final estimated fee and lovelace amount in output
+            transaction.getBody().setFee(estimatedFee);
+            transactionOutput.getValue().setCoin(transactionOutput.getValue().getCoin().subtract(estimatedFee));
+        } catch (ApiException | CborSerializationException e) {
+            throw new RuntimeException(e.getClass().getName() + " : " + e.getMessage());
+        }
     }
 
     
-    private Transaction signTransactionWithSenderAndSecretKey(Account minter, List<SecretKey> skeys, Transaction transaction)
-            throws CborSerializationException, CborDeserializationException {
+    private Transaction signTransactionWithSenderAndSecretKey(Account minter, List<SecretKey> skeys, Transaction transaction) {
         
         //sign with minter account
         Transaction signTxn = minter.sign(transaction);

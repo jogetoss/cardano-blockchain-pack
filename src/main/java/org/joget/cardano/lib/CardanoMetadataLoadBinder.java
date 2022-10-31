@@ -52,35 +52,39 @@ public class CardanoMetadataLoadBinder extends CardanoFormBinderAbstract impleme
     
     @Override
     public FormRowSet loadData(Element element, String primaryKey, FormData formData)
-            throws ApiException {
+            throws RuntimeException {
         
-        final String transactionId = WorkflowUtil.processVariable(getPropertyString("transactionId"), "", null);
-        
-        final Result<List<MetadataJSONContent>> metadataResult = metadataService.getJSONMetadataByTxnHash(transactionId);
-        if (!metadataResult.isSuccessful()) {
-            LogUtil.warn(getClass().getName(), "Unable to retrieve transaction metadata. Response returned --> " + metadataResult.getResponse());
-            return null;
+        try {
+            final String transactionId = WorkflowUtil.processVariable(getPropertyString("transactionId"), "", null);
+
+            final Result<List<MetadataJSONContent>> metadataResult = metadataService.getJSONMetadataByTxnHash(transactionId);
+            if (!metadataResult.isSuccessful()) {
+                LogUtil.warn(getClass().getName(), "Unable to retrieve transaction metadata. Response returned --> " + metadataResult.getResponse());
+                return null;
+            }
+
+            //Cardano Send Transaction Tool only uses CBORMetadataMap on key "0"
+            final JsonNode metadata = metadataResult.getValue().get(0).getJsonMetadata();
+
+            FormRow row = new FormRow();
+
+            //Get field mappings here
+            Object[] metadataFields = (Object[]) getProperty("metadata");
+            for (Object o : metadataFields) {
+                Map mapping = (HashMap) o;
+                String metadataField = mapping.get("metadataField").toString();
+                String formFieldId = mapping.get("formFieldId").toString();
+
+                row = addRow(row, formFieldId, metadata.get(metadataField).asText());
+            }
+
+            FormRowSet rows = new FormRowSet();
+            rows.add(row);
+
+            return rows;
+        } catch (ApiException e) {
+            throw new RuntimeException(e.getClass().getName() + " : " + e.getMessage());
         }
-
-        //Cardano Send Transaction Tool only uses CBORMetadataMap on key "0"
-        final JsonNode metadata = metadataResult.getValue().get(0).getJsonMetadata();
-
-        FormRow row = new FormRow();
-
-        //Get field mappings here
-        Object[] metadataFields = (Object[]) getProperty("metadata");
-        for (Object o : metadataFields) {
-            Map mapping = (HashMap) o;
-            String metadataField = mapping.get("metadataField").toString();
-            String formFieldId = mapping.get("formFieldId").toString();
-
-            row = addRow(row, formFieldId, metadata.get(metadataField).asText());
-        }
-
-        FormRowSet rows = new FormRowSet();
-        rows.add(row);
-
-        return rows;
     }
     
     private FormRow addRow(FormRow row, String field, String value) {

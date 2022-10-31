@@ -54,39 +54,43 @@ public class CardanoAccountLoadBinder extends CardanoFormBinderAbstract implemen
     
     @Override
     public FormRowSet loadData(Element element, String primaryKey, FormData formData)
-            throws ApiException {
-
-        final String accountAddress = WorkflowUtil.processVariable(getPropertyString("accountAddress"), "", null);
-
-        final Result<AddressContent> addressInfoResult = addressService.getAddressInfo(accountAddress);
-        if (!addressInfoResult.isSuccessful()) {
-            LogUtil.warn(getClassName(), "Unable to retrieve address info. Response returned --> " + addressInfoResult.getResponse());
-            return null;
-        }
+            throws RuntimeException {
         
-        final AddressContent addressInfo = addressInfoResult.getValue();
+        try {
+            final String accountAddress = WorkflowUtil.processVariable(getPropertyString("accountAddress"), "", null);
 
-        //Get form fields from plugin properties
-        String balanceField = getPropertyString("adaBalanceField");
-        Object[] assetBalances = (Object[]) getProperty("assetBalances");
-        String accountType = getPropertyString("accountType");
+            final Result<AddressContent> addressInfoResult = addressService.getAddressInfo(accountAddress);
+            if (!addressInfoResult.isSuccessful()) {
+                LogUtil.warn(getClassName(), "Unable to retrieve address info. Response returned --> " + addressInfoResult.getResponse());
+                return null;
+            }
 
-        FormRow row = new FormRow();
+            final AddressContent addressInfo = addressInfoResult.getValue();
 
-        row = addRow(row, balanceField, getAdaBalance(addressInfo));
-        for (Object o : assetBalances) {
-            Map mapping = (HashMap) o;
-            String assetId = mapping.get("assetId").toString();
-            String formFieldId = mapping.get("formFieldId").toString();
+            //Get form fields from plugin properties
+            String balanceField = getPropertyString("adaBalanceField");
+            Object[] assetBalances = (Object[]) getProperty("assetBalances");
+            String accountType = getPropertyString("accountType");
 
-            row = addRow(row, formFieldId, getAssetBalance(addressInfo, assetId));
+            FormRow row = new FormRow();
+
+            row = addRow(row, balanceField, getAdaBalance(addressInfo));
+            for (Object o : assetBalances) {
+                Map mapping = (HashMap) o;
+                String assetId = mapping.get("assetId").toString();
+                String formFieldId = mapping.get("formFieldId").toString();
+
+                row = addRow(row, formFieldId, getAssetBalance(addressInfo, assetId));
+            }
+            row = addRow(row, accountType, getAccountType(addressInfo));
+
+            FormRowSet rows = new FormRowSet();
+            rows.add(row);
+
+            return rows;
+        } catch (ApiException e) {
+            throw new RuntimeException(e.getClass().getName() + " : " + e.getMessage());
         }
-        row = addRow(row, accountType, getAccountType(addressInfo));
-
-        FormRowSet rows = new FormRowSet();
-        rows.add(row);
-
-        return rows;
     }
     
     protected String getAdaBalance(AddressContent addressInfo) {
