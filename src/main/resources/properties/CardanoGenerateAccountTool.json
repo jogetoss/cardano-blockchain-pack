@@ -40,9 +40,11 @@
                 "name":"accountBaseAddress",
                 "label":"@@process.cardanogenerateaccounttool.fieldMapping.accountBaseAddress@@",
                 "description":"@@process.cardanogenerateaccounttool.fieldMapping.accountBaseAddress.desc@@",
-                "type":"readonly",
-                "value":"id",
-                "required":"True"
+                "type":"selectbox",
+                "required":"True",
+                "options_ajax_on_change":"formDefId",
+                "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options",
+                "value":"id"
             },
             {
                 "name":"accountMnemonicField",
