@@ -11,7 +11,6 @@ import org.joget.apps.app.service.AppService;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.apps.form.model.FormRow;
 import org.joget.apps.form.model.FormRowSet;
-import org.joget.apps.form.service.FormUtil;
 import org.joget.cardano.model.CardanoProcessToolAbstract;
 import org.joget.commons.util.LogUtil;
 import org.joget.workflow.model.WorkflowAssignment;
@@ -92,7 +91,6 @@ public class CardanoGenerateAccountTool extends CardanoProcessToolAbstract {
     protected void storeToForm(boolean isTest, final Account account, WorkflowAssignment wfAssignment) {
         String formDefId = getPropertyString("formDefId");
         
-        String accountBaseAddressField = getPropertyString("accountBaseAddress");
         String accountMnemonicField = getPropertyString("accountMnemonicField");
         String accountOwnerField = getPropertyString("accountOwnerField");
         String accountOwnerValue = WorkflowUtil.processVariable(getPropertyString("accountOwnerValue"), "", wfAssignment);
@@ -101,12 +99,9 @@ public class CardanoGenerateAccountTool extends CardanoProcessToolAbstract {
 
         FormRow row = new FormRow();
 
-        if ((FormUtil.PROPERTY_ID).equals(accountBaseAddressField)) {
-            row.setId(account.baseAddress());
-        } else {
-            row = addRow(row, accountBaseAddressField, account.baseAddress());
-        }
-        
+        //Account base address set as Record ID
+        row.setId(account.baseAddress());
+
         //Mnemonic phrase MUST be secured at all times.
         row = addRow(row, accountMnemonicField, PluginUtil.encrypt(account.mnemonic()));
         row = addRow(row, accountOwnerField, accountOwnerValue);
