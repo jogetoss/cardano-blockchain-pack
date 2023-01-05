@@ -1,8 +1,3 @@
-# Important
-
-> :warning: **Due to the recently broken testnet (now called "legacy testnet"), there are now 2 new testnets called PREVIEW & PREPROD.
-Currently fix applied only works for Blockfrost. Please reconfigure your plugins accordingly.**
-
 # Description
 
 The Cardano Blockchain Pack integrates Cardano with Joget, and allows you to design Joget apps that interacts with the Cardano blockchain.
@@ -15,7 +10,25 @@ Credits: [https://github.com/bloxbean/cardano-client-lib](https://github.com/blo
 
 # Changelog
 
-## Q3 2022 (In Progress)
+## Q1 2023 (In Progress)
+#### Added
+- Updated cardano client library to 0.4.2
+- Added support to use preprod network
+- Changed default explorer to Cardanoscan
+
+#### Fixed
+- Fixed support for Koios backend
+- Removed cardano native explorer
+
+## Q4 2022
+#### Added
+- Changed Account Base Address to an editable field (Credits: @Farheen2003)
+
+#### Fixed
+- Update cardano client lib for networks support
+- Fixed method throws incompatibility with Joget multi-tenant
+
+## Q3 2022
 #### Added
 - Cardano Account Load Binder - Added support to load native asset balances
 - Added new Form Element plugin - Cardano Explorer Link
@@ -26,10 +39,14 @@ Credits: [https://github.com/bloxbean/cardano-client-lib](https://github.com/blo
 - Transactions - Support setting maximum fee limit
 - Cardano Send Transaction Tool - Simplify configs for multiple receivers mode
 - Temporary workaround for new testnet endpoints (PREVIEW & PREPROD)
+- Codebase refactoring
+- Factorize wait tx logic
 
 #### Fixes
 - Cardano Explorer Link - Fixed NPE when edit element in Form Builder
 - Cardano Mint Token Tool - Fixed regression for multi-tenant setups
+- Cardano Mint Token Tool - Remove unnecessary wfAssignment call
+- Cardano Generate Account Tool - Fixed backend service json missing causing NPE
 
 ## Q2 2022
 #### Added
