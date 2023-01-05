@@ -109,8 +109,7 @@ public class CardanoSendTransactionTool extends CardanoProcessToolAbstract imple
         final String senderAddress = row.getProperty(getPropertyString("senderAddress"));
         final String accountMnemonic = PluginUtil.decrypt(WorkflowUtil.processVariable(getPropertyString("accountMnemonic"), "", wfAssignment));
         
-        final boolean isTest = BackendUtil.isTestnet(props);
-        final Network network = BackendUtil.getNetwork(isTest);
+        final Network network = BackendUtil.getNetwork(props);
 
         final Account senderAccount = new Account(network, accountMnemonic);
         
@@ -137,6 +136,8 @@ public class CardanoSendTransactionTool extends CardanoProcessToolAbstract imple
         try {
             initUtils(props);
 
+            final String networkType = getPropertyString("networkType");
+            
             String formDefId = getPropertyString("formDefId");
             final String primaryKey = appService.getOriginProcessId(wfAssignment.getProcessId());
 
@@ -151,8 +152,7 @@ public class CardanoSendTransactionTool extends CardanoProcessToolAbstract imple
             final boolean multipleReceiverMode = "true".equalsIgnoreCase(getPropertyString("multipleReceiverMode"));
             final boolean paymentUnitNft = "nft".equalsIgnoreCase(getPropertyString("paymentUnit"));
 
-            final boolean isTest = BackendUtil.isTestnet(props);
-            final Network network = BackendUtil.getNetwork(isTest);
+            final Network network = BackendUtil.getNetwork(props);
 
             final Account senderAccount = new Account(network, accountMnemonic);
 
@@ -200,7 +200,7 @@ public class CardanoSendTransactionTool extends CardanoProcessToolAbstract imple
             }
             if (!TransactionUtil.checkFeeLimit(fee, feeLimit)) {
                 LogUtil.warn(getClassName(), "Send transaction aborted. Transaction fee in units of lovelace of " + fee.toString() + " exceeded set fee limit of " + feeLimit.toString() + ".");
-                storeToWorkflowVariable(wfAssignment.getActivityId(), isTest, null, null);
+                storeToWorkflowVariable(wfAssignment.getActivityId(), networkType, null, null);
                 return null;
             }
             paymentList.get(0).setFee(fee);
@@ -209,12 +209,12 @@ public class CardanoSendTransactionTool extends CardanoProcessToolAbstract imple
 
             if (!transactionResult.isSuccessful()) {
                 LogUtil.warn(getClassName(), "Transaction failed with status code " + transactionResult.code() + ". Response returned --> " + transactionResult.getResponse());
-                storeToWorkflowVariable(wfAssignment.getActivityId(), isTest, null, null);
+                storeToWorkflowVariable(wfAssignment.getActivityId(), networkType, null, null);
                 return null;
             }
 
             //Store successful unvalidated txn result first
-            storeToWorkflowVariable(wfAssignment.getActivityId(), isTest, transactionResult, null);
+            storeToWorkflowVariable(wfAssignment.getActivityId(), networkType, transactionResult, null);
 
             //Use separate thread to wait for transaction validation
             Thread waitTransactionThread = new PluginThread(() -> {
@@ -228,11 +228,11 @@ public class CardanoSendTransactionTool extends CardanoProcessToolAbstract imple
 
                 if (validatedTransactionResult != null) {
                     //Store validated/confirmed txn result for current activity instance
-                    storeToWorkflowVariable(wfAssignment.getActivityId(), isTest, transactionResult, validatedTransactionResult);
+                    storeToWorkflowVariable(wfAssignment.getActivityId(), networkType, transactionResult, validatedTransactionResult);
 
                     //Store validated/confirmed txn result for future running activity instance
                     String mostRecentActivityId = workflowManager.getRunningActivityIdByRecordId(primaryKey, wfAssignment.getProcessDefId(), null, null);
-                    storeToWorkflowVariable(mostRecentActivityId, isTest, transactionResult, validatedTransactionResult);
+                    storeToWorkflowVariable(mostRecentActivityId, networkType, transactionResult, validatedTransactionResult);
                 }
             });
             waitTransactionThread.start();
@@ -332,7 +332,7 @@ public class CardanoSendTransactionTool extends CardanoProcessToolAbstract imple
     
     protected void storeToWorkflowVariable(
             String activityId,
-            boolean isTest, 
+            String networkType, 
             Result<TransactionResult> transactionResult, 
             Result<TransactionContent> validatedtransactionResult) {
         
@@ -359,7 +359,7 @@ public class CardanoSendTransactionTool extends CardanoProcessToolAbstract imple
         storeValuetoActivityVar(
                 activityId, 
                 transactionUrlVar, 
-                transactionResult != null ? ExplorerLinkUtil.getTransactionExplorerUrl(isTest, transactionResult.getValue().getTransactionId()) : ""
+                transactionResult != null ? ExplorerLinkUtil.getTransactionExplorerUrl(networkType, transactionResult.getValue().getTransactionId()) : ""
         );
     }
     

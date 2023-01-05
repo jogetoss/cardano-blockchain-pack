@@ -97,22 +97,22 @@
         <dependency>
             <groupId>com.bloxbean.cardano</groupId>
             <artifactId>cardano-client-lib</artifactId>
-            <version>0.3.0</version>
+            <version>0.4.2</version>
         </dependency>
         <dependency>
             <groupId>com.bloxbean.cardano</groupId>
             <artifactId>cardano-client-backend-blockfrost</artifactId>
-            <version>0.3.0</version>
+            <version>0.4.2</version>
         </dependency>
         <dependency>
             <groupId>com.bloxbean.cardano</groupId>
             <artifactId>cardano-client-backend-koios</artifactId>
-            <version>0.3.0</version>
+            <version>0.4.2</version>
         </dependency>
 <!--        <dependency>
             <groupId>com.bloxbean.cardano</groupId>
             <artifactId>cardano-client-backend-ogmios</artifactId>
-            <version>0.3.0</version>
+            <version>0.4.2</version>
         </dependency>-->
         <!--vasil update removed graphql support-->
         <!-- End change plugin specific dependencies here -->

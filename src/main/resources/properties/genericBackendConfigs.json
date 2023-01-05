@@ -11,9 +11,13 @@
         {
             "value":"previewTestnet",
             "label":"@@cardano.prop.networkType.previewTestnet@@"
+        },
+        {
+            "value":"preprodTestnet",
+            "label":"@@cardano.prop.networkType.preprodTestnet@@"
         }
     ],
-    "value":"previewTestnet"
+    "value":"preprodTestnet"
 },
 {
     "name":"backendService",

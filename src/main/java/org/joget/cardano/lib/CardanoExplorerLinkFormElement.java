@@ -11,7 +11,6 @@ import org.joget.apps.form.model.FormData;
 import org.joget.apps.form.service.FormUtil;
 import org.joget.cardano.model.CardanoFormElementAbstract;
 import org.joget.cardano.service.AccountUtil;
-import org.joget.cardano.service.BackendUtil;
 import org.joget.cardano.service.ExplorerLinkUtil;
 import org.joget.cardano.service.PluginUtil;
 import org.joget.cardano.service.TokenUtil;
@@ -66,7 +65,7 @@ public class CardanoExplorerLinkFormElement extends CardanoFormElementAbstract i
     public String renderElement(FormData formData, Map dataModel) {
         initUtils(getProperties());
         
-        boolean isTest = BackendUtil.isTestnet(getProperties());
+        final String networkType = getPropertyString("networkType");
         
         String explorerType = getPropertyString("explorerType");
         String valueType = getPropertyString("valueType");
@@ -99,7 +98,7 @@ public class CardanoExplorerLinkFormElement extends CardanoFormElementAbstract i
         
         dataModel.put("element", this);
         dataModel.put("isValidValue", checkValueExist(valueType, retrievedValue));
-        dataModel.put("explorerUrl", getExplorerUrl(valueType, isTest, retrievedValue, explorerType));
+        dataModel.put("explorerUrl", getExplorerUrl(valueType, networkType, retrievedValue, explorerType));
         
         return FormUtil.generateElementHtml(this, formData, "CardanoExplorerLinkFormElement.ftl", dataModel);
     }
@@ -134,21 +133,21 @@ public class CardanoExplorerLinkFormElement extends CardanoFormElementAbstract i
         return false;
     }
     
-    public String getExplorerUrl(String valueType, boolean isTest, String retrievedValue, String explorerType) {
+    public String getExplorerUrl(String valueType, String networkType, String retrievedValue, String explorerType) {
         if (FormUtil.isFormBuilderActive()) {
             return "";
         }
         
         switch (valueType) {
             case ADDRESS_TYPE :
-                return ExplorerLinkUtil.getAddressExplorerUrl(isTest, retrievedValue, explorerType);
+                return ExplorerLinkUtil.getAddressExplorerUrl(networkType, retrievedValue, explorerType);
             case POLICY_TYPE :
-                return ExplorerLinkUtil.getPolicyExplorerUrl(isTest, retrievedValue, explorerType);
+                return ExplorerLinkUtil.getPolicyExplorerUrl(networkType, retrievedValue, explorerType);
             case ASSET_TYPE :
-                return ExplorerLinkUtil.getTokenExplorerUrl(isTest, retrievedValue, explorerType);
+                return ExplorerLinkUtil.getTokenExplorerUrl(networkType, retrievedValue, explorerType);
             case TX_ID_TYPE:
             default:
-                return ExplorerLinkUtil.getTransactionExplorerUrl(isTest, retrievedValue, explorerType);
+                return ExplorerLinkUtil.getTransactionExplorerUrl(networkType, retrievedValue, explorerType);
         }
     }
 

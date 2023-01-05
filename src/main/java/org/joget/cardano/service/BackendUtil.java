@@ -3,22 +3,19 @@ package org.joget.cardano.service;
 import com.bloxbean.cardano.client.backend.api.BackendService;
 import static com.bloxbean.cardano.client.backend.blockfrost.common.Constants.BLOCKFROST_MAINNET_URL;
 import static com.bloxbean.cardano.client.backend.blockfrost.common.Constants.BLOCKFROST_PREVIEW_URL;
-import static com.bloxbean.cardano.client.backend.blockfrost.common.Constants.BLOCKFROST_PREPOD_URL;
-import static com.bloxbean.cardano.client.backend.koios.Constants.KOIOS_TESTNET_URL;
+import static com.bloxbean.cardano.client.backend.blockfrost.common.Constants.BLOCKFROST_PREPROD_URL;
+import static com.bloxbean.cardano.client.backend.blockfrost.common.Constants.BLOCKFROST_TESTNET_URL;
 import static com.bloxbean.cardano.client.backend.koios.Constants.KOIOS_MAINNET_URL;
+import static com.bloxbean.cardano.client.backend.koios.Constants.KOIOS_PREVIEW_URL;
+import static com.bloxbean.cardano.client.backend.koios.Constants.KOIOS_PREPROD_URL;
 import com.bloxbean.cardano.client.backend.blockfrost.service.BFBackendService;
 import com.bloxbean.cardano.client.backend.koios.KoiosBackendService;
 import com.bloxbean.cardano.client.common.model.Network;
 import com.bloxbean.cardano.client.common.model.Networks;
 import java.util.Map;
+import org.joget.commons.util.LogUtil;
 
 public class BackendUtil {
-    
-    //TO-DO: Support using preprod testnet
-    
-    //Still waiting for koios to update their APIs
-    public static final String KOIOS_PREVIEW_TESTNET_URL = "";
-    public static final String KOIOS_PREPROD_TESTNET_URL = "";
     
     public static boolean isTestnet(Map properties) {
         String networkType = (String) properties.get("networkType");
@@ -29,35 +26,72 @@ public class BackendUtil {
     }
     
     public static BackendService getBackendService(Map properties) {
-        boolean isTest = isTestnet(properties);
-        
         String backendServiceName = (String) properties.get("backendService");
         String blockfrostProjectKey = (String) properties.get("blockfrostProjectKey");
         
-        BackendService backend;
-        
         switch (backendServiceName) {
             case "blockfrost":
-                backend = getBlockfrostBackendService(isTest ? BLOCKFROST_PREVIEW_URL : BLOCKFROST_MAINNET_URL, blockfrostProjectKey);
-                break;
+                return new BFBackendService(getBlockfrostEndpointUrl(properties), blockfrostProjectKey);
             case "koios":
+                return new KoiosBackendService(getKoiosEndpointUrl(properties));
+//            case "ogmios":
+//                return new OgmiosBackendService("your_url_here");
             default:
-                backend = getKoiosBackendService(isTest ? KOIOS_TESTNET_URL : KOIOS_MAINNET_URL);
-                break;
+                LogUtil.warn(BackendUtil.class.getName(), "Unknown backend selection found!");
+                return null;
         }
+    }
+    
+    private static String getBlockfrostEndpointUrl(Map properties) {
+        String networkType = (String) properties.get("networkType");
         
-        return backend;
+        switch (networkType) {
+            case "testnet":
+                return BLOCKFROST_TESTNET_URL;
+            case "preprodTestnet":
+                return BLOCKFROST_PREPROD_URL;
+            case "previewTestnet":
+                return BLOCKFROST_PREVIEW_URL;
+            case "mainnet":
+                return BLOCKFROST_MAINNET_URL;
+            default:
+                LogUtil.warn(BackendUtil.class.getName(), "Unknown network selection found!");
+                return null;
+        }
     }
     
-    private static BackendService getBlockfrostBackendService(String blockfrostEndpointUrl, String blockfrostProjectKey) {
-        return new BFBackendService(blockfrostEndpointUrl, blockfrostProjectKey);
+    private static String getKoiosEndpointUrl(Map properties) {
+        String networkType = (String) properties.get("networkType");
+        
+        switch (networkType) {
+            case "testnet":
+            case "preprodTestnet":
+                return KOIOS_PREPROD_URL;
+            case "previewTestnet":
+                return KOIOS_PREVIEW_URL;
+            case "mainnet":
+                return KOIOS_MAINNET_URL;
+            default:
+                LogUtil.warn(BackendUtil.class.getName(), "Unknown network selection found!");
+                return null;
+        }
     }
     
-    private static BackendService getKoiosBackendService(String koiosEndpointUrl) {
-        return new KoiosBackendService(koiosEndpointUrl);
-    }
-    
-    public static Network getNetwork(boolean isTest) {
-        return isTest ? Networks.preview() : Networks.mainnet();
+    public static Network getNetwork(Map properties) {
+        String networkType = (String) properties.get("networkType");
+        
+        switch (networkType) {
+            case "testnet":
+                return Networks.testnet();
+            case "preprodTestnet":
+                return Networks.preprod();
+            case "previewTestnet":
+                return Networks.preview();
+            case "mainnet":
+                return Networks.mainnet();
+            default:
+                LogUtil.warn(BackendUtil.class.getName(), "Unknown network selection found!");
+                return null;
+        }
     }
 }

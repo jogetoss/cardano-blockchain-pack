@@ -74,7 +74,7 @@ public class CardanoGenerateAccountTool extends CardanoProcessToolAbstract {
         
         boolean isTest = BackendUtil.isTestnet(props);
         
-        Network network = BackendUtil.getNetwork(isTest);
+        Network network = BackendUtil.getNetwork(props);
         
         final Account account = new Account(network);
         
@@ -98,7 +98,7 @@ public class CardanoGenerateAccountTool extends CardanoProcessToolAbstract {
         String accountOwnerValue = WorkflowUtil.processVariable(getPropertyString("accountOwnerValue"), "", wfAssignment);
         String isTestAccountField = getPropertyString("isTestAccount");
         String accountEAddressField = getPropertyString("accountEnterpriseAddress");
-
+        
         FormRow row = new FormRow();
 
         if ((FormUtil.PROPERTY_ID).equals(accountBaseAddressField)) {

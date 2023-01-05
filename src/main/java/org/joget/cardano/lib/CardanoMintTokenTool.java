@@ -105,8 +105,7 @@ public class CardanoMintTokenTool extends CardanoProcessToolAbstract {
         final String senderAddress = row.getProperty(getPropertyString("senderAddress"));
         final String accountMnemonic = PluginUtil.decrypt(WorkflowUtil.processVariable(getPropertyString("accountMnemonic"), "", wfAssignment));
         
-        final boolean isTest = BackendUtil.isTestnet(props);
-        final Network network = BackendUtil.getNetwork(isTest);
+        final Network network = BackendUtil.getNetwork(props);
 
         final Account senderAccount = new Account(network, accountMnemonic);
 
@@ -133,6 +132,8 @@ public class CardanoMintTokenTool extends CardanoProcessToolAbstract {
         try {
             initUtils(props);
 
+            final String networkType = getPropertyString("networkType");
+            
             String formDefId = getPropertyString("formDefId");
             final String primaryKey = appService.getOriginProcessId(wfAssignment.getProcessId());
 
@@ -145,7 +146,7 @@ public class CardanoMintTokenTool extends CardanoProcessToolAbstract {
             final boolean mintTypeNft = "nft".equalsIgnoreCase(getPropertyString("mintType"));
 
             final boolean isTest = BackendUtil.isTestnet(props);
-            final Network network = BackendUtil.getNetwork(isTest);
+            final Network network = BackendUtil.getNetwork(props);
 
             final Account senderAccount = new Account(network, accountMnemonic);
 
@@ -202,13 +203,14 @@ public class CardanoMintTokenTool extends CardanoProcessToolAbstract {
                             .mediaType(nftFileType)
                             .src("ipfs/" + ipfsCid));
 
-                Map<String, String> nftPropsMap = MetadataUtil.generateNftPropsFromFormData((Object[]) props.get("nftProperties"), row);
+                Map<String, Object> nftPropsMap = MetadataUtil.generateNftPropsFromFormData((Object[]) props.get("nftProperties"), row);
                 if (nftPropsMap != null) {
                     nft.property(NFT_FORMDATA_PROPERTY_LABEL, nftPropsMap);
                 }
 
                 // See https://cips.cardano.org/cips/cip25/
-                metadata = NFTMetadata.create().addNFT(policy.getPolicyId(), nft);
+                metadata = NFTMetadata.create()
+                        .addNFT(policy.getPolicyId(), nft);
             } else { // For minting native tokens
                 final String tokenName = row.getProperty(getPropertyString("tokenName"));
                 final String tokenSymbol = row.getProperty(getPropertyString("tokenSymbol"));
@@ -255,7 +257,7 @@ public class CardanoMintTokenTool extends CardanoProcessToolAbstract {
             }
             if (!TransactionUtil.checkFeeLimit(fee, feeLimit)) {
                 LogUtil.warn(getClassName(), "Mint transaction aborted. Transaction fee in units of lovelace of " + fee.toString() + " exceeded set fee limit of " + feeLimit.toString() + ".");
-                storeToWorkflowVariable(wfAssignment.getActivityId(), isTest, null, null);
+                storeToWorkflowVariable(wfAssignment.getActivityId(), networkType, null, null);
                 return null;
             }
             mintTransaction.setFee(fee);
@@ -264,12 +266,12 @@ public class CardanoMintTokenTool extends CardanoProcessToolAbstract {
 
             if (!transactionResult.isSuccessful()) {
                 LogUtil.warn(getClassName(), "Transaction failed with status code " + transactionResult.code() + ". Response returned --> " + transactionResult.getResponse());
-                storeToWorkflowVariable(wfAssignment.getActivityId(), isTest, null, null);
+                storeToWorkflowVariable(wfAssignment.getActivityId(), networkType, null, null);
                 return null;
             }
 
             //Store successful unvalidated txn result first
-            storeToWorkflowVariable(wfAssignment.getActivityId(), isTest, transactionResult, null);
+            storeToWorkflowVariable(wfAssignment.getActivityId(), networkType, transactionResult, null);
 
             //Use separate thread to wait for transaction validation
             Thread waitTransactionThread = new PluginThread(() -> {
@@ -291,11 +293,11 @@ public class CardanoMintTokenTool extends CardanoProcessToolAbstract {
                     }
 
                     //Store validated/confirmed txn result for current activity instance
-                    storeToWorkflowVariable(wfAssignment.getActivityId(), isTest, transactionResult, validatedTransactionResult);
+                    storeToWorkflowVariable(wfAssignment.getActivityId(), networkType, transactionResult, validatedTransactionResult);
 
                     //Store validated/confirmed txn result for future running activity instance
                     String mostRecentActivityId = workflowManager.getRunningActivityIdByRecordId(primaryKey, wfAssignment.getProcessDefId(), null, null);
-                    storeToWorkflowVariable(mostRecentActivityId, isTest, transactionResult, validatedTransactionResult);
+                    storeToWorkflowVariable(mostRecentActivityId, networkType, transactionResult, validatedTransactionResult);
                 }
             });
             waitTransactionThread.start();
@@ -414,7 +416,7 @@ public class CardanoMintTokenTool extends CardanoProcessToolAbstract {
     
     protected void storeToWorkflowVariable(
             String activityId,
-            boolean isTest, 
+            String networkType, 
             Result<TransactionResult> transactionResult, 
             Result<TransactionContent> validatedtransactionResult) {
         
@@ -441,7 +443,7 @@ public class CardanoMintTokenTool extends CardanoProcessToolAbstract {
         storeValuetoActivityVar(
                 activityId, 
                 transactionUrlVar, 
-                transactionResult != null ? ExplorerLinkUtil.getTransactionExplorerUrl(isTest, transactionResult.getValue().getTransactionId()) : ""
+                transactionResult != null ? ExplorerLinkUtil.getTransactionExplorerUrl(networkType, transactionResult.getValue().getTransactionId()) : ""
         );
     }
     

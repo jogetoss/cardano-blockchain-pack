@@ -59,12 +59,12 @@ public class MetadataUtil {
 //        return metadataMap;
 //    }
     
-    public static Map<String, String> generateNftPropsFromFormData(Object[] propertyFields, FormRow row) {
+    public static Map<String, Object> generateNftPropsFromFormData(Object[] propertyFields, FormRow row) {
         if (propertyFields == null || propertyFields.length == 0) {
             return null;
         }
         
-        Map<String, String> nftPropsMap = new HashMap<>();
+        Map<String, Object> nftPropsMap = new HashMap<>();
         for (Object o : propertyFields) {
             Map mapping = (HashMap) o;
             String fieldId = mapping.get("fieldId").toString();
