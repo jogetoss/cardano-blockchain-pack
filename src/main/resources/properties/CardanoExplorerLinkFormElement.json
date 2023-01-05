@@ -25,10 +25,6 @@
                 "type":"selectbox",
                 "options":[
                     {
-                        "value":"native",
-                        "label":"@@form.cardanoexplorerlinkformelement.explorerType.native@@"
-                    },
-                    {
                         "value":"cardanoscan",
                         "label":"@@form.cardanoexplorerlinkformelement.explorerType.cardanoscan@@"
                     },
@@ -37,7 +33,7 @@
                         "label":"@@form.cardanoexplorerlinkformelement.explorerType.cexplorer@@"
                     }
                 ],
-                "value":"native"
+                "value":"cardanoscan"
             },
             {
                 "name":"valueType",
