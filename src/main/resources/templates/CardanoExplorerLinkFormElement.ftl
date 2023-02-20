@@ -10,6 +10,7 @@
     <#if !isValidValue && invalidValueBehavior == "hideLink">
         <#-- Don't show anything -->
     <#else>
+        <div class='form-cell'>
         <#if displayAs == "button">
             <#assign buttonLabel = element.properties.buttonLabel>
             
@@ -23,7 +24,7 @@
                 <#assign disableAttr = "disabled">
             </#if>
 
-            <button id="explorer_link_${element.properties.elementUniqueKey!}" ${elementMetaData!} class="explorer-link-button" onclick="${onclickFunction}" ${disableAttr!}>${buttonLabel!}</button>
+            <button id="explorer_link_${element.properties.elementUniqueKey!}" ${elementMetaData!} class="explorer-link-button btn btn-primary" onclick="${onclickFunction}" ${disableAttr!}>${buttonLabel!}</button>
         <#else>
             <#assign hyperlinkLabel = element.properties.hyperlinkLabel>
 
@@ -46,5 +47,6 @@
 
             <a id="explorer_link_${element.properties.elementUniqueKey!}" ${elementMetaData!} class="explorer-link-hyperlink" href="${url!}" target="${clickTarget!}">${hyperlinkLabel!}</a>
         </#if>
+        </div>
     </#if>
 </#if>
