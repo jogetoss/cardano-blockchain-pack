@@ -383,9 +383,9 @@ public class CardanoSendTransactionTool extends CardanoProcessToolAbstract imple
         if ("getDatalistColumns".equals(action)) {
             try {
                 ApplicationContext ac = AppUtil.getApplicationContext();
-                AppDefinition appDef = AppUtil.getCurrentAppDefinition();
+                appDef = AppUtil.getCurrentAppDefinition();
                 DatalistDefinitionDao datalistDefinitionDao = (DatalistDefinitionDao) ac.getBean("datalistDefinitionDao");
-                DataListService dataListService = (DataListService) ac.getBean("dataListService");
+                dataListService = (DataListService) ac.getBean("dataListService");
                 
                 String datalistId = request.getParameter("id");
                 DatalistDefinition datalistDefinition = datalistDefinitionDao.loadById(datalistId, appDef);

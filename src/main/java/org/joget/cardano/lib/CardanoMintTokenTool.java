@@ -41,6 +41,7 @@ import org.joget.apps.app.service.AppService;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.apps.form.model.FormRow;
 import org.joget.apps.form.model.FormRowSet;
+import org.joget.apps.form.service.FormUtil;
 import org.joget.cardano.model.CardanoProcessToolAbstract;
 import org.joget.cardano.service.ExplorerLinkUtil;
 import org.joget.cardano.service.MetadataUtil;
@@ -331,6 +332,7 @@ public class CardanoMintTokenTool extends CardanoProcessToolAbstract {
             // Combine all secret key(s) into string delimited by semicolon for storage (e.g.: skey1;skey2;skey3)
             String skeyListAsCborHex = TokenUtil.getSecretKeysAsCborHexStringList(skeys);
 
+            String policyIdField = getPropertyString("policyIdField");
             String policyScriptField = getPropertyString("policyScriptField");
             String policySecretKeyField = getPropertyString("policySecretKeyField");
             String minterAccountField = getPropertyString("minterAccountField");
@@ -343,8 +345,11 @@ public class CardanoMintTokenTool extends CardanoProcessToolAbstract {
 
             FormRow row = new FormRow();
 
-            //Policy ID set as Record ID
-            row.setId(policyId);
+            if ((FormUtil.PROPERTY_ID).equals(policyIdField)) {
+                row.setId(policyId);
+            } else {
+                row = addRow(row, policyIdField, policyId);
+            }
 
             row = addRow(row, policyScriptField, policyScriptAsJson);
             row = addRow(row, policySecretKeyField, PluginUtil.encrypt(skeyListAsCborHex));
@@ -377,6 +382,7 @@ public class CardanoMintTokenTool extends CardanoProcessToolAbstract {
         try {
             String policyId = policy.getPolicyId();
 
+            String assetIdField = getPropertyString("assetIdField");
             String tokenNameField = getPropertyString("tokenNameField");
             String policyIdFkField = getPropertyString("policyIdFkField");
             String assetOwnerField = getPropertyString("assetOwnerField");
@@ -386,9 +392,12 @@ public class CardanoMintTokenTool extends CardanoProcessToolAbstract {
 
             FormRow row = new FormRow();
 
-            //Asset ID set as Record ID
-            row.setId(TokenUtil.getAssetId(policyId, tokenName));
-
+            if ((FormUtil.PROPERTY_ID).equals(assetIdField)) {
+                row.setId(TokenUtil.getAssetId(policyId, tokenName));
+            } else {
+                row = addRow(row, assetIdField, TokenUtil.getAssetId(policyId, tokenName));
+            }
+            
             row = addRow(row, tokenNameField, tokenName);
             row = addRow(row, policyIdFkField, policyId);
             row = addRow(row, assetOwnerField, minter.baseAddress());

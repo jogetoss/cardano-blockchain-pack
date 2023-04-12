@@ -10,6 +10,7 @@ public class Activator implements BundleActivator {
 
     protected Collection<ServiceRegistration> registrationList;
 
+    @Override
     public void start(BundleContext context) {
         registrationList = new ArrayList<ServiceRegistration>();
 
@@ -27,6 +28,7 @@ public class Activator implements BundleActivator {
         registrationList.add(context.registerService(CardanoExplorerLinkFormElement.class.getName(), new CardanoExplorerLinkFormElement(), null));
     }
 
+    @Override
     public void stop(BundleContext context) {
         for (ServiceRegistration registration : registrationList) {
             registration.unregister();

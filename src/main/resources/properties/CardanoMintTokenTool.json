@@ -274,9 +274,11 @@
                 "name":"policyIdField",
                 "label":"@@process.cardanominttokentool.policyIdField@@",
                 "description":"@@process.cardanominttokentool.policyIdField.desc@@",
-                "type":"readonly",
-                "value":"id",
-                "required":"True"
+                "type":"selectbox",
+                "required":"True",
+                "options_ajax_on_change":"formDefId:formDefIdStoreMintingPolicy",
+                "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options",
+                "value":"id"
             },
             {
                 "name":"policyScriptField",
@@ -331,9 +333,11 @@
                 "name":"assetIdField",
                 "label":"@@process.cardanominttokentool.assetIdField@@",
                 "description":"@@process.cardanominttokentool.assetIdField.desc@@",
-                "type":"readonly",
-                "value":"id",
-                "required":"True"
+                "type":"selectbox",
+                "required":"True",
+                "options_ajax_on_change":"formDefId:formDefIdStoreAssetData",
+                "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options",
+                "value":"id"
             },
             {
                 "name":"tokenNameField",
