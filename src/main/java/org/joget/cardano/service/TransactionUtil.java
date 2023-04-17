@@ -12,6 +12,8 @@ import org.joget.commons.util.LogUtil;
 
 public class TransactionUtil {
     
+    private TransactionUtil() {}
+    
     public static final BigInteger MAX_FEE_LIMIT = BigInteger.valueOf(999999999);
     
     public static final long DEFAULT_WAIT_INTERVAL_MS = 2000;

@@ -8,6 +8,8 @@ import org.joget.commons.util.SecurityUtil;
 
 public class PluginUtil {
     
+    private PluginUtil() {}
+    
     public static final String MESSAGE_PATH = "messages/CardanoMessages";
     
     public static final String FORM_ELEMENT_CATEGORY = "Cardano";

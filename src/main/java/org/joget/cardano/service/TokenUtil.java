@@ -13,6 +13,8 @@ import org.joget.apps.form.service.FormUtil;
 
 public class TokenUtil {
     
+    private TokenUtil() {}
+    
     public static String getAssetId(String policyId, String assetName) {
         return policyId + HexUtil.encodeHexString(assetName.getBytes(StandardCharsets.UTF_8));
     }

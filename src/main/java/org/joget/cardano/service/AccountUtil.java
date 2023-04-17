@@ -6,6 +6,8 @@ import org.joget.apps.form.service.FormUtil;
 
 public class AccountUtil {
     
+    private AccountUtil() {}
+    
     public static boolean isAddressExist(AddressService addressService, String accountAddress) throws ApiException {
         //If within a Form Builder, don't make useless API calls
         if (accountAddress == null || accountAddress.isBlank() || FormUtil.isFormBuilderActive()) {

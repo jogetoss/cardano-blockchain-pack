@@ -14,6 +14,8 @@ import org.joget.apps.form.model.FormRow;
 
 public class MetadataUtil {
     
+    private MetadataUtil() {}
+    
     public static final BigInteger TOKEN_INFO_METADATUM_LABEL = BigInteger.valueOf(1); /* Check for CIP in future for any native token standard */
     public static final String NFT_FORMDATA_PROPERTY_LABEL = "jogetFormData";
     

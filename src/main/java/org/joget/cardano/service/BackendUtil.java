@@ -17,6 +17,8 @@ import org.joget.commons.util.LogUtil;
 
 public class BackendUtil {
     
+    private BackendUtil() {}
+    
     public static BackendService getBackendService(Map properties) {
         String backendServiceName = (String) properties.get("backendService");
         String blockfrostProjectKey = (String) properties.get("blockfrostProjectKey");
