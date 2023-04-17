@@ -17,7 +17,11 @@ import org.joget.apps.form.model.FormRowSet;
 import org.joget.commons.util.LogUtil;
 import org.joget.workflow.util.WorkflowUtil;
 import static com.bloxbean.cardano.client.common.CardanoConstants.LOVELACE;
+import com.google.gson.Gson;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.joget.cardano.model.CardanoFormBinder;
 
@@ -67,21 +71,49 @@ public class CardanoAccountLoadBinder extends CardanoFormBinder implements FormL
 
             final AddressContent addressInfo = addressInfoResult.getValue();
 
-            //Get form fields from plugin properties
-            String balanceField = getPropertyString("adaBalanceField");
-            Object[] assetBalances = (Object[]) getProperty("assetBalances");
-            String accountType = getPropertyString("accountType");
+            final String balanceField = getPropertyString("adaBalanceField");
+            final String accountType = getPropertyString("accountType");
+            final boolean displayAllTokenBalances = "showAll".equalsIgnoreCase(getPropertyString("tokenBalanceDisplayMode"));
 
             FormRow row = new FormRow();
 
             row = addRow(row, balanceField, getAdaBalance(addressInfo));
-            for (Object o : assetBalances) {
-                Map mapping = (HashMap) o;
-                String assetId = mapping.get("assetId").toString();
-                String formFieldId = mapping.get("formFieldId").toString();
+            
+            if (displayAllTokenBalances) {
+                final String assetBalancesField = getPropertyString("assetBalancesField");
+                final String hideAssets = getPropertyString("hideAssets");
+                
+                List<TxContentOutputAmount> balances = addressInfo.getAmount();
+                List<String> tokensToHide = new ArrayList<String>(Arrays.asList(hideAssets.split("\\R|;")));
+                tokensToHide.add(LOVELACE);
+                List<TxContentOutputAmount> tokensToDelete = new ArrayList<TxContentOutputAmount>();
+                for (TxContentOutputAmount balance : balances) {
+                    for (String t : tokensToHide) {
+                        if (balance.getUnit().equals(t)) {
+                            tokensToDelete.add(balance);
+                        }
+                    }
+                }
+                balances.removeAll(tokensToDelete);
+                
+                String result = new Gson().toJson(balances);
+                if (balances.isEmpty()) {
+                    result = "No token balances found";
+                }
+                
+                row = addRow(row, assetBalancesField, result);
+            } else {
+                final Object[] assetBalances = (Object[]) getProperty("assetBalances");
+                
+                for (Object o : assetBalances) {
+                    Map mapping = (HashMap) o;
+                    String assetId = mapping.get("assetId").toString();
+                    String formFieldId = mapping.get("formFieldId").toString();
 
-                row = addRow(row, formFieldId, getAssetBalance(addressInfo, assetId));
+                    row = addRow(row, formFieldId, getAssetBalance(addressInfo, assetId));
+                }
             }
+            
             row = addRow(row, accountType, getAccountType(addressInfo));
 
             FormRowSet rows = new FormRowSet();

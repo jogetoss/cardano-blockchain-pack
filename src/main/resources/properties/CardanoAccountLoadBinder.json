@@ -24,6 +24,19 @@
                 "options_callback" : "FormBuilder.getFieldOptions"
             },
             {
+                "name":"tokenBalanceDisplayMode",
+                "label":"@@form.cardanoaccountloadbinder.mapToFields.tokenBalanceDisplayMode@@",
+                "type":"selectbox",
+                "options" : [{
+                    "value" : "",
+                    "label" : "@@form.cardanoaccountloadbinder.mapToFields.tokenBalanceDisplayMode.showSelected@@"
+                },{
+                    "value" : "showAll",
+                    "label" : "@@form.cardanoaccountloadbinder.mapToFields.tokenBalanceDisplayMode.showAll@@"
+                }],
+                "value":""
+            },
+            {
                 "name":"assetBalances",
                 "label":"@@form.cardanoaccountloadbinder.mapToFields.assetBalances@@",
                 "type":"grid",
@@ -40,7 +53,30 @@
                         "options_callback" : "FormBuilder.getFieldOptions",
                         "required":"True"
                     }
-                ]
+                ],
+                "control_field":"tokenBalanceDisplayMode",
+                "control_value":"",
+                "control_use_regex":"false"
+            },
+            {
+                "name":"assetBalancesField",
+                "label":"@@form.cardanoaccountloadbinder.mapToFields.assetBalancesField@@",
+                "description":"@@form.cardanoaccountloadbinder.mapToFields.assetBalancesField.desc@@",
+                "type" : "selectbox",
+                "options_callback" : "FormBuilder.getFieldOptions",
+                "required":"true",
+                "control_field":"tokenBalanceDisplayMode",
+                "control_value":"showAll",
+                "control_use_regex":"false"
+            },
+            {
+                "name":"hideAssets",
+                "label":"@@form.cardanoaccountloadbinder.mapToFields.hideAssets@@",
+                "description":"@@form.cardanoaccountloadbinder.mapToFields.hideAssets.desc@@",
+                "type":"textarea",
+                "control_field":"tokenBalanceDisplayMode",
+                "control_value":"showAll",
+                "control_use_regex":"false"
             },
             {
                 "name":"accountType",
