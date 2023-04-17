@@ -1,6 +1,17 @@
 # Changelog
 
-## Q1 2023 (In Progress)
+## Q2 2023 (In Progress)
+#### Added
+- Updated cardano client library to 0.4.3
+- Modified: Token Mint - Changed Policy ID and Asset ID as editable fields
+- Modified: Account Load Binder - Support display all token balances with option to hide
+
+#### Fixed
+- Correction for 'Removed cardano native explorer'
+- Fixed: Explorer Link Element - Missing padding present in some UI themes
+- Fixed: Explorer Link Element - Error thrown if retrieved value is blank
+
+## Q1 2023
 #### Added
 - Updated cardano client library to 0.4.2
 - Added support to use preprod network
