@@ -134,7 +134,7 @@ public class CardanoExplorerLinkFormElement extends CardanoFormElement implement
     }
     
     public String getExplorerUrl(String valueType, String networkType, String retrievedValue, String explorerType) {
-        if (FormUtil.isFormBuilderActive()) {
+        if (FormUtil.isFormBuilderActive() || retrievedValue.isBlank()) {
             return "";
         }
         
