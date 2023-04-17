@@ -1,129 +1,87 @@
 package org.joget.cardano.service;
 
+import org.joget.cardano.model.NetworkType;
 import org.joget.commons.util.LogUtil;
 
 public class ExplorerLinkUtil {
     
-    private static final String CARDANOSCAN_TYPE = "cardanoscan";
-    private static final String CEXPLORER_TYPE = "cexplorer";
-    
-    //Cardano Explorer Links
-    private static final String CARDANOSCAN_MAINNET = "https://cardanoscan.io/";
-    private static final String CARDANOSCAN_PREVIEW_TESTNET = "https://preview.cardanoscan.io/";
-    private static final String CARDANOSCAN_PREPROD_TESTNET = "https://preprod.cardanoscan.io/";
-    
-    private static final String CEXPLORER_MAINNET = "https://cexplorer.io/";
-    private static final String CEXPLORER_PREVIEW_TESTNET = "https://preview.cexplorer.io/";
-    private static final String CEXPLORER_PREPROD_TESTNET = "https://preprod.cexplorer.io/";
-    
-    private static String getCardanoscanUrl(String networkType) {
-        switch (networkType) {
-            case "testnet":
-            case "preprodTestnet":
-                return CARDANOSCAN_PREPROD_TESTNET;
-            case "previewTestnet":
-                return CARDANOSCAN_PREVIEW_TESTNET;
-            case "mainnet":
-                return CARDANOSCAN_MAINNET;
-            default:
-                LogUtil.warn(ExplorerLinkUtil.class.getName(), "Unknown network selection found!");
-                return null;
-        }
-    }
-    
-    private static String getCexplorerUrl(String networkType) {
-        switch (networkType) {
-            case "testnet":
-            case "preprodTestnet":
-                return CEXPLORER_PREPROD_TESTNET;
-            case "previewTestnet":
-                return CEXPLORER_PREVIEW_TESTNET;
-            case "mainnet":
-                return CEXPLORER_MAINNET;
-            default:
-                LogUtil.warn(ExplorerLinkUtil.class.getName(), "Unknown network selection found!");
-                return null;
-        }
-    }
+    private ExplorerLinkUtil() {}
     
     //Default is Cardanoscan for all transaction URLs
-    public static String getTransactionExplorerUrl(String networkType, String transactionId) {
-        return getTransactionExplorerUrl(networkType, transactionId, CARDANOSCAN_TYPE);
+    public static String getTransactionExplorerUrl(NetworkType networkType, String transactionId) {
+        return getTransactionExplorerUrl(networkType, transactionId, ExplorerType.CARDANOSCAN.value);
     }
     
-    public static String getTransactionExplorerUrl(String networkType, String transactionId, String explorerType) {
+    public static String getTransactionExplorerUrl(NetworkType networkType, String transactionId, String explorerType) {
         //No need to return immediately, in case user wants to show link as is
         if (transactionId == null || transactionId.isBlank()) {
             transactionId = "";
         }
-
-        String explorerUrl = "";
         
-        switch (explorerType) {
-            case CARDANOSCAN_TYPE:
-                explorerUrl = getCardanoscanUrl(networkType);
-                explorerUrl += "transaction/";
-                break;
-            case CEXPLORER_TYPE:
-                explorerUrl = getCexplorerUrl(networkType);
-                explorerUrl += "tx/";
-                break;
+        final ExplorerType explorer = ExplorerType.fromString(explorerType);
+        final String explorerUrl = ExplorerEndpoint.getUrl(explorer, networkType);
+        
+        switch (explorer) {
+            case CARDANOSCAN:
+                return explorerUrl 
+                        + "transaction/"
+                        + transactionId;
+            case CEXPLORER:
+                return explorerUrl 
+                        + "tx/"
+                        + transactionId;
         }
         
-        explorerUrl += transactionId;
-        
-        return explorerUrl;
+        return null;
     }
     
-    public static String getAddressExplorerUrl(String networkType, String accountAddress, String explorerType) {
+    public static String getAddressExplorerUrl(NetworkType networkType, String accountAddress, String explorerType) {
         //No need to return immediately, in case user wants to show link as is
         if (accountAddress == null || accountAddress.isBlank()) {
             accountAddress = "";
         }
 
-        String explorerUrl = "";
+        final ExplorerType explorer = ExplorerType.fromString(explorerType);
+        final String explorerUrl = ExplorerEndpoint.getUrl(explorer, networkType);
         
-        switch (explorerType) {
-            case CARDANOSCAN_TYPE:
-                explorerUrl = getCardanoscanUrl(networkType);
-                explorerUrl += "address/";
-                break;
-            case CEXPLORER_TYPE:
-                explorerUrl = getCexplorerUrl(networkType);
-                explorerUrl += "address/";
-                break;
+        switch (explorer) {
+            case CARDANOSCAN:
+                return explorerUrl 
+                        + "address/"
+                        + accountAddress;
+            case CEXPLORER:
+                return explorerUrl 
+                        + "address/"
+                        + accountAddress;
         }
         
-        explorerUrl += accountAddress;
-        
-        return explorerUrl;
+        return null;
     }
     
-    public static String getPolicyExplorerUrl(String networkType, String policyId, String explorerType) {
+    public static String getPolicyExplorerUrl(NetworkType networkType, String policyId, String explorerType) {
         //No need to return immediately, in case user wants to show link as is
         if (policyId == null || policyId.isBlank()) {
             policyId = "";
         }
 
-        String explorerUrl = "";
+        final ExplorerType explorer = ExplorerType.fromString(explorerType);
+        final String explorerUrl = ExplorerEndpoint.getUrl(explorer, networkType);
         
-        switch (explorerType) {
-            case CARDANOSCAN_TYPE:
-                explorerUrl = getCardanoscanUrl(networkType);
-                explorerUrl += "tokenPolicy/";
-                break;
-            case CEXPLORER_TYPE:
-                explorerUrl = getCexplorerUrl(networkType);
-                explorerUrl += "policy/";
-                break;
+        switch (explorer) {
+            case CARDANOSCAN:
+                return explorerUrl 
+                        + "tokenPolicy/"
+                        + policyId;
+            case CEXPLORER:
+                return explorerUrl 
+                        + "policy/"
+                        + policyId;
         }
         
-        explorerUrl += policyId;
-        
-        return explorerUrl;
+        return null;
     }
     
-    public static String getTokenExplorerUrl(String networkType, String assetId, String explorerType) {
+    public static String getTokenExplorerUrl(NetworkType networkType, String assetId, String explorerType) {
         
         String assetFingerprint = "";
         
@@ -138,21 +96,89 @@ public class ExplorerLinkUtil {
             }
         }
 
-        String explorerUrl = "";
+        final ExplorerType explorer = ExplorerType.fromString(explorerType);
+        final String explorerUrl = ExplorerEndpoint.getUrl(explorer, networkType);
         
-        switch (explorerType) {
-            case CARDANOSCAN_TYPE:
-                explorerUrl = getCardanoscanUrl(networkType);
-                explorerUrl += "token/";
-                break;
-            case CEXPLORER_TYPE:
-                explorerUrl = getCexplorerUrl(networkType);
-                explorerUrl += "asset/";
-                break;
+        switch (explorer) {
+            case CARDANOSCAN:
+                return explorerUrl 
+                        + "token/"
+                        + assetFingerprint;
+            case CEXPLORER:
+                return explorerUrl 
+                        + "asset/"
+                        + assetFingerprint;
         }
         
-        explorerUrl += assetFingerprint;
+        return null;
+    }
+    
+    private static String getClassName() {
+        return ExplorerLinkUtil.class.getName();
+    }
+    
+    private enum ExplorerEndpoint {
         
-        return explorerUrl;
+        CARDANOSCAN_MAINNET(ExplorerType.CARDANOSCAN, NetworkType.MAINNET, "https://cardanoscan.io/"),
+        CARDANOSCAN_PREVIEW_TESTNET(ExplorerType.CARDANOSCAN, NetworkType.PREVIEW_TESTNET, "https://preview.cardanoscan.io/"),
+        CARDANOSCAN_PREPROD_TESTNET(ExplorerType.CARDANOSCAN, NetworkType.PREPROD_TESTNET, "https://preprod.cardanoscan.io/"),
+        
+        CEXPLORER_MAINNET(ExplorerType.CEXPLORER, NetworkType.MAINNET, "https://cexplorer.io/"),
+        CEXPLORER_PREVIEW_TESTNET(ExplorerType.CEXPLORER, NetworkType.PREVIEW_TESTNET, "https://preview.cexplorer.io/"),
+        CEXPLORER_PREPROD_TESTNET(ExplorerType.CEXPLORER, NetworkType.PREPROD_TESTNET, "https://preprod.cexplorer.io/");
+        
+        private final ExplorerType explorerType;
+        private final NetworkType networkType;
+        private final String endpointUrl;
+        
+        ExplorerEndpoint(ExplorerType explorerType, NetworkType networkType, String endpointUrl) {
+            this.explorerType = explorerType;
+            this.networkType = networkType;
+            this.endpointUrl = endpointUrl;
+        }
+        
+        @Override
+        public String toString() {
+            return endpointUrl;
+        }
+        
+        public static String getUrl(ExplorerType explorerType, NetworkType networkType) {
+            for (ExplorerEndpoint endpoint : ExplorerEndpoint.values()) {
+                if ((endpoint.explorerType).equals(explorerType) && (endpoint.networkType).equals(networkType)) {
+                    return endpoint.endpointUrl;
+                }
+            }
+
+            LogUtil.warn(getClassName(), "Unknown endpoint selection found!");
+            return null;
+        }
+    }
+    
+    private enum ExplorerType {
+            
+        CARDANOSCAN("cardanoscan"),
+        CEXPLORER("cexplorer");
+
+        private final String value;
+
+        ExplorerType(String value) {
+            this.value = value;
+        }
+
+        @Override
+        public String toString() {
+            return value;
+        }
+
+        public static ExplorerType fromString(String value) {
+            for (ExplorerType type : ExplorerType.values()) {
+                if ((type.value).equalsIgnoreCase(value)) {
+                    return type;
+                }
+            }
+
+            LogUtil.warn(getClassName(), "Unknown explorer type found!");
+            return null;
+        }
     }
 }

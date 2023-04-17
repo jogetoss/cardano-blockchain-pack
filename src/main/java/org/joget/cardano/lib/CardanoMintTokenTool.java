@@ -11,7 +11,6 @@ import com.bloxbean.cardano.client.cip.cip25.NFT;
 import com.bloxbean.cardano.client.cip.cip25.NFTFile;
 import com.bloxbean.cardano.client.cip.cip25.NFTMetadata;
 import com.bloxbean.cardano.client.common.ADAConversionUtil;
-import com.bloxbean.cardano.client.common.model.Network;
 import com.bloxbean.cardano.client.crypto.SecretKey;
 import com.bloxbean.cardano.client.exception.AddressExcepion;
 import com.bloxbean.cardano.client.exception.CborDeserializationException;
@@ -43,6 +42,7 @@ import org.joget.apps.form.model.FormRow;
 import org.joget.apps.form.model.FormRowSet;
 import org.joget.apps.form.service.FormUtil;
 import org.joget.cardano.model.CardanoProcessTool;
+import org.joget.cardano.model.NetworkType;
 import org.joget.cardano.service.ExplorerLinkUtil;
 import org.joget.cardano.service.MetadataUtil;
 import static org.joget.cardano.service.MetadataUtil.NFT_FORMDATA_PROPERTY_LABEL;
@@ -106,9 +106,9 @@ public class CardanoMintTokenTool extends CardanoProcessTool {
         final String senderAddress = row.getProperty(getPropertyString("senderAddress"));
         final String accountMnemonic = PluginUtil.decrypt(WorkflowUtil.processVariable(getPropertyString("accountMnemonic"), "", wfAssignment));
         
-        final Network network = BackendUtil.getNetwork(props);
+        final NetworkType networkType = BackendUtil.getNetworkType(props);
 
-        final Account senderAccount = new Account(network, accountMnemonic);
+        final Account senderAccount = new Account(networkType.getNetwork(), accountMnemonic);
 
         if (!senderAddress.equals(senderAccount.baseAddress())) {
             LogUtil.warn(getClassName(), "Mint transaction aborted. Minter account encountered invalid mnemonic phrase.");
@@ -132,8 +132,6 @@ public class CardanoMintTokenTool extends CardanoProcessTool {
         
         try {
             initUtils(props);
-
-            final String networkType = getPropertyString("networkType");
             
             String formDefId = getPropertyString("formDefId");
             final String primaryKey = appService.getOriginProcessId(wfAssignment.getProcessId());
@@ -147,9 +145,9 @@ public class CardanoMintTokenTool extends CardanoProcessTool {
             final boolean mintTypeNft = "nft".equalsIgnoreCase(getPropertyString("mintType"));
 
             final boolean isTest = BackendUtil.isTestnet(props);
-            final Network network = BackendUtil.getNetwork(props);
+            final NetworkType networkType = BackendUtil.getNetworkType(props);
 
-            final Account senderAccount = new Account(network, accountMnemonic);
+            final Account senderAccount = new Account(networkType.getNetwork(), accountMnemonic);
 
             Policy policy;
 
@@ -425,7 +423,7 @@ public class CardanoMintTokenTool extends CardanoProcessTool {
     
     protected void storeToWorkflowVariable(
             String activityId,
-            String networkType, 
+            NetworkType networkType, 
             Result<TransactionResult> transactionResult, 
             Result<TransactionContent> validatedtransactionResult) {
         

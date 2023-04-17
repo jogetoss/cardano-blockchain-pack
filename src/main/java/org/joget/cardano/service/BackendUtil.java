@@ -11,19 +11,11 @@ import static com.bloxbean.cardano.client.backend.koios.Constants.KOIOS_PREPROD_
 import com.bloxbean.cardano.client.backend.blockfrost.service.BFBackendService;
 import com.bloxbean.cardano.client.backend.koios.KoiosBackendService;
 import com.bloxbean.cardano.client.common.model.Network;
-import com.bloxbean.cardano.client.common.model.Networks;
 import java.util.Map;
+import org.joget.cardano.model.NetworkType;
 import org.joget.commons.util.LogUtil;
 
 public class BackendUtil {
-    
-    public static boolean isTestnet(Map properties) {
-        String networkType = (String) properties.get("networkType");
-        
-        return "testnet".equalsIgnoreCase(networkType) || //Don't delete this, to prevent loss of existing configs from previous versions
-                "previewTestnet".equalsIgnoreCase(networkType) || 
-                "preprodTestnet".equalsIgnoreCase(networkType);
-    }
     
     public static BackendService getBackendService(Map properties) {
         String backendServiceName = (String) properties.get("backendService");
@@ -37,61 +29,60 @@ public class BackendUtil {
 //            case "ogmios":
 //                return new OgmiosBackendService("your_url_here");
             default:
-                LogUtil.warn(BackendUtil.class.getName(), "Unknown backend selection found!");
+                LogUtil.warn(getClassName(), "Unknown backend selection found!");
                 return null;
         }
     }
     
     private static String getBlockfrostEndpointUrl(Map properties) {
-        String networkType = (String) properties.get("networkType");
+        final NetworkType networkType = getNetworkType(properties);
         
         switch (networkType) {
-            case "testnet":
+            case LEGACY_TESTNET:
                 return BLOCKFROST_TESTNET_URL;
-            case "preprodTestnet":
+            case PREPROD_TESTNET:
                 return BLOCKFROST_PREPROD_URL;
-            case "previewTestnet":
+            case PREVIEW_TESTNET:
                 return BLOCKFROST_PREVIEW_URL;
-            case "mainnet":
+            case MAINNET:
                 return BLOCKFROST_MAINNET_URL;
             default:
-                LogUtil.warn(BackendUtil.class.getName(), "Unknown network selection found!");
+                LogUtil.warn(getClassName(), "Unknown network selection found!");
                 return null;
         }
     }
     
     private static String getKoiosEndpointUrl(Map properties) {
-        String networkType = (String) properties.get("networkType");
+        final NetworkType networkType = getNetworkType(properties);
         
         switch (networkType) {
-            case "testnet":
-            case "preprodTestnet":
+            case LEGACY_TESTNET:
+                return null; //Not available
+            case PREPROD_TESTNET:
                 return KOIOS_PREPROD_URL;
-            case "previewTestnet":
+            case PREVIEW_TESTNET:
                 return KOIOS_PREVIEW_URL;
-            case "mainnet":
+            case MAINNET:
                 return KOIOS_MAINNET_URL;
             default:
-                LogUtil.warn(BackendUtil.class.getName(), "Unknown network selection found!");
+                LogUtil.warn(getClassName(), "Unknown network selection found!");
                 return null;
         }
     }
     
-    public static Network getNetwork(Map properties) {
-        String networkType = (String) properties.get("networkType");
-        
-        switch (networkType) {
-            case "testnet":
-                return Networks.testnet();
-            case "preprodTestnet":
-                return Networks.preprod();
-            case "previewTestnet":
-                return Networks.preview();
-            case "mainnet":
-                return Networks.mainnet();
-            default:
-                LogUtil.warn(BackendUtil.class.getName(), "Unknown network selection found!");
-                return null;
-        }
+    public static NetworkType getNetworkType(Map properties) {
+        return NetworkType.fromString((String) properties.get("networkType"));
+    }
+    
+    public static NetworkType getNetworkType(Network network) {
+        return NetworkType.fromNetwork(network);
+    }
+    
+    public static boolean isTestnet(Map properties) {
+        return !(NetworkType.MAINNET).equals(getNetworkType(properties));
+    }
+    
+    private static String getClassName() {
+        return BackendUtil.class.getName();
     }
 }

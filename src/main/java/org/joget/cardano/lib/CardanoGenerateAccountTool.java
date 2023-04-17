@@ -5,7 +5,6 @@ import org.joget.cardano.service.BackendUtil;
 import java.util.Map;
 import com.bloxbean.cardano.client.account.Account;
 import com.bloxbean.cardano.client.backend.api.BackendService;
-import com.bloxbean.cardano.client.common.model.Network;
 import org.joget.apps.app.model.AppDefinition;
 import org.joget.apps.app.service.AppService;
 import org.joget.apps.app.service.AppUtil;
@@ -13,6 +12,7 @@ import org.joget.apps.form.model.FormRow;
 import org.joget.apps.form.model.FormRowSet;
 import org.joget.apps.form.service.FormUtil;
 import org.joget.cardano.model.CardanoProcessTool;
+import org.joget.cardano.model.NetworkType;
 import org.joget.commons.util.LogUtil;
 import org.joget.workflow.model.WorkflowAssignment;
 import org.joget.workflow.model.service.WorkflowManager;
@@ -74,9 +74,9 @@ public class CardanoGenerateAccountTool extends CardanoProcessTool {
         
         boolean isTest = BackendUtil.isTestnet(props);
         
-        Network network = BackendUtil.getNetwork(props);
+        final NetworkType networkType = BackendUtil.getNetworkType(props);
         
-        final Account account = new Account(network);
+        final Account account = new Account(networkType.getNetwork());
         
         storeToForm(isTest, account, wfAssignment);
         storeToWorkflowVariable(wfAssignment.getActivityId(), isTest, account);

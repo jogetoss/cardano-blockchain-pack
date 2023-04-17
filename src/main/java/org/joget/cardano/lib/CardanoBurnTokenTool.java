@@ -53,6 +53,7 @@ import org.joget.apps.app.service.AppUtil;
 import org.joget.apps.form.model.FormRow;
 import org.joget.apps.form.model.FormRowSet;
 import org.joget.cardano.model.CardanoProcessTool;
+import org.joget.cardano.model.NetworkType;
 import org.joget.cardano.service.ExplorerLinkUtil;
 import org.joget.cardano.service.TokenUtil;
 import static org.joget.cardano.service.TransactionUtil.MAX_FEE_LIMIT;
@@ -68,7 +69,6 @@ public class CardanoBurnTokenTool extends CardanoProcessTool {
     UtxoSupplier utxoSupplier;
     
     AppService appService;
-    WorkflowAssignment wfAssignment;
     AppDefinition appDef;
     WorkflowManager workflowManager;
     
@@ -93,7 +93,6 @@ public class CardanoBurnTokenTool extends CardanoProcessTool {
         ApplicationContext ac = AppUtil.getApplicationContext();
         
         appService = (AppService) ac.getBean("appService");
-        wfAssignment = (WorkflowAssignment) props.get("workflowAssignment");
         appDef = (AppDefinition) props.get("appDef");
         workflowManager = (WorkflowManager) ac.getBean("workflowManager");
     }
@@ -117,9 +116,9 @@ public class CardanoBurnTokenTool extends CardanoProcessTool {
         final String senderAddress = row.getProperty(getPropertyString("senderAddress"));
         final String accountMnemonic = PluginUtil.decrypt(WorkflowUtil.processVariable(getPropertyString("accountMnemonic"), "", wfAssignment));
         
-        final Network network = BackendUtil.getNetwork(props);
+        final NetworkType networkType = BackendUtil.getNetworkType(props);
 
-        final Account senderAccount = new Account(network, accountMnemonic);
+        final Account senderAccount = new Account(networkType.getNetwork(), accountMnemonic);
 
         if (!senderAddress.equals(senderAccount.baseAddress())) {
             LogUtil.warn(getClassName(), "Burn transaction aborted. Minter account encountered invalid mnemonic phrase.");
@@ -156,8 +155,6 @@ public class CardanoBurnTokenTool extends CardanoProcessTool {
         
         try {
             initUtils(props);
-
-            final String networkType = getPropertyString("networkType");
             
             String formDefId = getPropertyString("formDefId");
             final String primaryKey = appService.getOriginProcessId(wfAssignment.getProcessId());
@@ -176,9 +173,9 @@ public class CardanoBurnTokenTool extends CardanoProcessTool {
             final String amountToBurn = row.getProperty(getPropertyString("amountToBurn"));
             final boolean burnTypeNft = "nft".equalsIgnoreCase(getPropertyString("burnType"));
 
-            final Network network = BackendUtil.getNetwork(props);
+            final NetworkType networkType = BackendUtil.getNetworkType(props);
 
-            final Account senderAccount = new Account(network, accountMnemonic);
+            final Account senderAccount = new Account(networkType.getNetwork(), accountMnemonic);
 
             BigInteger amountToBurnAbs;
 
@@ -431,7 +428,7 @@ public class CardanoBurnTokenTool extends CardanoProcessTool {
     
     protected void storeToWorkflowVariable(
             String activityId,
-            String networkType,
+            NetworkType networkType,
             Result<String> transactionResult, 
             Result<TransactionContent> validatedtransactionResult) {
         

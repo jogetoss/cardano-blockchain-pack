@@ -10,7 +10,9 @@ import org.joget.apps.form.model.FormContainer;
 import org.joget.apps.form.model.FormData;
 import org.joget.apps.form.service.FormUtil;
 import org.joget.cardano.model.CardanoFormElement;
+import org.joget.cardano.model.NetworkType;
 import org.joget.cardano.service.AccountUtil;
+import org.joget.cardano.service.BackendUtil;
 import org.joget.cardano.service.ExplorerLinkUtil;
 import org.joget.cardano.service.PluginUtil;
 import org.joget.cardano.service.TokenUtil;
@@ -65,7 +67,7 @@ public class CardanoExplorerLinkFormElement extends CardanoFormElement implement
     public String renderElement(FormData formData, Map dataModel) {
         initUtils(getProperties());
         
-        final String networkType = getPropertyString("networkType");
+        final NetworkType networkType = BackendUtil.getNetworkType(getProperties());
         
         String explorerType = getPropertyString("explorerType");
         String valueType = getPropertyString("valueType");
@@ -133,7 +135,7 @@ public class CardanoExplorerLinkFormElement extends CardanoFormElement implement
         return false;
     }
     
-    public String getExplorerUrl(String valueType, String networkType, String retrievedValue, String explorerType) {
+    public String getExplorerUrl(String valueType, NetworkType networkType, String retrievedValue, String explorerType) {
         if (FormUtil.isFormBuilderActive() || retrievedValue.isBlank()) {
             return "";
         }

@@ -11,7 +11,6 @@ import org.joget.workflow.model.WorkflowAssignment;
 import org.joget.workflow.model.service.WorkflowManager;
 import org.springframework.context.ApplicationContext;
 import org.joget.workflow.util.WorkflowUtil;
-import com.bloxbean.cardano.client.common.model.Network;
 import com.bloxbean.cardano.client.transaction.model.PaymentTransaction;
 import com.bloxbean.cardano.client.account.Account;
 import com.bloxbean.cardano.client.api.exception.ApiException;
@@ -44,6 +43,7 @@ import org.joget.apps.datalist.service.DataListService;
 import org.joget.apps.form.model.FormRow;
 import org.joget.apps.form.model.FormRowSet;
 import org.joget.cardano.model.CardanoProcessTool;
+import org.joget.cardano.model.NetworkType;
 import org.joget.cardano.service.ExplorerLinkUtil;
 import org.joget.cardano.service.MetadataUtil;
 import org.joget.cardano.service.TokenUtil;
@@ -109,9 +109,9 @@ public class CardanoSendTransactionTool extends CardanoProcessTool implements Pl
         final String senderAddress = row.getProperty(getPropertyString("senderAddress"));
         final String accountMnemonic = PluginUtil.decrypt(WorkflowUtil.processVariable(getPropertyString("accountMnemonic"), "", wfAssignment));
         
-        final Network network = BackendUtil.getNetwork(props);
+        final NetworkType networkType = BackendUtil.getNetworkType(props);
 
-        final Account senderAccount = new Account(network, accountMnemonic);
+        final Account senderAccount = new Account(networkType.getNetwork(), accountMnemonic);
         
         if (!senderAddress.equals(senderAccount.baseAddress())) {
             LogUtil.warn(getClassName(), "Send transaction aborted. Sender account encountered invalid mnemonic phrase.");
@@ -135,8 +135,6 @@ public class CardanoSendTransactionTool extends CardanoProcessTool implements Pl
         
         try {
             initUtils(props);
-
-            final String networkType = getPropertyString("networkType");
             
             String formDefId = getPropertyString("formDefId");
             final String primaryKey = appService.getOriginProcessId(wfAssignment.getProcessId());
@@ -152,9 +150,9 @@ public class CardanoSendTransactionTool extends CardanoProcessTool implements Pl
             final boolean multipleReceiverMode = "true".equalsIgnoreCase(getPropertyString("multipleReceiverMode"));
             final boolean paymentUnitNft = "nft".equalsIgnoreCase(getPropertyString("paymentUnit"));
 
-            final Network network = BackendUtil.getNetwork(props);
+            final NetworkType networkType = BackendUtil.getNetworkType(props);
 
-            final Account senderAccount = new Account(network, accountMnemonic);
+            final Account senderAccount = new Account(networkType.getNetwork(), accountMnemonic);
 
             List<PaymentTransaction> paymentList = new ArrayList<>();
 
@@ -332,7 +330,7 @@ public class CardanoSendTransactionTool extends CardanoProcessTool implements Pl
     
     protected void storeToWorkflowVariable(
             String activityId,
-            String networkType, 
+            NetworkType networkType, 
             Result<TransactionResult> transactionResult, 
             Result<TransactionContent> validatedtransactionResult) {
         
