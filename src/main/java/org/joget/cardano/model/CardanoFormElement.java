@@ -21,7 +21,7 @@ import org.joget.cardano.service.BackendUtil;
 import org.joget.cardano.service.PluginUtil;
 import org.joget.commons.util.LogUtil;
 
-public abstract class CardanoFormElementAbstract extends Element implements FormBuilderPaletteElement {
+public abstract class CardanoFormElement extends Element implements FormBuilderPaletteElement {
     
     protected AssetService assetService;
     protected BlockService blockService;

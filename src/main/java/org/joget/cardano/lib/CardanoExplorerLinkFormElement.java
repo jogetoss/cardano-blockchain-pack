@@ -9,7 +9,7 @@ import org.joget.apps.form.model.Form;
 import org.joget.apps.form.model.FormContainer;
 import org.joget.apps.form.model.FormData;
 import org.joget.apps.form.service.FormUtil;
-import org.joget.cardano.model.CardanoFormElementAbstract;
+import org.joget.cardano.model.CardanoFormElement;
 import org.joget.cardano.service.AccountUtil;
 import org.joget.cardano.service.ExplorerLinkUtil;
 import org.joget.cardano.service.PluginUtil;
@@ -21,7 +21,7 @@ import org.joget.workflow.model.service.WorkflowManager;
 import org.joget.workflow.util.WorkflowUtil;
 import org.springframework.context.ApplicationContext;
 
-public class CardanoExplorerLinkFormElement extends CardanoFormElementAbstract implements FormContainer {
+public class CardanoExplorerLinkFormElement extends CardanoFormElement implements FormContainer {
     
     private static final String TX_ID_TYPE = "transactionId";
     private static final String ADDRESS_TYPE = "accountAddress";

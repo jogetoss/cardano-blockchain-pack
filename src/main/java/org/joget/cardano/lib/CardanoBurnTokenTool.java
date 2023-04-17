@@ -52,7 +52,7 @@ import org.joget.apps.app.service.AppService;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.apps.form.model.FormRow;
 import org.joget.apps.form.model.FormRowSet;
-import org.joget.cardano.model.CardanoProcessToolAbstract;
+import org.joget.cardano.model.CardanoProcessTool;
 import org.joget.cardano.service.ExplorerLinkUtil;
 import org.joget.cardano.service.TokenUtil;
 import static org.joget.cardano.service.TransactionUtil.MAX_FEE_LIMIT;
@@ -63,7 +63,7 @@ import org.joget.workflow.model.service.WorkflowManager;
 import org.joget.workflow.util.WorkflowUtil;
 import org.springframework.context.ApplicationContext;
 
-public class CardanoBurnTokenTool extends CardanoProcessToolAbstract {
+public class CardanoBurnTokenTool extends CardanoProcessTool {
     
     UtxoSupplier utxoSupplier;
     

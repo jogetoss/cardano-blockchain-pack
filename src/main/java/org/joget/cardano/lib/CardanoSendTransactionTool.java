@@ -43,7 +43,7 @@ import org.joget.apps.datalist.model.DataListColumn;
 import org.joget.apps.datalist.service.DataListService;
 import org.joget.apps.form.model.FormRow;
 import org.joget.apps.form.model.FormRowSet;
-import org.joget.cardano.model.CardanoProcessToolAbstract;
+import org.joget.cardano.model.CardanoProcessTool;
 import org.joget.cardano.service.ExplorerLinkUtil;
 import org.joget.cardano.service.MetadataUtil;
 import org.joget.cardano.service.TokenUtil;
@@ -55,7 +55,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.BeansException;
 
-public class CardanoSendTransactionTool extends CardanoProcessToolAbstract implements PluginWebSupport {
+public class CardanoSendTransactionTool extends CardanoProcessTool implements PluginWebSupport {
     
     protected DataListBinder binder = null;
     

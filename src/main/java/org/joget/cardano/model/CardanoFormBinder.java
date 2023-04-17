@@ -22,7 +22,7 @@ import org.joget.cardano.service.BackendUtil;
 import org.joget.cardano.service.PluginUtil;
 import org.joget.commons.util.LogUtil;
 
-public abstract class CardanoFormBinderAbstract extends FormBinder implements FormLoadBinder {
+public abstract class CardanoFormBinder extends FormBinder implements FormLoadBinder {
     
     protected AssetService assetService;
     protected BlockService blockService;

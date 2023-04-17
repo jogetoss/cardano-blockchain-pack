@@ -19,9 +19,9 @@ import org.joget.workflow.util.WorkflowUtil;
 import static com.bloxbean.cardano.client.common.CardanoConstants.LOVELACE;
 import java.util.HashMap;
 import java.util.Map;
-import org.joget.cardano.model.CardanoFormBinderAbstract;
+import org.joget.cardano.model.CardanoFormBinder;
 
-public class CardanoAccountLoadBinder extends CardanoFormBinderAbstract implements FormLoadElementBinder {
+public class CardanoAccountLoadBinder extends CardanoFormBinder implements FormLoadElementBinder {
     
     @Override
     public String getName() {

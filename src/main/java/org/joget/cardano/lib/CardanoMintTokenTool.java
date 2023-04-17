@@ -42,7 +42,7 @@ import org.joget.apps.app.service.AppUtil;
 import org.joget.apps.form.model.FormRow;
 import org.joget.apps.form.model.FormRowSet;
 import org.joget.apps.form.service.FormUtil;
-import org.joget.cardano.model.CardanoProcessToolAbstract;
+import org.joget.cardano.model.CardanoProcessTool;
 import org.joget.cardano.service.ExplorerLinkUtil;
 import org.joget.cardano.service.MetadataUtil;
 import static org.joget.cardano.service.MetadataUtil.NFT_FORMDATA_PROPERTY_LABEL;
@@ -56,7 +56,7 @@ import org.joget.workflow.model.service.WorkflowManager;
 import org.joget.workflow.util.WorkflowUtil;
 import org.springframework.context.ApplicationContext;
 
-public class CardanoMintTokenTool extends CardanoProcessToolAbstract {
+public class CardanoMintTokenTool extends CardanoProcessTool {
     
     AppService appService;
     AppDefinition appDef;

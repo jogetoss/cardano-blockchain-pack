@@ -15,11 +15,11 @@ import org.joget.apps.form.model.FormData;
 import org.joget.apps.form.model.FormLoadElementBinder;
 import org.joget.apps.form.model.FormRow;
 import org.joget.apps.form.model.FormRowSet;
-import org.joget.cardano.model.CardanoFormBinderAbstract;
+import org.joget.cardano.model.CardanoFormBinder;
 import org.joget.commons.util.LogUtil;
 import org.joget.workflow.util.WorkflowUtil;
 
-public class CardanoMetadataLoadBinder extends CardanoFormBinderAbstract implements FormLoadElementBinder {
+public class CardanoMetadataLoadBinder extends CardanoFormBinder implements FormLoadElementBinder {
     
     @Override
     public String getName() {

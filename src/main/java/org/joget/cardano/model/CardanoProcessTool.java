@@ -20,7 +20,7 @@ import org.joget.commons.util.LogUtil;
 import org.joget.plugin.base.DefaultApplicationPlugin;
 import org.joget.workflow.model.WorkflowAssignment;
 
-public abstract class CardanoProcessToolAbstract extends DefaultApplicationPlugin {
+public abstract class CardanoProcessTool extends DefaultApplicationPlugin {
     
     protected AssetService assetService;
     protected BlockService blockService;
