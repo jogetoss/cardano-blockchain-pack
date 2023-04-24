@@ -1,4 +1,4 @@
-package org.joget.cardano.service;
+package org.joget.cardano.util;
 
 import org.joget.cardano.model.NetworkType;
 import org.joget.commons.util.LogUtil;

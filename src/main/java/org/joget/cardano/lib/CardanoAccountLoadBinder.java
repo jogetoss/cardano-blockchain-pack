@@ -1,11 +1,10 @@
 package org.joget.cardano.lib;
 
 import com.bloxbean.cardano.client.api.exception.ApiException;
-import org.joget.cardano.service.PluginUtil;
+import org.joget.cardano.util.PluginUtil;
 import com.bloxbean.cardano.client.backend.model.AddressContent;
 import com.bloxbean.cardano.client.common.ADAConversionUtil;
 import com.bloxbean.cardano.client.api.model.Result;
-import com.bloxbean.cardano.client.backend.api.BackendService;
 import com.bloxbean.cardano.client.backend.model.TxContentOutputAmount;
 import java.math.BigInteger;
 import org.joget.apps.app.service.AppUtil;
@@ -52,11 +51,6 @@ public class CardanoAccountLoadBinder extends CardanoFormBinder implements FormL
     }
     
     @Override
-    public void initBackendServices(BackendService backendService) {
-        addressService = backendService.getAddressService();
-    }
-    
-    @Override
     public FormRowSet loadData(Element element, String primaryKey, FormData formData)
             throws RuntimeException {
         
@@ -82,22 +76,14 @@ public class CardanoAccountLoadBinder extends CardanoFormBinder implements FormL
             if (displayAllTokenBalances) {
                 final String assetBalancesField = getPropertyString("assetBalancesField");
                 final String hideAssets = getPropertyString("hideAssets");
-                
-                List<TxContentOutputAmount> balances = addressInfo.getAmount();
+
                 List<String> tokensToHide = new ArrayList<String>(Arrays.asList(hideAssets.split("\\R|;")));
                 tokensToHide.add(LOVELACE);
-                List<TxContentOutputAmount> tokensToDelete = new ArrayList<TxContentOutputAmount>();
-                for (TxContentOutputAmount balance : balances) {
-                    for (String t : tokensToHide) {
-                        if (balance.getUnit().equals(t)) {
-                            tokensToDelete.add(balance);
-                        }
-                    }
-                }
-                balances.removeAll(tokensToDelete);
                 
-                String result = new Gson().toJson(balances);
-                if (balances.isEmpty()) {
+                List<TxContentOutputAmount> finalBalance = getAllBalances(addressInfo, tokensToHide);
+                
+                String result = new Gson().toJson(finalBalance);
+                if (finalBalance.isEmpty()) {
                     result = "No token balances found";
                 }
                 
@@ -141,6 +127,22 @@ public class CardanoAccountLoadBinder extends CardanoFormBinder implements FormL
         return addressInfo.getAmount().stream().filter(
                         accountBalance -> accountBalance.getUnit().equals(assetId)
                     ).findFirst().map(TxContentOutputAmount::getQuantity).orElse("No balance found");
+    }
+    
+    private List<TxContentOutputAmount> getAllBalances(AddressContent addressInfo, List<String> tokensToHide) {
+        List<TxContentOutputAmount> balances = addressInfo.getAmount();
+        List<TxContentOutputAmount> tokensToDelete = new ArrayList<TxContentOutputAmount>();
+        
+        for (TxContentOutputAmount balance : balances) {
+            for (String t : tokensToHide) {
+                if (balance.getUnit().equals(t)) {
+                    tokensToDelete.add(balance);
+                }
+            }
+        }
+        balances.removeAll(tokensToDelete);
+        
+        return balances;
     }
     
     protected String getAccountType(AddressContent addressInfo) {

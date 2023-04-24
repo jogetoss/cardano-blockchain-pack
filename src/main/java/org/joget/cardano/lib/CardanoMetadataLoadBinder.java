@@ -1,8 +1,7 @@
 package org.joget.cardano.lib;
 
 import com.bloxbean.cardano.client.api.exception.ApiException;
-import org.joget.cardano.service.PluginUtil;
-import com.bloxbean.cardano.client.backend.api.BackendService;
+import org.joget.cardano.util.PluginUtil;
 import com.bloxbean.cardano.client.api.model.Result;
 import com.bloxbean.cardano.client.backend.model.metadata.MetadataJSONContent;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -43,11 +42,6 @@ public class CardanoMetadataLoadBinder extends CardanoFormBinder implements Form
 
         //Prevent error thrown from empty value and invalid hash variable
         return !transactionId.isEmpty() && !transactionId.startsWith("#");
-    }
-    
-    @Override
-    public void initBackendServices(BackendService backendService) {
-        metadataService = backendService.getMetadataService();
     }
     
     @Override

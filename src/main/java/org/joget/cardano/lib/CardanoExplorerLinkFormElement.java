@@ -1,7 +1,6 @@
 package org.joget.cardano.lib;
 
 import com.bloxbean.cardano.client.api.exception.ApiException;
-import com.bloxbean.cardano.client.backend.api.BackendService;
 import java.util.Map;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.apps.form.model.Element;
@@ -11,17 +10,14 @@ import org.joget.apps.form.model.FormData;
 import org.joget.apps.form.service.FormUtil;
 import org.joget.cardano.model.CardanoFormElement;
 import org.joget.cardano.model.NetworkType;
-import org.joget.cardano.service.AccountUtil;
-import org.joget.cardano.service.BackendUtil;
-import org.joget.cardano.service.ExplorerLinkUtil;
-import org.joget.cardano.service.PluginUtil;
-import org.joget.cardano.service.TokenUtil;
-import org.joget.cardano.service.TransactionUtil;
+import org.joget.cardano.util.AccountUtil;
+import org.joget.cardano.util.BackendUtil;
+import org.joget.cardano.util.ExplorerLinkUtil;
+import org.joget.cardano.util.PluginUtil;
+import org.joget.cardano.util.TokenUtil;
+import org.joget.cardano.util.TransactionUtil;
 import org.joget.commons.util.LogUtil;
-import org.joget.workflow.model.WorkflowAssignment;
-import org.joget.workflow.model.service.WorkflowManager;
 import org.joget.workflow.util.WorkflowUtil;
-import org.springframework.context.ApplicationContext;
 
 public class CardanoExplorerLinkFormElement extends CardanoFormElement implements FormContainer {
     
@@ -29,9 +25,6 @@ public class CardanoExplorerLinkFormElement extends CardanoFormElement implement
     private static final String ADDRESS_TYPE = "accountAddress";
     private static final String POLICY_TYPE = "tokenPolicy";
     private static final String ASSET_TYPE = "assetId";
-    
-    WorkflowAssignment wfAssignment;
-    WorkflowManager workflowManager;
 
     @Override
     public String getName() {
@@ -49,24 +42,8 @@ public class CardanoExplorerLinkFormElement extends CardanoFormElement implement
         return AppUtil.readPluginResource(getClassName(), "/properties/CardanoExplorerLinkFormElement.json", new String[]{backendConfigs}, true, PluginUtil.MESSAGE_PATH);
     }
     
-    protected void initUtils(Map props) {
-        ApplicationContext ac = AppUtil.getApplicationContext();
-        
-        wfAssignment = (WorkflowAssignment) props.get("workflowAssignment");
-        workflowManager = (WorkflowManager) ac.getBean("workflowManager");
-    }
-    
     @Override
-    public void initBackendServices(BackendService backendService) {        
-        transactionService = backendService.getTransactionService();
-        assetService = backendService.getAssetService();
-        addressService = backendService.getAddressService();
-    }
-    
-    @Override
-    public String renderElement(FormData formData, Map dataModel) {
-        initUtils(getProperties());
-        
+    public String renderElement(FormData formData, Map dataModel) {        
         final NetworkType networkType = BackendUtil.getNetworkType(getProperties());
         
         String explorerType = getPropertyString("explorerType");

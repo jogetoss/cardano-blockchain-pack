@@ -1,12 +1,10 @@
 package org.joget.cardano.lib;
 
 import com.bloxbean.cardano.client.account.Account;
-import com.bloxbean.cardano.client.api.UtxoSupplier;
 import com.bloxbean.cardano.client.api.exception.ApiException;
 import com.bloxbean.cardano.client.api.model.ProtocolParams;
 import com.bloxbean.cardano.client.api.model.Result;
 import com.bloxbean.cardano.client.api.model.Utxo;
-import com.bloxbean.cardano.client.backend.api.BackendService;
 import com.bloxbean.cardano.client.backend.api.DefaultUtxoSupplier;
 import com.bloxbean.cardano.client.coinselection.UtxoSelectionStrategy;
 import com.bloxbean.cardano.client.coinselection.impl.DefaultUtxoSelectionStrategyImpl;
@@ -40,36 +38,24 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import org.joget.cardano.service.PluginUtil;
-import org.joget.cardano.service.BackendUtil;
-import org.joget.cardano.service.TransactionUtil;
-import java.util.Map;
+import org.joget.cardano.util.PluginUtil;
+import org.joget.cardano.util.BackendUtil;
+import org.joget.cardano.util.TransactionUtil;
 import java.util.Optional;
 import java.util.Set;
-import org.joget.apps.app.model.AppDefinition;
-import org.joget.apps.app.service.AppService;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.apps.form.model.FormRow;
 import org.joget.apps.form.model.FormRowSet;
 import org.joget.cardano.model.CardanoProcessTool;
 import org.joget.cardano.model.NetworkType;
-import org.joget.cardano.service.ExplorerLinkUtil;
-import org.joget.cardano.service.TokenUtil;
-import static org.joget.cardano.service.TransactionUtil.MAX_FEE_LIMIT;
+import org.joget.cardano.util.ExplorerLinkUtil;
+import org.joget.cardano.util.TokenUtil;
+import static org.joget.cardano.util.TransactionUtil.MAX_FEE_LIMIT;
 import org.joget.commons.util.LogUtil;
 import org.joget.commons.util.PluginThread;
-import org.joget.workflow.model.WorkflowAssignment;
-import org.joget.workflow.model.service.WorkflowManager;
 import org.joget.workflow.util.WorkflowUtil;
-import org.springframework.context.ApplicationContext;
 
 public class CardanoBurnTokenTool extends CardanoProcessTool {
-    
-    UtxoSupplier utxoSupplier;
-    
-    AppService appService;
-    AppDefinition appDef;
-    WorkflowManager workflowManager;
     
     @Override
     public String getName() {
@@ -88,18 +74,8 @@ public class CardanoBurnTokenTool extends CardanoProcessTool {
         return AppUtil.readPluginResource(getClassName(), "/properties/CardanoBurnTokenTool.json", new String[]{backendConfigs, wfVarMappings}, true, PluginUtil.MESSAGE_PATH);
     }
     
-    protected void initUtils(Map props) {        
-        ApplicationContext ac = AppUtil.getApplicationContext();
-        
-        appService = (AppService) ac.getBean("appService");
-        appDef = (AppDefinition) props.get("appDef");
-        workflowManager = (WorkflowManager) ac.getBean("workflowManager");
-    }
-    
     @Override
-    public boolean isInputDataValid(Map props, WorkflowAssignment wfAssignment) {
-        initUtils(props);
-        
+    public boolean isInputDataValid() {        
         String formDefId = getPropertyString("formDefId");
         final String primaryKey = appService.getOriginProcessId(wfAssignment.getProcessId());
         
@@ -138,23 +114,10 @@ public class CardanoBurnTokenTool extends CardanoProcessTool {
     }
     
     @Override
-    public void initBackendServices(BackendService backendService) {
-        blockService = backendService.getBlockService();
-        feeCalculationService = backendService.getFeeCalculationService();
-        transactionService = backendService.getTransactionService();
-        utxoService = backendService.getUtxoService();
-        epochService = backendService.getEpochService();
-        
-        utxoSupplier = new DefaultUtxoSupplier(utxoService);
-    }
-    
-    @Override
-    public Object runTool(Map props, WorkflowAssignment wfAssignment) 
+    public Object runTool() 
             throws RuntimeException {
         
-        try {
-            initUtils(props);
-            
+        try {            
             String formDefId = getPropertyString("formDefId");
             final String primaryKey = appService.getOriginProcessId(wfAssignment.getProcessId());
 
@@ -198,7 +161,7 @@ public class CardanoBurnTokenTool extends CardanoProcessTool {
             multiAsset.getAssets().add(new Asset(derivedTokenName, amountToBurnAbs.negate()));
 
             //Get utxos for such asset ID
-            UtxoSelectionStrategy utxoSelectionStrategy = new DefaultUtxoSelectionStrategyImpl(utxoSupplier);
+            UtxoSelectionStrategy utxoSelectionStrategy = new DefaultUtxoSelectionStrategyImpl(new DefaultUtxoSupplier(utxoService));
             List<Utxo> utxos = utxoSelectionStrategy.selectUtxos(senderAddress, assetId, amountToBurnAbs, Collections.EMPTY_SET);
 
             //Create inputs

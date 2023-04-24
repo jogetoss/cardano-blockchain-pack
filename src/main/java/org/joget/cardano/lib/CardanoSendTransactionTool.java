@@ -1,14 +1,11 @@
 package org.joget.cardano.lib;
 
-import org.joget.cardano.service.PluginUtil;
-import org.joget.cardano.service.BackendUtil;
-import org.joget.cardano.service.TransactionUtil;
+import org.joget.cardano.util.PluginUtil;
+import org.joget.cardano.util.BackendUtil;
+import org.joget.cardano.util.TransactionUtil;
 import java.math.BigDecimal;
-import java.util.Map;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.commons.util.LogUtil;
-import org.joget.workflow.model.WorkflowAssignment;
-import org.joget.workflow.model.service.WorkflowManager;
 import org.springframework.context.ApplicationContext;
 import org.joget.workflow.util.WorkflowUtil;
 import com.bloxbean.cardano.client.transaction.model.PaymentTransaction;
@@ -16,7 +13,6 @@ import com.bloxbean.cardano.client.account.Account;
 import com.bloxbean.cardano.client.api.exception.ApiException;
 import com.bloxbean.cardano.client.api.helper.model.TransactionResult;
 import com.bloxbean.cardano.client.api.model.Result;
-import com.bloxbean.cardano.client.backend.api.BackendService;
 import com.bloxbean.cardano.client.backend.model.TransactionContent;
 import com.bloxbean.cardano.client.common.ADAConversionUtil;
 import static com.bloxbean.cardano.client.common.CardanoConstants.LOVELACE;
@@ -32,9 +28,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.joget.apps.app.dao.DatalistDefinitionDao;
-import org.joget.apps.app.model.AppDefinition;
 import org.joget.apps.app.model.DatalistDefinition;
-import org.joget.apps.app.service.AppService;
 import org.joget.apps.datalist.model.DataList;
 import org.joget.apps.datalist.model.DataListBinder;
 import org.joget.apps.datalist.model.DataListCollection;
@@ -44,10 +38,10 @@ import org.joget.apps.form.model.FormRow;
 import org.joget.apps.form.model.FormRowSet;
 import org.joget.cardano.model.CardanoProcessTool;
 import org.joget.cardano.model.NetworkType;
-import org.joget.cardano.service.ExplorerLinkUtil;
-import org.joget.cardano.service.MetadataUtil;
-import org.joget.cardano.service.TokenUtil;
-import static org.joget.cardano.service.TransactionUtil.MAX_FEE_LIMIT;
+import org.joget.cardano.util.ExplorerLinkUtil;
+import org.joget.cardano.util.MetadataUtil;
+import org.joget.cardano.util.TokenUtil;
+import static org.joget.cardano.util.TransactionUtil.MAX_FEE_LIMIT;
 import org.joget.commons.util.PluginThread;
 import org.joget.plugin.base.PluginWebSupport;
 import org.joget.workflow.model.service.WorkflowUserManager;
@@ -58,11 +52,6 @@ import org.springframework.beans.BeansException;
 public class CardanoSendTransactionTool extends CardanoProcessTool implements PluginWebSupport {
     
     protected DataListBinder binder = null;
-    
-    AppService appService;
-    AppDefinition appDef;
-    WorkflowManager workflowManager;
-    DataListService dataListService;
     
     @Override
     public String getName() {
@@ -81,19 +70,8 @@ public class CardanoSendTransactionTool extends CardanoProcessTool implements Pl
         return AppUtil.readPluginResource(getClassName(), "/properties/CardanoSendTransactionTool.json", new String[]{backendConfigs, wfVarMappings}, true, PluginUtil.MESSAGE_PATH);
     }
     
-    protected void initUtils(Map props) {
-        ApplicationContext ac = AppUtil.getApplicationContext();
-        
-        appService = (AppService) ac.getBean("appService");
-        appDef = (AppDefinition) props.get("appDef");
-        workflowManager = (WorkflowManager) ac.getBean("workflowManager");
-        dataListService = (DataListService) ac.getBean("dataListService");
-    }
-    
     @Override
-    public boolean isInputDataValid(Map props, WorkflowAssignment wfAssignment) {
-        initUtils(props);
-        
+    public boolean isInputDataValid() {        
         String formDefId = getPropertyString("formDefId");
         final String primaryKey = appService.getOriginProcessId(wfAssignment.getProcessId());
         
@@ -122,20 +100,10 @@ public class CardanoSendTransactionTool extends CardanoProcessTool implements Pl
     }
     
     @Override
-    public void initBackendServices(BackendService backendService) {
-        blockService = backendService.getBlockService();
-        transactionHelperService = backendService.getTransactionHelperService();
-        feeCalculationService = backendService.getFeeCalculationService();
-        transactionService = backendService.getTransactionService();
-    }
-    
-    @Override
-    public Object runTool(Map props, WorkflowAssignment wfAssignment) 
+    public Object runTool() 
             throws RuntimeException {
         
-        try {
-            initUtils(props);
-            
+        try {            
             String formDefId = getPropertyString("formDefId");
             final String primaryKey = appService.getOriginProcessId(wfAssignment.getProcessId());
 

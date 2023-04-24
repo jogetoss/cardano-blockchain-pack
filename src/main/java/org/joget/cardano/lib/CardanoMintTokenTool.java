@@ -4,7 +4,6 @@ import com.bloxbean.cardano.client.account.Account;
 import com.bloxbean.cardano.client.api.exception.ApiException;
 import com.bloxbean.cardano.client.api.helper.model.TransactionResult;
 import com.bloxbean.cardano.client.api.model.Result;
-import com.bloxbean.cardano.client.backend.api.BackendService;
 import com.bloxbean.cardano.client.backend.model.TransactionContent;
 import com.bloxbean.cardano.client.cip.cip20.MessageMetadata;
 import com.bloxbean.cardano.client.cip.cip25.NFT;
@@ -31,36 +30,27 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.List;
-import org.joget.cardano.service.PluginUtil;
-import org.joget.cardano.service.BackendUtil;
-import org.joget.cardano.service.TransactionUtil;
+import org.joget.cardano.util.PluginUtil;
+import org.joget.cardano.util.BackendUtil;
+import org.joget.cardano.util.TransactionUtil;
 import java.util.Map;
-import org.joget.apps.app.model.AppDefinition;
-import org.joget.apps.app.service.AppService;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.apps.form.model.FormRow;
 import org.joget.apps.form.model.FormRowSet;
 import org.joget.apps.form.service.FormUtil;
 import org.joget.cardano.model.CardanoProcessTool;
 import org.joget.cardano.model.NetworkType;
-import org.joget.cardano.service.ExplorerLinkUtil;
-import org.joget.cardano.service.MetadataUtil;
-import static org.joget.cardano.service.MetadataUtil.NFT_FORMDATA_PROPERTY_LABEL;
-import static org.joget.cardano.service.MetadataUtil.TOKEN_INFO_METADATUM_LABEL;
-import org.joget.cardano.service.TokenUtil;
-import static org.joget.cardano.service.TransactionUtil.MAX_FEE_LIMIT;
+import org.joget.cardano.util.ExplorerLinkUtil;
+import org.joget.cardano.util.MetadataUtil;
+import static org.joget.cardano.util.MetadataUtil.NFT_FORMDATA_PROPERTY_LABEL;
+import static org.joget.cardano.util.MetadataUtil.TOKEN_INFO_METADATUM_LABEL;
+import org.joget.cardano.util.TokenUtil;
+import static org.joget.cardano.util.TransactionUtil.MAX_FEE_LIMIT;
 import org.joget.commons.util.LogUtil;
 import org.joget.commons.util.PluginThread;
-import org.joget.workflow.model.WorkflowAssignment;
-import org.joget.workflow.model.service.WorkflowManager;
 import org.joget.workflow.util.WorkflowUtil;
-import org.springframework.context.ApplicationContext;
 
 public class CardanoMintTokenTool extends CardanoProcessTool {
-    
-    AppService appService;
-    AppDefinition appDef;
-    WorkflowManager workflowManager;
     
     @Override
     public String getName() {
@@ -79,18 +69,8 @@ public class CardanoMintTokenTool extends CardanoProcessTool {
         return AppUtil.readPluginResource(getClassName(), "/properties/CardanoMintTokenTool.json", new String[]{backendConfigs, wfVarMappings}, true, PluginUtil.MESSAGE_PATH);
     }
     
-    protected void initUtils(Map props) {        
-        ApplicationContext ac = AppUtil.getApplicationContext();
-        
-        appService = (AppService) ac.getBean("appService");
-        appDef = (AppDefinition) props.get("appDef");
-        workflowManager = (WorkflowManager) ac.getBean("workflowManager");
-    }
-    
     @Override
-    public boolean isInputDataValid(Map props, WorkflowAssignment wfAssignment) {
-        initUtils(props);
-        
+    public boolean isInputDataValid() {        
         String formDefId = getPropertyString("formDefId");
         final String primaryKey = appService.getOriginProcessId(wfAssignment.getProcessId());
 
@@ -119,20 +99,10 @@ public class CardanoMintTokenTool extends CardanoProcessTool {
     }
     
     @Override
-    public void initBackendServices(BackendService backendService) {
-        blockService = backendService.getBlockService();
-        transactionHelperService = backendService.getTransactionHelperService();
-        feeCalculationService = backendService.getFeeCalculationService();
-        transactionService = backendService.getTransactionService();
-    }
-    
-    @Override
-    public Object runTool(Map props, WorkflowAssignment wfAssignment) 
+    public Object runTool() 
             throws RuntimeException {
         
-        try {
-            initUtils(props);
-            
+        try {            
             String formDefId = getPropertyString("formDefId");
             final String primaryKey = appService.getOriginProcessId(wfAssignment.getProcessId());
 

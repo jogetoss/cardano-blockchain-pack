@@ -1,4 +1,4 @@
-package org.joget.cardano.service;
+package org.joget.cardano.util;
 
 import com.bloxbean.cardano.client.backend.api.BackendService;
 import static com.bloxbean.cardano.client.backend.blockfrost.common.Constants.BLOCKFROST_MAINNET_URL;

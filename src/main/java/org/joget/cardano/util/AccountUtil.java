@@ -1,4 +1,4 @@
-package org.joget.cardano.service;
+package org.joget.cardano.util;
 
 import com.bloxbean.cardano.client.api.exception.ApiException;
 import com.bloxbean.cardano.client.backend.api.AddressService;

@@ -13,17 +13,19 @@ import com.bloxbean.cardano.client.backend.api.MetadataService;
 import com.bloxbean.cardano.client.backend.api.NetworkInfoService;
 import com.bloxbean.cardano.client.backend.api.TransactionService;
 import com.bloxbean.cardano.client.backend.api.UtxoService;
+import java.util.Map;
 import org.joget.apps.form.model.Element;
 import org.joget.apps.form.model.FormBinder;
 import org.joget.apps.form.model.FormData;
 import org.joget.apps.form.model.FormLoadBinder;
 import org.joget.apps.form.model.FormRowSet;
-import org.joget.cardano.service.BackendUtil;
-import org.joget.cardano.service.PluginUtil;
+import org.joget.cardano.util.BackendUtil;
+import org.joget.cardano.util.PluginUtil;
 import org.joget.commons.util.LogUtil;
 
 public abstract class CardanoFormBinder extends FormBinder implements FormLoadBinder {
     
+    //Cardano backend services
     protected AssetService assetService;
     protected BlockService blockService;
     protected NetworkInfoService networkInfoService;
@@ -37,6 +39,9 @@ public abstract class CardanoFormBinder extends FormBinder implements FormLoadBi
     protected UtxoTransactionBuilder utxoTransactionBuilder;
     protected FeeCalculationService feeCalculationService;
     
+    //Plugin properties
+    protected Map props;
+    
     /**
      * Used to validate necessary input values prior to executing API calls. This method is wrapped by load().
      * @return A boolean value to continue or skip plugin execution. Default value is true.
@@ -44,13 +49,6 @@ public abstract class CardanoFormBinder extends FormBinder implements FormLoadBi
     public boolean isInputDataValid() {
         return true;
     }
-    
-    /**
-     * Used to initiatize required backend services prior to executing logic. This method is wrapped by load().
-     * 
-     * @param backendService The backend service to execute queries and actions with the blockchain
-     */
-    public abstract void initBackendServices(BackendService backendService);
     
     /**
      * Loads data based on a primary key. This method is wrapped by load().
@@ -65,6 +63,9 @@ public abstract class CardanoFormBinder extends FormBinder implements FormLoadBi
     
     @Override
     public FormRowSet load(Element element, String primaryKey, FormData formData) {
+        this.props = getProperties();
+        initUtils();
+        
         if (!isInputDataValid()) {
             LogUtil.debug(getClassName(), "Invalid input(s) detected. Aborting plugin execution.");
             return null;
@@ -73,7 +74,7 @@ public abstract class CardanoFormBinder extends FormBinder implements FormLoadBi
         FormRowSet rows = new FormRowSet();
         
         try {
-            final BackendService backendService = BackendUtil.getBackendService(getProperties());
+            final BackendService backendService = BackendUtil.getBackendService(props);
             
             if (backendService != null) {
                 initBackendServices(backendService);
@@ -84,6 +85,23 @@ public abstract class CardanoFormBinder extends FormBinder implements FormLoadBi
         }
         
         return rows;
+    }
+    
+    private void initUtils() { }
+    
+    private void initBackendServices(BackendService backendService) {
+        assetService = backendService.getAssetService();
+        blockService = backendService.getBlockService();
+        networkInfoService = backendService.getNetworkInfoService();
+        transactionService = backendService.getTransactionService();
+        utxoService = backendService.getUtxoService();
+        addressService = backendService.getAddressService();
+        accountService = backendService.getAccountService();
+        epochService = backendService.getEpochService();
+        metadataService = backendService.getMetadataService();
+        transactionHelperService = backendService.getTransactionHelperService();
+        utxoTransactionBuilder = backendService.getUtxoTransactionBuilder();
+        feeCalculationService = backendService.getFeeCalculationService();
     }
     
     @Override

@@ -14,14 +14,28 @@ import com.bloxbean.cardano.client.backend.api.NetworkInfoService;
 import com.bloxbean.cardano.client.backend.api.TransactionService;
 import com.bloxbean.cardano.client.backend.api.UtxoService;
 import java.util.Map;
-import org.joget.cardano.service.BackendUtil;
-import org.joget.cardano.service.PluginUtil;
+import org.joget.apps.app.model.AppDefinition;
+import org.joget.apps.app.service.AppService;
+import org.joget.apps.app.service.AppUtil;
+import org.joget.apps.datalist.service.DataListService;
+import org.joget.cardano.util.BackendUtil;
+import org.joget.cardano.util.PluginUtil;
 import org.joget.commons.util.LogUtil;
 import org.joget.plugin.base.DefaultApplicationPlugin;
 import org.joget.workflow.model.WorkflowAssignment;
+import org.joget.workflow.model.service.WorkflowManager;
+import org.springframework.context.ApplicationContext;
 
 public abstract class CardanoProcessTool extends DefaultApplicationPlugin {
     
+    //Joget services
+    protected AppDefinition appDef;
+    protected AppService appService;
+    protected DataListService dataListService;
+    protected WorkflowManager workflowManager;
+    protected WorkflowAssignment wfAssignment;
+    
+    //Cardano backend services
     protected AssetService assetService;
     protected BlockService blockService;
     protected NetworkInfoService networkInfoService;
@@ -35,12 +49,15 @@ public abstract class CardanoProcessTool extends DefaultApplicationPlugin {
     protected UtxoTransactionBuilder utxoTransactionBuilder;
     protected FeeCalculationService feeCalculationService;
     
+    //Plugin properties
+    protected Map props;
+    
     /**
      * Used to validate necessary input values prior to executing API calls. This method is wrapped by execute().
      * 
      * @return A boolean value to continue or skip plugin execution. Default value is true.
      */
-    public boolean isInputDataValid(Map props, WorkflowAssignment wfAssignment) {
+    public boolean isInputDataValid() {
         return true;
     }
     
@@ -54,29 +71,18 @@ public abstract class CardanoProcessTool extends DefaultApplicationPlugin {
     }
     
     /**
-     * Used to initiatize required backend services prior to executing logic. This method is wrapped by execute().
-     * 
-     * @param backendService The backend service to execute queries and actions with the blockchain
-     */
-    public abstract void initBackendServices(BackendService backendService);
-    
-    /**
      * To execute logic in a process tool. This method is wrapped by execute().
-     * 
-     * A org.joget.workflow.model.WorkflowAssignment object is passed as "workflowAssignment" property when it is available.
-     * 
-     * @param props
-     * @param wfAssignment
      * 
      * @return is not used for now
      */
-    public abstract Object runTool(Map props, WorkflowAssignment wfAssignment);
+    public abstract Object runTool();
     
     @Override
-    public Object execute(Map props) {
-        WorkflowAssignment wfAssignment = (WorkflowAssignment) props.get("workflowAssignment");
+    public Object execute(Map properties) {
+        this.props = properties;
+        initUtils();
         
-        if (!isInputDataValid(props, wfAssignment)) {
+        if (!isInputDataValid()) {
             LogUtil.debug(getClassName(), "Invalid input(s) detected. Aborting plugin execution.");
             return null;
         }
@@ -89,13 +95,38 @@ public abstract class CardanoProcessTool extends DefaultApplicationPlugin {
                 initBackendServices(backendService);
             }
 
-            result = runTool(props, wfAssignment);
+            result = runTool();
             
         } catch (Exception ex) {
             LogUtil.error(getClassName(), ex, "Error executing process tool plugin...");
         }
         
         return result;
+    }
+    
+    private void initUtils() {
+        appDef = (AppDefinition) props.get("appDef");
+        wfAssignment = (WorkflowAssignment) props.get("workflowAssignment");
+        
+        ApplicationContext ac = AppUtil.getApplicationContext();
+        appService = (AppService) ac.getBean("appService");
+        dataListService = (DataListService) ac.getBean("dataListService");
+        workflowManager = (WorkflowManager) ac.getBean("workflowManager");
+    }
+    
+    private void initBackendServices(BackendService backendService) {
+        assetService = backendService.getAssetService();
+        blockService = backendService.getBlockService();
+        networkInfoService = backendService.getNetworkInfoService();
+        transactionService = backendService.getTransactionService();
+        utxoService = backendService.getUtxoService();
+        addressService = backendService.getAddressService();
+        accountService = backendService.getAccountService();
+        epochService = backendService.getEpochService();
+        metadataService = backendService.getMetadataService();
+        transactionHelperService = backendService.getTransactionHelperService();
+        utxoTransactionBuilder = backendService.getUtxoTransactionBuilder();
+        feeCalculationService = backendService.getFeeCalculationService();
     }
     
     @Override

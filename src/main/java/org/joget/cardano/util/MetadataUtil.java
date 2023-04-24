@@ -1,4 +1,4 @@
-package org.joget.cardano.service;
+package org.joget.cardano.util;
 
 import com.bloxbean.cardano.client.cip.cip20.MessageMetadata;
 import java.io.FileInputStream;
