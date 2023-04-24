@@ -144,8 +144,8 @@ public class CardanoMintTokenTool extends CardanoProcessTool {
             final boolean reusePolicy = "reuse".equalsIgnoreCase(getPropertyString("mintingPolicyHandling"));
             final boolean mintTypeNft = "nft".equalsIgnoreCase(getPropertyString("mintType"));
 
-            final boolean isTest = BackendUtil.isTestnet(props);
             final NetworkType networkType = BackendUtil.getNetworkType(props);
+            final boolean isTest = networkType.isTestNetwork();
 
             final Account senderAccount = new Account(networkType.getNetwork(), accountMnemonic);
 

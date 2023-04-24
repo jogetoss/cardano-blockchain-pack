@@ -71,10 +71,9 @@ public class CardanoGenerateAccountTool extends CardanoProcessTool {
     @Override
     public Object runTool(Map props, WorkflowAssignment wfAssignment) {
         initUtils(props);
-        
-        boolean isTest = BackendUtil.isTestnet(props);
-        
+         
         final NetworkType networkType = BackendUtil.getNetworkType(props);
+        final boolean isTest = networkType.isTestNetwork();
         
         final Account account = new Account(networkType.getNetwork());
         

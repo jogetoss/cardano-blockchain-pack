@@ -14,7 +14,6 @@ import com.bloxbean.cardano.client.backend.model.TransactionContent;
 import com.bloxbean.cardano.client.common.ADAConversionUtil;
 import static com.bloxbean.cardano.client.common.CardanoConstants.LOVELACE;
 import com.bloxbean.cardano.client.common.MinAdaCalculator;
-import com.bloxbean.cardano.client.common.model.Network;
 import com.bloxbean.cardano.client.crypto.KeyGenUtil;
 import com.bloxbean.cardano.client.crypto.SecretKey;
 import com.bloxbean.cardano.client.crypto.VerificationKey;

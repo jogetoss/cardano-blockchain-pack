@@ -9,17 +9,19 @@ import org.joget.commons.util.LogUtil;
  */
 public enum NetworkType {
     
-    MAINNET("mainnet", Networks.mainnet()),
-    PREVIEW_TESTNET("previewTestnet", Networks.preview()),
-    PREPROD_TESTNET("preprodTestnet", Networks.preprod()),
-    LEGACY_TESTNET("testnet", Networks.testnet());
+    MAINNET("mainnet", Networks.mainnet(), false),
+    PREVIEW_TESTNET("previewTestnet", Networks.preview(), true),
+    PREPROD_TESTNET("preprodTestnet", Networks.preprod(), true),
+    LEGACY_TESTNET("testnet", Networks.testnet(), true);
     
     private final String value;
     private final Network network;
+    private final boolean isTestNetwork;
     
-    NetworkType(final String value, Network network) {
+    NetworkType(String value, Network network, boolean isTestNetwork) {
         this.value = value;
         this.network = network;
+        this.isTestNetwork = isTestNetwork;
     }
     
     @Override
@@ -29,6 +31,10 @@ public enum NetworkType {
     
     public Network getNetwork() {
         return this.network;
+    }
+    
+    public boolean isTestNetwork() {
+        return this.isTestNetwork;
     }
     
     public static NetworkType fromString(String text) {
@@ -43,11 +49,9 @@ public enum NetworkType {
     }
     
     public static NetworkType fromNetwork(Network network) {
-        if (network != null) {
-            for (NetworkType type : NetworkType.values()) {
-                if ((type.network).equals(network)) {
-                    return type;
-                }
+        for (NetworkType type : NetworkType.values()) {
+            if ((type.network).equals(network)) {
+                return type;
             }
         }
         

@@ -80,10 +80,6 @@ public class BackendUtil {
         return NetworkType.fromNetwork(network);
     }
     
-    public static boolean isTestnet(Map properties) {
-        return !(NetworkType.MAINNET).equals(getNetworkType(properties));
-    }
-    
     private static String getClassName() {
         return BackendUtil.class.getName();
     }
