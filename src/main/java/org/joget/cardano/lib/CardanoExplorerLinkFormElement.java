@@ -142,6 +142,6 @@ public class CardanoExplorerLinkFormElement extends CardanoFormElement implement
 
     @Override
     public String getFormBuilderTemplate() {
-        return "<span class='form-floating-label'>Cardano Explorer Link</span>";
+        return "<div class=\"form-cell\"><span class='form-floating-label'>Cardano Explorer Link</span></div>";
     }
 }

@@ -1,52 +1,50 @@
-<#if includeMetaData>
-    <div class="form-cell" ${elementMetaData!}>
+<div class="form-cell" ${elementMetaData!}>
+    <#if includeMetaData>
         <span class='form-floating-label'>Cardano Explorer Link</span>
-    </div>
-<#else>
-    <#assign displayAs = element.properties.displayAs>
-    <#assign linkTarget = element.properties.linkTarget>
-    <#assign invalidValueBehavior = element.properties.invalidValueBehavior>
-
-    <#if !isValidValue && invalidValueBehavior == "hideLink">
-        <#-- Don't show anything -->
     <#else>
-        <div class='form-cell'>
-        <#if displayAs == "button">
-            <#assign buttonLabel = element.properties.buttonLabel>
-            
-            <#if linkTarget == "newTab">
-                <#assign onclickFunction = "window.open('${explorerUrl!}','_blank'); return false;">
-            <#else>
-                <#assign onclickFunction = "window.location.href='${explorerUrl!}'; return false;">
-            </#if>
-            
-            <#if !isValidValue && invalidValueBehavior == "disableLink">
-                <#assign disableAttr = "disabled">
-            </#if>
+        <#assign displayAs = element.properties.displayAs>
+        <#assign linkTarget = element.properties.linkTarget>
+        <#assign invalidValueBehavior = element.properties.invalidValueBehavior>
 
-            <button id="explorer_link_${element.properties.elementUniqueKey!}" ${elementMetaData!} class="explorer-link-button btn btn-primary" onclick="${onclickFunction}" ${disableAttr!}>${buttonLabel!}</button>
+        <#if !isValidValue && invalidValueBehavior == "hideLink">
+            <#-- Don't show anything -->
         <#else>
-            <#assign hyperlinkLabel = element.properties.hyperlinkLabel>
+            <#if displayAs == "button">
+                <#assign buttonLabel = element.properties.buttonLabel>
 
-            <#if !hyperlinkLabel?has_content>
-                <#assign hyperlinkLabel = explorerUrl>
-            </#if>
-            
-            <#if linkTarget == "newTab">
-                <#assign clickTarget = "_blank">
+                <#if linkTarget == "newTab">
+                    <#assign onclickFunction = "window.open('${explorerUrl!}','_blank'); return false;">
+                <#else>
+                    <#assign onclickFunction = "window.location.href='${explorerUrl!}'; return false;">
+                </#if>
+
+                <#if !isValidValue && invalidValueBehavior == "disableLink">
+                    <#assign disableAttr = "disabled">
+                </#if>
+
+                <button id="explorer_link_${element.properties.elementUniqueKey!}" ${elementMetaData!} class="explorer-link-button btn btn-primary" onclick="${onclickFunction}" ${disableAttr!}>${buttonLabel!}</button>
             <#else>
-                <#assign clickTarget = "_self">
-            </#if>
+                <#assign hyperlinkLabel = element.properties.hyperlinkLabel>
 
-            <#if !isValidValue && invalidValueBehavior == "disableLink">
-                <#assign url = "javascript:void(0)">
-                <#assign clickTarget = "_self">
-            <#else>
-                <#assign url = explorerUrl>
-            </#if>
+                <#if !hyperlinkLabel?has_content>
+                    <#assign hyperlinkLabel = explorerUrl>
+                </#if>
 
-            <a id="explorer_link_${element.properties.elementUniqueKey!}" ${elementMetaData!} class="explorer-link-hyperlink" href="${url!}" target="${clickTarget!}">${hyperlinkLabel!}</a>
+                <#if linkTarget == "newTab">
+                    <#assign clickTarget = "_blank">
+                <#else>
+                    <#assign clickTarget = "_self">
+                </#if>
+
+                <#if !isValidValue && invalidValueBehavior == "disableLink">
+                    <#assign url = "javascript:void(0)">
+                    <#assign clickTarget = "_self">
+                <#else>
+                    <#assign url = explorerUrl>
+                </#if>
+
+                <a id="explorer_link_${element.properties.elementUniqueKey!}" ${elementMetaData!} class="explorer-link-hyperlink" href="${url!}" target="${clickTarget!}">${hyperlinkLabel!}</a>
+            </#if>
         </#if>
-        </div>
     </#if>
-</#if>
+</div>
