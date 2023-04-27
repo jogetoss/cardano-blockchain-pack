@@ -15,7 +15,7 @@ public class ExplorerFactory {
     
     public Explorer getExplorer(String explorerType) {
         switch (explorerType) {
-            case DEFAULT_EXPLORER:
+            case "cardanoscan":
                 return new Cardanoscan(networkType);
             case "cexplorer" :
                 return new Cexplorer(networkType);
