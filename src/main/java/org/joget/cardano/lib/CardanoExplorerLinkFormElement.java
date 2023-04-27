@@ -118,7 +118,7 @@ public class CardanoExplorerLinkFormElement extends CardanoFormElement implement
             return "";
         }
         
-        Explorer explorer = new ExplorerFactory(networkType).getExplorer(explorerType);
+        Explorer explorer = new ExplorerFactory(networkType).createExplorer(explorerType);
         
         switch (valueType) {
             case ADDRESS_TYPE :

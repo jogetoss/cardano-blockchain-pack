@@ -13,7 +13,7 @@ public class ExplorerFactory {
         this.networkType = networkType;
     }
     
-    public Explorer getExplorer(String explorerType) {
+    public Explorer createExplorer(String explorerType) {
         switch (explorerType) {
             case "cardanoscan":
                 return new Cardanoscan(networkType);

@@ -396,7 +396,7 @@ public class CardanoBurnTokenTool extends CardanoProcessTool {
             Result<String> transactionResult, 
             Result<TransactionContent> validatedtransactionResult) {
         
-        Explorer explorer = new ExplorerFactory(networkType).getExplorer(DEFAULT_EXPLORER);
+        Explorer explorer = new ExplorerFactory(networkType).createExplorer(DEFAULT_EXPLORER);
         
         String transactionSuccessfulVar = getPropertyString("wfTransactionSuccessful");
         String transactionValidatedVar = getPropertyString("wfTransactionValidated");
