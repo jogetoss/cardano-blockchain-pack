@@ -10,9 +10,10 @@ import org.joget.apps.form.model.FormData;
 import org.joget.apps.form.service.FormUtil;
 import org.joget.cardano.model.CardanoFormElement;
 import org.joget.cardano.model.NetworkType;
+import org.joget.cardano.model.explorer.Explorer;
+import org.joget.cardano.model.explorer.ExplorerFactory;
 import org.joget.cardano.util.AccountUtil;
 import org.joget.cardano.util.BackendUtil;
-import org.joget.cardano.util.ExplorerLinkUtil;
 import org.joget.cardano.util.PluginUtil;
 import org.joget.cardano.util.TokenUtil;
 import org.joget.cardano.util.TransactionUtil;
@@ -117,16 +118,20 @@ public class CardanoExplorerLinkFormElement extends CardanoFormElement implement
             return "";
         }
         
+        Explorer explorer = new ExplorerFactory(networkType).getExplorer(explorerType);
+        
         switch (valueType) {
             case ADDRESS_TYPE :
-                return ExplorerLinkUtil.getAddressExplorerUrl(networkType, retrievedValue, explorerType);
+                return explorer.getAddressUrl(retrievedValue);
             case POLICY_TYPE :
-                return ExplorerLinkUtil.getPolicyExplorerUrl(networkType, retrievedValue, explorerType);
+                return explorer.getPolicyUrl(retrievedValue);
             case ASSET_TYPE :
-                return ExplorerLinkUtil.getTokenExplorerUrl(networkType, retrievedValue, explorerType);
+                return explorer.getTokenUrl(retrievedValue);
             case TX_ID_TYPE:
+                return explorer.getTransactionUrl(retrievedValue);
             default:
-                return ExplorerLinkUtil.getTransactionExplorerUrl(networkType, retrievedValue, explorerType);
+                LogUtil.warn(getClassName(), "Unknown value type selection found in plugin properties!");
+                return null;
         }
     }
 

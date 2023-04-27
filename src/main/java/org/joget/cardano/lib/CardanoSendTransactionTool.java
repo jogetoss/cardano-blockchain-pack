@@ -38,7 +38,9 @@ import org.joget.apps.form.model.FormRow;
 import org.joget.apps.form.model.FormRowSet;
 import org.joget.cardano.model.CardanoProcessTool;
 import org.joget.cardano.model.NetworkType;
-import org.joget.cardano.util.ExplorerLinkUtil;
+import org.joget.cardano.model.explorer.Explorer;
+import org.joget.cardano.model.explorer.ExplorerFactory;
+import static org.joget.cardano.model.explorer.ExplorerFactory.DEFAULT_EXPLORER;
 import org.joget.cardano.util.MetadataUtil;
 import org.joget.cardano.util.TokenUtil;
 import static org.joget.cardano.util.TransactionUtil.MAX_FEE_LIMIT;
@@ -302,6 +304,8 @@ public class CardanoSendTransactionTool extends CardanoProcessTool implements Pl
             Result<TransactionResult> transactionResult, 
             Result<TransactionContent> validatedtransactionResult) {
         
+        Explorer explorer = new ExplorerFactory(networkType).getExplorer(DEFAULT_EXPLORER);
+        
         String transactionSuccessfulVar = getPropertyString("wfTransactionSuccessful");
         String transactionValidatedVar = getPropertyString("wfTransactionValidated");
         String transactionIdVar = getPropertyString("wfTransactionId");
@@ -325,7 +329,7 @@ public class CardanoSendTransactionTool extends CardanoProcessTool implements Pl
         storeValuetoActivityVar(
                 activityId, 
                 transactionUrlVar, 
-                transactionResult != null ? ExplorerLinkUtil.getTransactionExplorerUrl(networkType, transactionResult.getValue().getTransactionId()) : ""
+                transactionResult != null ? explorer.getTransactionUrl(transactionResult.getValue().getTransactionId()) : ""
         );
     }
     

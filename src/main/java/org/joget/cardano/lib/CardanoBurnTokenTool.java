@@ -48,7 +48,9 @@ import org.joget.apps.form.model.FormRow;
 import org.joget.apps.form.model.FormRowSet;
 import org.joget.cardano.model.CardanoProcessTool;
 import org.joget.cardano.model.NetworkType;
-import org.joget.cardano.util.ExplorerLinkUtil;
+import org.joget.cardano.model.explorer.Explorer;
+import org.joget.cardano.model.explorer.ExplorerFactory;
+import static org.joget.cardano.model.explorer.ExplorerFactory.DEFAULT_EXPLORER;
 import org.joget.cardano.util.TokenUtil;
 import static org.joget.cardano.util.TransactionUtil.MAX_FEE_LIMIT;
 import org.joget.commons.util.LogUtil;
@@ -394,6 +396,8 @@ public class CardanoBurnTokenTool extends CardanoProcessTool {
             Result<String> transactionResult, 
             Result<TransactionContent> validatedtransactionResult) {
         
+        Explorer explorer = new ExplorerFactory(networkType).getExplorer(DEFAULT_EXPLORER);
+        
         String transactionSuccessfulVar = getPropertyString("wfTransactionSuccessful");
         String transactionValidatedVar = getPropertyString("wfTransactionValidated");
         String transactionIdVar = getPropertyString("wfTransactionId");
@@ -417,7 +421,7 @@ public class CardanoBurnTokenTool extends CardanoProcessTool {
         storeValuetoActivityVar(
                 activityId, 
                 transactionUrlVar, 
-                transactionResult != null ? ExplorerLinkUtil.getTransactionExplorerUrl(networkType, transactionResult.getValue()) : ""
+                transactionResult != null ? explorer.getTransactionUrl(transactionResult.getValue()) : ""
         );
     }
     

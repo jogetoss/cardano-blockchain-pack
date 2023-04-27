@@ -40,7 +40,9 @@ import org.joget.apps.form.model.FormRowSet;
 import org.joget.apps.form.service.FormUtil;
 import org.joget.cardano.model.CardanoProcessTool;
 import org.joget.cardano.model.NetworkType;
-import org.joget.cardano.util.ExplorerLinkUtil;
+import org.joget.cardano.model.explorer.Explorer;
+import org.joget.cardano.model.explorer.ExplorerFactory;
+import static org.joget.cardano.model.explorer.ExplorerFactory.DEFAULT_EXPLORER;
 import org.joget.cardano.util.MetadataUtil;
 import static org.joget.cardano.util.MetadataUtil.NFT_FORMDATA_PROPERTY_LABEL;
 import static org.joget.cardano.util.MetadataUtil.TOKEN_INFO_METADATUM_LABEL;
@@ -397,6 +399,8 @@ public class CardanoMintTokenTool extends CardanoProcessTool {
             Result<TransactionResult> transactionResult, 
             Result<TransactionContent> validatedtransactionResult) {
         
+        Explorer explorer = new ExplorerFactory(networkType).getExplorer(DEFAULT_EXPLORER);
+        
         String transactionSuccessfulVar = getPropertyString("wfTransactionSuccessful");
         String transactionValidatedVar = getPropertyString("wfTransactionValidated");
         String transactionIdVar = getPropertyString("wfTransactionId");
@@ -420,7 +424,7 @@ public class CardanoMintTokenTool extends CardanoProcessTool {
         storeValuetoActivityVar(
                 activityId, 
                 transactionUrlVar, 
-                transactionResult != null ? ExplorerLinkUtil.getTransactionExplorerUrl(networkType, transactionResult.getValue().getTransactionId()) : ""
+                transactionResult != null ? explorer.getTransactionUrl(transactionResult.getValue().getTransactionId()) : ""
         );
     }
     
