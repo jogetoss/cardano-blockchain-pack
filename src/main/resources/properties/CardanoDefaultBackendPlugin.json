@@ -1,0 +1,8 @@
+[
+    {
+       "title":"@@defaults.cardanoDefaultBackendPlugin.header.config@@",
+       "properties":[
+            %s
+        ]
+    }
+]

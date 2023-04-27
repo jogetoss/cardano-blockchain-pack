@@ -20,14 +20,20 @@ public class BackendUtil {
     private BackendUtil() {}
     
     public static BackendService getBackendService(Map properties) {
+        Map defaultProps = PluginUtil.getBackendDefaultConfig();
+        if (defaultProps != null) {
+            properties.putAll(defaultProps);
+        }
         String backendServiceName = (String) properties.get("backendService");
         String blockfrostProjectKey = (String) properties.get("blockfrostProjectKey");
         
+        final NetworkType networkType = getNetworkType(properties);
+        
         switch (backendServiceName) {
             case "blockfrost":
-                return new BFBackendService(getBlockfrostEndpointUrl(properties), blockfrostProjectKey);
+                return new BFBackendService(getBlockfrostEndpointUrl(networkType), blockfrostProjectKey);
             case "koios":
-                return new KoiosBackendService(getKoiosEndpointUrl(properties));
+                return new KoiosBackendService(getKoiosEndpointUrl(networkType));
 //            case "ogmios":
 //                return new OgmiosBackendService("your_url_here");
             default:
@@ -36,9 +42,7 @@ public class BackendUtil {
         }
     }
     
-    private static String getBlockfrostEndpointUrl(Map properties) {
-        final NetworkType networkType = getNetworkType(properties);
-        
+    private static String getBlockfrostEndpointUrl(NetworkType networkType) {
         switch (networkType) {
             case LEGACY_TESTNET:
                 return BLOCKFROST_TESTNET_URL;
@@ -54,9 +58,7 @@ public class BackendUtil {
         }
     }
     
-    private static String getKoiosEndpointUrl(Map properties) {
-        final NetworkType networkType = getNetworkType(properties);
-        
+    private static String getKoiosEndpointUrl(NetworkType networkType) {
         switch (networkType) {
             case LEGACY_TESTNET:
                 return null; //Not available
@@ -73,6 +75,10 @@ public class BackendUtil {
     }
     
     public static NetworkType getNetworkType(Map properties) {
+        Map defaultProps = PluginUtil.getBackendDefaultConfig();
+        if (defaultProps != null) {
+            properties.putAll(defaultProps);
+        }
         return NetworkType.fromString((String) properties.get("networkType"));
     }
     

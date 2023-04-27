@@ -1,0 +1,5 @@
+{
+    "label":"@@cardano.prop.subheader.backendConfig@@",
+    "type":"header",
+    "description":"@@cardano.prop.subheader.backendConfig.message@@"
+}

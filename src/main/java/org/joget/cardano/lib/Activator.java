@@ -1,5 +1,6 @@
 package org.joget.cardano.lib;
 
+import org.joget.cardano.lib.plugindefaultproperties.CardanoDefaultBackendPlugin;
 import java.util.ArrayList;
 import java.util.Collection;
 import org.osgi.framework.BundleActivator;
@@ -26,6 +27,9 @@ public class Activator implements BundleActivator {
         
         //Form Element plugins
         registrationList.add(context.registerService(CardanoExplorerLinkFormElement.class.getName(), new CardanoExplorerLinkFormElement(), null));
+        
+        //Default Properties plugins
+        registrationList.add(context.registerService(CardanoDefaultBackendPlugin.class.getName(), new CardanoDefaultBackendPlugin(), null));
     }
 
     @Override
