@@ -26,7 +26,8 @@ public class CardanoGenerateAccountTool extends CardanoProcessTool {
     
     @Override
     public String getPropertyOptions() {
-        return AppUtil.readPluginResource(getClassName(), "/properties/CardanoGenerateAccountTool.json", null, true, PluginUtil.MESSAGE_PATH);
+        String backendConfigs = PluginUtil.readGenericBackendConfigs(getClassName());
+        return AppUtil.readPluginResource(getClassName(), "/properties/CardanoGenerateAccountTool.json", new String[]{backendConfigs}, true, PluginUtil.MESSAGE_PATH);
     }
     
     @Override

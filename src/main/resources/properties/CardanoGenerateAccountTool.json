@@ -3,27 +3,7 @@
        "title":"@@process.cardanogenerateaccounttool.header.config@@",
        "helplink": "@@process.cardanogenerateaccounttool.helplink@@",
        "properties":[
-            {
-                "name":"networkType",
-                "label":"@@cardano.prop.networkType@@",
-                "description":"@@cardano.prop.networkType.desc@@",
-                "type":"selectbox",
-                "options":[
-                    {
-                        "value":"mainnet",
-                        "label":"@@cardano.prop.networkType.mainnet@@"
-                    },
-                    {
-                        "value":"previewTestnet",
-                        "label":"@@cardano.prop.networkType.previewTestnet@@"
-                    },
-                    {
-                        "value":"preprodTestnet",
-                        "label":"@@cardano.prop.networkType.preprodTestnet@@"
-                    }
-                ],
-                "value":"preprodTestnet"
-            }
+            %s
         ]
     },
     {
