@@ -10,17 +10,24 @@ import static com.bloxbean.cardano.client.backend.koios.Constants.KOIOS_PREVIEW_
 import static com.bloxbean.cardano.client.backend.koios.Constants.KOIOS_PREPROD_URL;
 import com.bloxbean.cardano.client.backend.blockfrost.service.BFBackendService;
 import com.bloxbean.cardano.client.backend.koios.KoiosBackendService;
-import com.bloxbean.cardano.client.common.model.Network;
 import java.util.Map;
+import org.joget.apps.app.dao.PluginDefaultPropertiesDao;
+import org.joget.apps.app.model.PluginDefaultProperties;
+import org.joget.apps.app.service.AppUtil;
+import org.joget.cardano.lib.plugindefaultproperties.CardanoDefaultBackendPlugin;
 import org.joget.cardano.model.NetworkType;
 import org.joget.commons.util.LogUtil;
+import org.joget.commons.util.StringUtil;
+import org.joget.plugin.property.service.PropertyUtil;
 
 public class BackendUtil {
     
     private BackendUtil() {}
     
+    private static final String DEFAULT_CONFIG_PLUGIN_CLASSPATH = CardanoDefaultBackendPlugin.class.getCanonicalName();
+    
     public static BackendService getBackendService(Map properties) {
-        Map defaultProps = PluginUtil.getBackendDefaultConfig();
+        Map defaultProps = getBackendDefaultConfig();
         if (defaultProps != null) {
             properties.putAll(defaultProps);
         }
@@ -75,15 +82,24 @@ public class BackendUtil {
     }
     
     public static NetworkType getNetworkType(Map properties) {
-        Map defaultProps = PluginUtil.getBackendDefaultConfig();
+        Map defaultProps = getBackendDefaultConfig();
         if (defaultProps != null) {
             properties.putAll(defaultProps);
         }
         return NetworkType.fromString((String) properties.get("networkType"));
     }
     
-    public static NetworkType getNetworkType(Network network) {
-        return NetworkType.fromNetwork(network);
+    public static Map getBackendDefaultConfig() {
+        PluginDefaultPropertiesDao pluginDefaultPropertiesDao = (PluginDefaultPropertiesDao) AppUtil.getApplicationContext().getBean("pluginDefaultPropertiesDao");
+        PluginDefaultProperties prop = pluginDefaultPropertiesDao.loadById(DEFAULT_CONFIG_PLUGIN_CLASSPATH, AppUtil.getCurrentAppDefinition());
+        
+        if (prop == null) {
+            return null;
+        }
+        
+        return PropertyUtil.getPropertiesValueFromJson(
+            AppUtil.processHashVariable(prop.getPluginProperties(), null, StringUtil.TYPE_JSON, null)
+        );
     }
     
     private static String getClassName() {
