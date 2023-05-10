@@ -6,7 +6,10 @@
     <packaging>bundle</packaging>
     <version>7.0.10</version>
     <name>cardano_blockchain_pack</name>
-    <url>http://www.joget.org</url>
+    <url>https://www.joget.org</url>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
     <build>
         <resources>
             <resource>
@@ -16,12 +19,49 @@
                 <directory>src/main/resources-filtered</directory>
                 <filtering>true</filtering>
             </resource>
+            <!-- After run webpack, get files from "npm-build-output" dir to pack into jar "resources" dir -->
+            <resource>
+                <directory>target/npm-build-output</directory>
+                <targetPath>resources</targetPath>
+            </resource>
         </resources>
         <plugins>
             <plugin>
+                <!-- See https://github.com/eirslett/frontend-maven-plugin -->
+                <groupId>com.github.eirslett</groupId>
+                <artifactId>frontend-maven-plugin</artifactId>
+                <version>1.12.1</version>
+                <configuration>
+                    <installDirectory>target</installDirectory>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>install node and npm</id>
+                        <goals>
+                            <goal>install-node-and-npm</goal>
+                        </goals>
+                        <configuration>
+                            <nodeVersion>v18.16.0</nodeVersion>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>npm install</id>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>webpack build production</id>
+                        <goals>
+                            <goal>webpack</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.10.1</version>
+                <version>3.11.0</version>
                 <configuration>
                     <release>11</release>
                 </configuration>
@@ -49,7 +89,7 @@
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
-                <version>5.1.4</version>
+                <version>5.1.8</version>
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
@@ -119,7 +159,6 @@
             <artifactId>cardano-client-backend-ogmios</artifactId>
             <version>0.4.3</version>
         </dependency>-->
-        <!--vasil update removed graphql support-->
         <!-- End change plugin specific dependencies here -->
     </dependencies>
     <distributionManagement>

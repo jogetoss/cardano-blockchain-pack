@@ -1,4 +1,9 @@
-src/main/resources/secure.properties
+
+#################
+## Front End
+#################
+
+node_modules
 
 #################
 ## Apple Macs
