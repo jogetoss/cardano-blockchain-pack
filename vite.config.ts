@@ -8,16 +8,16 @@ export default defineConfig({
     plugins: [react(), wasm(), topLevelAwait()],
     build: {
         /**
-        * See https://rollupjs.org/configuration-options/
-        *
-        * input -> Define your JS file(s) to be compiled. Object 'name' will be its output file name.
-        *
-        * output.dir -> Define where to output your compiled file(s) to. 
-        *               For this maven project, output to build path for maven to pack into jar later.
-        *               NOTE: Don't point to your working directory, to avoid cluttering your workspace.
-        * output.entryFileNames -> [name] will follow the entry name in 'input'
-        * output.assetFileNames -> Rename misc files emitted from build
-        */
+         * See https://rollupjs.org/configuration-options/
+         *
+         * input -> Define your JS file(s) to be compiled. Object 'name' will be its output file name.
+         *
+         * output.dir -> Define where to output your compiled file(s) to.
+         *               For this maven project, output to build path for maven to pack into jar later.
+         *               NOTE: Don't point to your working directory, to avoid cluttering your workspace.
+         * output.entryFileNames -> [name] will follow the entry name in 'input'
+         * output.assetFileNames -> Rename misc files emitted from build
+         */
         rollupOptions: {
             input: {
                 loginButton: "src/main/frontend/LoginButton.tsx",
@@ -30,10 +30,10 @@ export default defineConfig({
         },
     },
     /**
-    * See https://vitejs.dev/config/shared-options.html#base
-    * Define path for on-demand-loading or loading external resources (e.g.: webassembly modules .wasm). 
-    * Otherwise, defaults to server path (e.g.: http//localhost:8080/).
-    */
+     * See https://vitejs.dev/config/shared-options.html#base
+     * Define path for on-demand-loading or loading external resources (e.g.: webassembly modules .wasm).
+     * Otherwise, defaults to server path (e.g.: http//localhost:8080/).
+     */
     base: "/jw/plugin/org.joget.cardano.lib.CardanoExplorerLinkFormElement",
     optimizeDeps: {
         esbuildOptions: {

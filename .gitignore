@@ -41,6 +41,11 @@ local.properties
 # PDT-specific
 .buildpath
 
+#################
+## Visual Studio Code
+#################
+
+.vscode
 
 #################
 ## Visual Studio
