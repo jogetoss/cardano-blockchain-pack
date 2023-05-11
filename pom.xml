@@ -19,7 +19,7 @@
                 <directory>src/main/resources-filtered</directory>
                 <filtering>true</filtering>
             </resource>
-            <!-- After run webpack, get files from "npm-build-output" dir to pack into jar "resources" dir -->
+            <!-- After building frontend, get files from "npm-build-output" dir to pack into jar "resources" dir -->
             <resource>
                 <directory>target/npm-build-output</directory>
                 <targetPath>resources</targetPath>
