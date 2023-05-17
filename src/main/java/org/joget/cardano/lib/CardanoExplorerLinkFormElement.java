@@ -44,18 +44,16 @@ public class CardanoExplorerLinkFormElement extends CardanoFormElement implement
     }
     
     @Override
-    public String renderElement(FormData formData, Map dataModel) {        
-        final NetworkType networkType = BackendUtil.getNetworkType(getProperties());
+    public String renderElement(FormData formData, Map dataModel) {
+        if (!FormUtil.isFormBuilderActive()) {
+            final NetworkType networkType = BackendUtil.getNetworkType(getProperties());
         
-        String explorerType = getPropertyString("explorerType");
-        String valueType = getPropertyString("valueType");
-        String getValueMode = getPropertyString("getValueMode");
-        
-        String retrievedValue;
-        
-        if (FormUtil.isFormBuilderActive()) { // Don't need to unnecessarily retrieve value when in Form Builder
-            retrievedValue = "";
-        } else {
+            String explorerType = getPropertyString("explorerType");
+            String valueType = getPropertyString("valueType");
+            String getValueMode = getPropertyString("getValueMode");
+
+            String retrievedValue = "";
+
             switch (getValueMode) {
                 case "fieldId" :
                     String fieldId = getPropertyString("getFieldId");
@@ -74,11 +72,10 @@ public class CardanoExplorerLinkFormElement extends CardanoFormElement implement
                     retrievedValue = workflowManager.getProcessVariable(wfAssignment.getProcessId(), workflowVariable);
                     break;
             }
+
+            dataModel.put("isValidValue", checkValueExist(valueType, retrievedValue));
+            dataModel.put("explorerUrl", getExplorerUrl(valueType, networkType, retrievedValue, explorerType));
         }
-        
-        dataModel.put("element", this);
-        dataModel.put("isValidValue", checkValueExist(valueType, retrievedValue));
-        dataModel.put("explorerUrl", getExplorerUrl(valueType, networkType, retrievedValue, explorerType));
         
         return FormUtil.generateElementHtml(this, formData, "CardanoExplorerLinkFormElement.ftl", dataModel);
     }
@@ -147,6 +144,6 @@ public class CardanoExplorerLinkFormElement extends CardanoFormElement implement
 
     @Override
     public String getFormBuilderTemplate() {
-        return "<div class=\"form-cell\"><span class='form-floating-label'>Cardano Explorer Link</span></div>";
+        return "<div class=\"form-cell\"><span class=\"form-floating-label\">Cardano Explorer Link</span></div>";
     }
 }
