@@ -64,7 +64,7 @@ public class TokenUtil {
     // Combine all secret key(s) into string delimited by semicolon (e.g.: skey1;skey2;skey3)
     public static String getSecretKeysAsCborHexStringList(List<SecretKey> skeys) {
         if (skeys == null || skeys.isEmpty()) {
-            return null;
+            return "";
         }
         
         return skeys.stream().map(skey -> skey.getCborHex())
@@ -72,11 +72,11 @@ public class TokenUtil {
     }
     
     public static List<SecretKey> getSecretKeysStringAsList(String skeysStringList) {
-        if (skeysStringList == null || skeysStringList.trim().isEmpty()) {
-            return null;
-        }
-        
         List<SecretKey> skeys = new ArrayList<>();
+        
+        if (skeysStringList == null || skeysStringList.trim().isEmpty()) {
+            return skeys;
+        }
         
         for (String skey : skeysStringList.split(";")) {
             skeys.add(new SecretKey(skey.trim()));
