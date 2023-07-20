@@ -11,7 +11,7 @@ export interface Props {
     hyperlinkLabel?: string;
 }
 
-function ExplorerButton(props: Props) {
+function CardanoExplorerButton(props: Props) {
     if (
         props.isValidValue === "false" &&
         props.invalidValueBehavior === "hideLink"
@@ -71,14 +71,16 @@ function showAsHyperlink(props: Props) {
 }
 
 export function renderComponent() {
-    const domList = document.querySelectorAll("div.explorer-react-component");
+    const domList = document.querySelectorAll(
+        "div.cardano-explorer-react-component"
+    );
     for (let domElement of domList) {
         if (domElement instanceof HTMLElement) {
             createRoot(domElement).render(
-                <ExplorerButton {...domElement.dataset} />
+                <CardanoExplorerButton {...domElement.dataset} />
             );
         }
     }
 }
 
-export default ExplorerButton;
+export default CardanoExplorerButton;

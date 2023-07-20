@@ -174,7 +174,7 @@
                 "type" : "selectbox",
                 "required":"True",
                 "options_ajax_on_change":"id:datalistId",
-                "options_ajax":"[CONTEXT_PATH]/web/json/app[APP_PATH]/plugin/org.joget.cardano.lib.CardanoSendTransactionTool/service?action=getDatalistColumns",
+                "options_ajax":"[CONTEXT_PATH]/web/json/app[APP_PATH]/plugin/org.joget.cardano.lib.webservice.internal.HelperWebService/service?action=getDatalistColumns",
                 "options_ajax_method":"POST"
             },
             {
@@ -183,7 +183,7 @@
                 "type" : "selectbox",
                 "required":"True",
                 "options_ajax_on_change":"id:datalistId",
-                "options_ajax":"[CONTEXT_PATH]/web/json/app[APP_PATH]/plugin/org.joget.cardano.lib.CardanoSendTransactionTool/service?action=getDatalistColumns",
+                "options_ajax":"[CONTEXT_PATH]/web/json/app[APP_PATH]/plugin/org.joget.cardano.lib.webservice.internal.HelperWebService/service?action=getDatalistColumns",
                 "options_ajax_method":"POST"
             }
         ]

@@ -1,9 +1,9 @@
 <#if includeMetaData>
-    <div class="form-cell explorer-react-component" ${elementMetaData!}>
+    <div class="form-cell cardano-explorer-react-component" ${elementMetaData!}>
         <span class='form-floating-label'>Cardano Explorer Link</span>
     </div>
 <#else>
-    <div class="form-cell explorer-react-component" ${elementMetaData!}
+    <div class="form-cell cardano-explorer-react-component" ${elementMetaData!}
         data-element-key="${element.properties.elementUniqueKey!}"
         data-is-valid-value="${isValidValue!?c}"
         data-explorer-url="${explorerUrl!}"
@@ -16,7 +16,7 @@
     </div>
     <#if !(request.getAttribute("org.joget.cardano.lib.CardanoExplorerLinkFormElement")??)>
         <script type="module">
-        import { renderComponent } from "${request.contextPath}/plugin/org.joget.cardano.lib.CardanoExplorerLinkFormElement/ExplorerButton.js";
+        import { renderComponent } from "${request.contextPath}/plugin/org.joget.cardano.lib.CardanoExplorerLinkFormElement/CardanoExplorerButton.js";
         renderComponent();
         </script>
     </#if>

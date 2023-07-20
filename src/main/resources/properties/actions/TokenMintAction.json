@@ -1,0 +1,308 @@
+[
+    {
+       "title":"@@action.TokenMintAction.header.config@@",
+       "properties":[
+            {
+                "name":"formDefId",
+                "label":"@@action.TokenMintAction.formDefId@@",
+                "type":"selectbox",
+                "required":"true",
+                "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/forms/options"
+            },
+            {
+                "label" : "@@action.TokenMintAction.subheader.mintingConfig@@",
+                "type" : "header"
+            },
+            {
+                "name":"mintingPolicyHandling",
+                "label":"@@action.TokenMintAction.mintingPolicyHandling@@",
+                "type":"selectbox",
+                "options" : [{
+                    "value" : "generateNew",
+                    "label" : "@@action.TokenMintAction.mintingPolicyHandling.generateNew@@"
+                },{
+                    "value" : "reuse",
+                    "label" : "@@action.TokenMintAction.mintingPolicyHandling.reuse@@"
+                }],
+                "value":"generateNew"
+            },
+            {
+                "name" : "useCustomPolicyScript",
+                "label" : "@@action.TokenMintAction.useCustomPolicyScript@@",
+                "type" : "checkbox",
+                "options" : [{
+                    "value" : "true",
+                    "label" : ""
+                }],
+                "value" : "",
+                "control_field":"mintingPolicyHandling",
+                "control_value":"generateNew",
+                "control_use_regex":"false"
+            },
+            {
+                "name":"manualPolicyScript",
+                "label":"@@action.TokenMintAction.manualPolicyScript@@",
+                "description":"@@action.TokenMintAction.manualPolicyScript.desc@@",
+                "type":"textarea",
+                "control_field":"useCustomPolicyScript",
+                "control_value":"true",
+                "control_use_regex":"false"
+            },
+            {
+                "name":"manualPolicyKeys",
+                "label":"@@action.TokenMintAction.manualPolicyKeys@@",
+                "description":"@@action.TokenMintAction.manualPolicyKeys.desc@@",
+                "type":"textarea",
+                "control_field":"useCustomPolicyScript",
+                "control_value":"true",
+                "control_use_regex":"false"
+            },
+            {
+                "name":"policyScript",
+                "label":"@@action.TokenMintAction.policyScript@@",
+                "description":"@@action.TokenMintAction.policyScript.desc@@",
+                "type":"textfield",
+                "required":"True",
+                "control_field":"mintingPolicyHandling",
+                "control_value":"reuse",
+                "control_use_regex":"false"
+            },
+            {
+                "name":"policyKeys",
+                "label":"@@action.TokenMintAction.policyKeys@@",
+                "description":"@@action.TokenMintAction.policyKeys.desc@@",
+                "type":"textfield",
+                "required":"True",
+                "control_field":"mintingPolicyHandling",
+                "control_value":"reuse",
+                "control_use_regex":"false"
+            },
+            {
+                "label" : "@@action.TokenMintAction.header.mintNativeTokens@@",
+                "type" : "header"
+            },
+            {
+                "name" : "multipleNativeTokenMints",
+                "label" : "@@action.TokenMintAction.getDataFromList@@",
+                "type" : "checkbox",
+                "options" : [{
+                    "value" : "true",
+                    "label" : ""
+                }],
+                "value" : ""
+            },
+            {
+                "name" : "nativeTokenDatalistId",
+                "label" : "@@action.TokenMintAction.nativeTokenDatalistId@@",
+                "type" : "selectbox",
+                "required" : "true",
+                "options_ajax" : "[CONTEXT_PATH]/web/json/console/app[APP_PATH]/datalist/options",
+                "control_field":"multipleNativeTokenMints",
+                "control_value":"true",
+                "control_use_regex":"false"
+            },
+            {
+                "name" : "nativeTokenAssetNameColumn",
+                "label" : "@@action.TokenMintAction.assetName@@",
+                "type" : "selectbox",
+                "required":"true",
+                "options_ajax_on_change":"id:nativeTokenDatalistId",
+                "options_ajax":"[CONTEXT_PATH]/web/json/app[APP_PATH]/plugin/org.joget.cardano.lib.webservice.internal.HelperWebService/service?action=getDatalistColumns",
+                "options_ajax_method":"POST",
+                "control_field":"multipleNativeTokenMints",
+                "control_value":"true",
+                "control_use_regex":"false"
+            },
+            {
+                "name" : "nativeTokenMintAmountColumn",
+                "label" : "@@action.TokenMintAction.mintAmount@@",
+                "type" : "selectbox",
+                "required":"true",
+                "options_ajax_on_change":"id:nativeTokenDatalistId",
+                "options_ajax":"[CONTEXT_PATH]/web/json/app[APP_PATH]/plugin/org.joget.cardano.lib.webservice.internal.HelperWebService/service?action=getDatalistColumns",
+                "options_ajax_method":"POST",
+                "control_field":"multipleNativeTokenMints",
+                "control_value":"true",
+                "control_use_regex":"false"
+            },
+            {
+                "name" : "nativeTokenReceiverAddressColumn",
+                "label" : "@@action.TokenMintAction.receiverAddress@@",
+                "type" : "selectbox",
+                "required":"true",
+                "options_ajax_on_change":"id:nativeTokenDatalistId",
+                "options_ajax":"[CONTEXT_PATH]/web/json/app[APP_PATH]/plugin/org.joget.cardano.lib.webservice.internal.HelperWebService/service?action=getDatalistColumns",
+                "options_ajax_method":"POST",
+                "control_field":"multipleNativeTokenMints",
+                "control_value":"true",
+                "control_use_regex":"false"
+            },
+            {
+                "name":"nativeTokenMints",
+                "label":"@@action.TokenMintAction.nativeTokenMints@@",
+                "type":"grid",
+                "columns":[
+                    {
+                        "key":"assetName",
+                        "label":"@@action.TokenMintAction.assetName@@",
+                        "required" : "true"
+                    },
+                    {
+                        "key":"mintAmount",
+                        "label":"@@action.TokenMintAction.mintAmount@@",
+                        "required" : "true"
+                    },
+                    {
+                        "key":"receiverAddress",
+                        "label":"@@action.TokenMintAction.receiverAddress@@",
+                        "required" : "true",
+                        "options_ajax_on_change":"formDefId",
+                        "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options"
+                    }
+                ],
+                "control_field":"multipleNativeTokenMints",
+                "control_value":"",
+                "control_use_regex":"false"
+            },
+            {
+                "label" : "@@action.TokenMintAction.header.mintNfts@@",
+                "type" : "header"
+            },
+            {
+                "name" : "multipleNftMints",
+                "label" : "@@action.TokenMintAction.getDataFromList@@",
+                "type" : "checkbox",
+                "options" : [{
+                    "value" : "true",
+                    "label" : ""
+                }],
+                "value" : ""
+            },
+            {
+                "name" : "nftDatalistId",
+                "label" : "@@action.TokenMintAction.nftDatalistId@@",
+                "type" : "selectbox",
+                "required" : "true",
+                "options_ajax" : "[CONTEXT_PATH]/web/json/console/app[APP_PATH]/datalist/options",
+                "control_field":"multipleNftMints",
+                "control_value":"true",
+                "control_use_regex":"false"
+            },
+            {
+                "name" : "nftAssetNameColumn",
+                "label" : "@@action.TokenMintAction.nftAssetNameColumn@@",
+                "type" : "selectbox",
+                "required":"true",
+                "options_ajax_on_change":"id:nftDatalistId",
+                "options_ajax":"[CONTEXT_PATH]/web/json/app[APP_PATH]/plugin/org.joget.cardano.lib.webservice.internal.HelperWebService/service?action=getDatalistColumns",
+                "options_ajax_method":"POST",
+                "control_field":"multipleNftMints",
+                "control_value":"true",
+                "control_use_regex":"false"
+            },
+            {
+                "name" : "nftAssetDescColumn",
+                "label" : "@@action.TokenMintAction.assetDesc@@",
+                "type" : "selectbox",
+                "required":"true",
+                "options_ajax_on_change":"id:nftDatalistId",
+                "options_ajax":"[CONTEXT_PATH]/web/json/app[APP_PATH]/plugin/org.joget.cardano.lib.webservice.internal.HelperWebService/service?action=getDatalistColumns",
+                "options_ajax_method":"POST",
+                "control_field":"multipleNftMints",
+                "control_value":"true",
+                "control_use_regex":"false"
+            },
+            {
+                "name" : "nftFileNameColumn",
+                "label" : "@@action.TokenMintAction.fileName@@",
+                "type" : "selectbox",
+                "required":"true",
+                "options_ajax_on_change":"id:nftDatalistId",
+                "options_ajax":"[CONTEXT_PATH]/web/json/app[APP_PATH]/plugin/org.joget.cardano.lib.webservice.internal.HelperWebService/service?action=getDatalistColumns",
+                "options_ajax_method":"POST",
+                "control_field":"multipleNftMints",
+                "control_value":"true",
+                "control_use_regex":"false"
+            },
+            {
+                "name" : "nftFileTypeColumn",
+                "label" : "@@action.TokenMintAction.fileType@@",
+                "type" : "selectbox",
+                "required":"true",
+                "options_ajax_on_change":"id:nftDatalistId",
+                "options_ajax":"[CONTEXT_PATH]/web/json/app[APP_PATH]/plugin/org.joget.cardano.lib.webservice.internal.HelperWebService/service?action=getDatalistColumns",
+                "options_ajax_method":"POST",
+                "control_field":"multipleNftMints",
+                "control_value":"true",
+                "control_use_regex":"false"
+            },
+            {
+                "name" : "nftIpfsCidColumn",
+                "label" : "@@action.TokenMintAction.ipfsContentId@@",
+                "type" : "selectbox",
+                "required":"true",
+                "options_ajax_on_change":"id:nftDatalistId",
+                "options_ajax":"[CONTEXT_PATH]/web/json/app[APP_PATH]/plugin/org.joget.cardano.lib.webservice.internal.HelperWebService/service?action=getDatalistColumns",
+                "options_ajax_method":"POST",
+                "control_field":"multipleNftMints",
+                "control_value":"true",
+                "control_use_regex":"false"
+            },
+            {
+                "name" : "nftReceiverAddressColumn",
+                "label" : "@@action.TokenMintAction.receiverAddress@@",
+                "type" : "selectbox",
+                "required":"true",
+                "options_ajax_on_change":"id:nftDatalistId",
+                "options_ajax":"[CONTEXT_PATH]/web/json/app[APP_PATH]/plugin/org.joget.cardano.lib.webservice.internal.HelperWebService/service?action=getDatalistColumns",
+                "options_ajax_method":"POST",
+                "control_field":"multipleNftMints",
+                "control_value":"true",
+                "control_use_regex":"false"
+            },
+            {
+                "name":"nftMints",
+                "label":"@@action.TokenMintAction.nftMints@@",
+                "type":"grid",
+                "columns":[
+                    {
+                        "key":"assetName",
+                        "label":"@@action.TokenMintAction.assetName@@",
+                        "required" : "true"
+                    },
+                    {
+                        "key":"assetDesc",
+                        "label":"@@action.TokenMintAction.assetDesc@@",
+                        "required" : "true"
+                    },
+                    {
+                        "key":"fileName",
+                        "label":"@@action.TokenMintAction.fileName@@",
+                        "required" : "true"
+                    },
+                    {
+                        "key":"fileType",
+                        "label":"@@action.TokenMintAction.fileType@@",
+                        "required" : "true"
+                    },
+                    {
+                        "key":"ipfsContentId",
+                        "label":"@@action.TokenMintAction.ipfsContentId@@",
+                        "required" : "true"
+                    },
+                    {
+                        "key":"receiverAddress",
+                        "label":"@@action.TokenMintAction.receiverAddress@@",
+                        "required" : "true",
+                        "options_ajax_on_change":"formDefId",
+                        "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options"
+                    }
+                ],
+                "control_field":"multipleNftMints",
+                "control_value":"",
+                "control_use_regex":"false"
+            }
+        ]
+    }
+]
+

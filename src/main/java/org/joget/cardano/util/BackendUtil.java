@@ -32,12 +32,12 @@ public class BackendUtil {
             properties.putAll(defaultProps);
         }
         String backendServiceName = (String) properties.get("backendService");
-        String blockfrostProjectKey = (String) properties.get("blockfrostProjectKey");
         
         final NetworkType networkType = getNetworkType(properties);
         
         switch (backendServiceName) {
             case "blockfrost":
+                final String blockfrostProjectKey = (String) properties.get("blockfrostProjectKey");
                 return new BFBackendService(getBlockfrostEndpointUrl(networkType), blockfrostProjectKey);
             case "koios":
                 return new KoiosBackendService(getKoiosEndpointUrl(networkType));

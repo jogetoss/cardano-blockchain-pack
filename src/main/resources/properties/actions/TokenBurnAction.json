@@ -1,0 +1,151 @@
+[
+    {
+       "title":"@@action.TokenBurnAction.header.config@@",
+       "properties":[
+            {
+                "name":"formDefId",
+                "label":"@@action.TokenBurnAction.formDefId@@",
+                "type":"selectbox",
+                "required":"true",
+                "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/forms/options"
+            },
+            {
+                "label" : "@@action.TokenBurnAction.subheader.burnConfig@@",
+                "type" : "header"
+            },
+            {
+                "name":"policyScript",
+                "label":"@@action.TokenBurnAction.policyScript@@",
+                "description":"@@action.TokenBurnAction.policyScript.desc@@",
+                "type":"textfield",
+                "required":"true"
+            },
+            {
+                "name":"policyKeys",
+                "label":"@@action.TokenBurnAction.policyKeys@@",
+                "description":"@@action.TokenBurnAction.policyKeys.desc@@",
+                "type":"textfield",
+                "required":"true"
+            },
+            {
+                "label" : "@@action.TokenBurnAction.header.burnNativeTokens@@",
+                "type" : "header"
+            },
+            {
+                "name" : "multipleNativeTokenBurns",
+                "label" : "@@action.TokenBurnAction.getDataFromList@@",
+                "type" : "checkbox",
+                "options" : [{
+                    "value" : "true",
+                    "label" : ""
+                }],
+                "value" : ""
+            },
+            {
+                "name" : "nativeTokenDatalistId",
+                "label" : "@@action.TokenBurnAction.nativeTokenDatalistId@@",
+                "type" : "selectbox",
+                "required" : "true",
+                "options_ajax" : "[CONTEXT_PATH]/web/json/console/app[APP_PATH]/datalist/options",
+                "control_field":"multipleNativeTokenBurns",
+                "control_value":"true",
+                "control_use_regex":"false"
+            },
+            {
+                "name" : "nativeTokenAssetNameColumn",
+                "label" : "@@action.TokenBurnAction.assetName@@",
+                "type" : "selectbox",
+                "required":"true",
+                "options_ajax_on_change":"id:nativeTokenDatalistId",
+                "options_ajax":"[CONTEXT_PATH]/web/json/app[APP_PATH]/plugin/org.joget.cardano.lib.webservice.internal.HelperWebService/service?action=getDatalistColumns",
+                "options_ajax_method":"POST",
+                "control_field":"multipleNativeTokenBurns",
+                "control_value":"true",
+                "control_use_regex":"false"
+            },
+            {
+                "name" : "nativeTokenBurnAmountColumn",
+                "label" : "@@action.TokenBurnAction.burnAmount@@",
+                "type" : "selectbox",
+                "required":"true",
+                "options_ajax_on_change":"id:nativeTokenDatalistId",
+                "options_ajax":"[CONTEXT_PATH]/web/json/app[APP_PATH]/plugin/org.joget.cardano.lib.webservice.internal.HelperWebService/service?action=getDatalistColumns",
+                "options_ajax_method":"POST",
+                "control_field":"multipleNativeTokenBurns",
+                "control_value":"true",
+                "control_use_regex":"false"
+            },
+            {
+                "name":"nativeTokenBurns",
+                "label":"@@action.TokenBurnAction.nativeTokenBurns@@",
+                "type":"grid",
+                "columns":[
+                    {
+                        "key":"assetName",
+                        "label":"@@action.TokenBurnAction.assetName@@",
+                        "required" : "true"
+                    },
+                    {
+                        "key":"burnAmount",
+                        "label":"@@action.TokenBurnAction.burnAmount@@",
+                        "required" : "true"
+                    }
+                ],
+                "control_field":"multipleNativeTokenBurns",
+                "control_value":"",
+                "control_use_regex":"false"
+            },
+            {
+                "label" : "@@action.TokenBurnAction.header.burnNfts@@",
+                "type" : "header"
+            },
+            {
+                "name" : "multipleNftBurns",
+                "label" : "@@action.TokenBurnAction.getDataFromList@@",
+                "type" : "checkbox",
+                "options" : [{
+                    "value" : "true",
+                    "label" : ""
+                }],
+                "value" : ""
+            },
+            {
+                "name" : "nftDatalistId",
+                "label" : "@@action.TokenBurnAction.nftDatalistId@@",
+                "type" : "selectbox",
+                "required" : "true",
+                "options_ajax" : "[CONTEXT_PATH]/web/json/console/app[APP_PATH]/datalist/options",
+                "control_field":"multipleNftBurns",
+                "control_value":"true",
+                "control_use_regex":"false"
+            },
+            {
+                "name" : "nftAssetNameColumn",
+                "label" : "@@action.TokenBurnAction.assetName@@",
+                "type" : "selectbox",
+                "required":"true",
+                "options_ajax_on_change":"id:nftDatalistId",
+                "options_ajax":"[CONTEXT_PATH]/web/json/app[APP_PATH]/plugin/org.joget.cardano.lib.webservice.internal.HelperWebService/service?action=getDatalistColumns",
+                "options_ajax_method":"POST",
+                "control_field":"multipleNftBurns",
+                "control_value":"true",
+                "control_use_regex":"false"
+            },
+            {
+                "name":"nftBurns",
+                "label":"@@action.TokenBurnAction.nftBurns@@",
+                "type":"grid",
+                "columns":[
+                    {
+                        "key":"assetName",
+                        "label":"@@action.TokenBurnAction.assetName@@",
+                        "required" : "true"
+                    }
+                ],
+                "control_field":"multipleNftBurns",
+                "control_value":"",
+                "control_use_regex":"false"
+            }
+        ]
+    }
+]

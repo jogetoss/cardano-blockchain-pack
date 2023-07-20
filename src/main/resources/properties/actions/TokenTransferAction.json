@@ -1,0 +1,275 @@
+[
+    {
+       "title":"@@action.TokenTransferAction.header.config@@",
+       "properties":[
+            {
+                "name":"formDefId",
+                "label":"@@action.TokenTransferAction.formDefId@@",
+                "type":"selectbox",
+                "required":"true",
+                "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/forms/options"
+            },
+            {
+                "label" : "@@action.TokenTransferAction.header.transferAda@@",
+                "type" : "header"
+            },
+            {
+                "name" : "multipleAdaTransfers",
+                "label" : "@@action.TokenTransferAction.getDataFromList@@",
+                "type" : "checkbox",
+                "options" : [{
+                    "value" : "true",
+                    "label" : ""
+                }],
+                "value" : ""
+            },
+            {
+                "name" : "adaDatalistId",
+                "label" : "@@action.TokenTransferAction.adaDatalistId@@",
+                "type" : "selectbox",
+                "required" : "true",
+                "options_ajax" : "[CONTEXT_PATH]/web/json/console/app[APP_PATH]/datalist/options",
+                "control_field":"multipleAdaTransfers",
+                "control_value":"true",
+                "control_use_regex":"false"
+            },
+            {
+                "name" : "adaReceiverAddressColumn",
+                "label" : "@@action.TokenTransferAction.receiverAddress@@",
+                "type" : "selectbox",
+                "required":"true",
+                "options_ajax_on_change":"id:adaDatalistId",
+                "options_ajax":"[CONTEXT_PATH]/web/json/app[APP_PATH]/plugin/org.joget.cardano.lib.webservice.internal.HelperWebService/service?action=getDatalistColumns",
+                "options_ajax_method":"POST",
+                "control_field":"multipleAdaTransfers",
+                "control_value":"true",
+                "control_use_regex":"false"
+            },
+            {
+                "name" : "adaAmountColumn",
+                "label" : "@@action.TokenTransferAction.transferAmount@@",
+                "type" : "selectbox",
+                "required":"true",
+                "options_ajax_on_change":"id:adaDatalistId",
+                "options_ajax":"[CONTEXT_PATH]/web/json/app[APP_PATH]/plugin/org.joget.cardano.lib.webservice.internal.HelperWebService/service?action=getDatalistColumns",
+                "options_ajax_method":"POST",
+                "control_field":"multipleAdaTransfers",
+                "control_value":"true",
+                "control_use_regex":"false"
+            },
+            {
+                "name":"adaTransfers",
+                "label":"@@action.TokenTransferAction.adaTransfers@@",
+                "type":"grid",
+                "columns":[
+                    {
+                        "key":"receiverAddress",
+                        "label":"@@action.TokenTransferAction.receiverAddress@@",
+                        "required" : "true",
+                        "options_ajax_on_change":"formDefId",
+                        "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options"
+                    },
+                    {
+                        "key":"amount",
+                        "label":"@@action.TokenTransferAction.transferAmount@@",
+                        "required" : "true"
+                    }
+                ],
+                "control_field":"multipleAdaTransfers",
+                "control_value":"",
+                "control_use_regex":"false"
+            },
+            {
+                "label" : "@@action.TokenTransferAction.header.transferNativeTokens@@",
+                "type" : "header"
+            },
+            {
+                "name" : "multipleNativeTokenTransfers",
+                "label" : "@@action.TokenTransferAction.getDataFromList@@",
+                "type" : "checkbox",
+                "options" : [{
+                    "value" : "true",
+                    "label" : ""
+                }],
+                "value" : ""
+            },
+            {
+                "name" : "nativeTokenDatalistId",
+                "label" : "@@action.TokenTransferAction.nativeTokenDatalistId@@",
+                "type" : "selectbox",
+                "required" : "true",
+                "options_ajax" : "[CONTEXT_PATH]/web/json/console/app[APP_PATH]/datalist/options",
+                "control_field":"multipleNativeTokenTransfers",
+                "control_value":"true",
+                "control_use_regex":"false"
+            },
+            {
+                "name" : "nativeTokenPolicyIdColumn",
+                "label" : "@@action.TokenTransferAction.policyId@@",
+                "type" : "selectbox",
+                "required":"true",
+                "options_ajax_on_change":"id:nativeTokenDatalistId",
+                "options_ajax":"[CONTEXT_PATH]/web/json/app[APP_PATH]/plugin/org.joget.cardano.lib.webservice.internal.HelperWebService/service?action=getDatalistColumns",
+                "options_ajax_method":"POST",
+                "control_field":"multipleNativeTokenTransfers",
+                "control_value":"true",
+                "control_use_regex":"false"
+            },
+            {
+                "name" : "nativeTokenAssetNameColumn",
+                "label" : "@@action.TokenTransferAction.assetName@@",
+                "type" : "selectbox",
+                "required":"true",
+                "options_ajax_on_change":"id:nativeTokenDatalistId",
+                "options_ajax":"[CONTEXT_PATH]/web/json/app[APP_PATH]/plugin/org.joget.cardano.lib.webservice.internal.HelperWebService/service?action=getDatalistColumns",
+                "options_ajax_method":"POST",
+                "control_field":"multipleNativeTokenTransfers",
+                "control_value":"true",
+                "control_use_regex":"false"
+            },
+            {
+                "name" : "nativeTokenReceiverAddressColumn",
+                "label" : "@@action.TokenTransferAction.receiverAddress@@",
+                "type" : "selectbox",
+                "required":"true",
+                "options_ajax_on_change":"id:nativeTokenDatalistId",
+                "options_ajax":"[CONTEXT_PATH]/web/json/app[APP_PATH]/plugin/org.joget.cardano.lib.webservice.internal.HelperWebService/service?action=getDatalistColumns",
+                "options_ajax_method":"POST",
+                "control_field":"multipleNativeTokenTransfers",
+                "control_value":"true",
+                "control_use_regex":"false"
+            },
+            {
+                "name" : "nativeTokenAmountColumn",
+                "label" : "@@action.TokenTransferAction.transferAmount@@",
+                "type" : "selectbox",
+                "required":"true",
+                "options_ajax_on_change":"id:nativeTokenDatalistId",
+                "options_ajax":"[CONTEXT_PATH]/web/json/app[APP_PATH]/plugin/org.joget.cardano.lib.webservice.internal.HelperWebService/service?action=getDatalistColumns",
+                "options_ajax_method":"POST",
+                "control_field":"multipleNativeTokenTransfers",
+                "control_value":"true",
+                "control_use_regex":"false"
+            },
+            {
+                "name":"nativeTokenTransfers",
+                "label":"@@action.TokenTransferAction.nativeTokenTransfers@@",
+                "type":"grid",
+                "columns":[
+                    {
+                        "key":"policyId",
+                        "label":"@@action.TokenTransferAction.policyId@@",
+                        "required" : "true"
+                    },
+                    {
+                        "key":"assetName",
+                        "label":"@@action.TokenTransferAction.assetName@@",
+                        "required" : "true"
+                    },
+                    {
+                        "key":"receiverAddress",
+                        "label":"@@action.TokenTransferAction.receiverAddress@@",
+                        "required" : "true",
+                        "options_ajax_on_change":"formDefId",
+                        "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options"
+                    },
+                    {
+                        "key":"amount",
+                        "label":"@@action.TokenTransferAction.transferAmount@@",
+                        "required" : "true"
+                    }
+                ],
+                "control_field":"multipleNativeTokenTransfers",
+                "control_value":"",
+                "control_use_regex":"false"
+            },
+            {
+                "label" : "@@action.TokenTransferAction.header.transferNfts@@",
+                "type" : "header"
+            },
+            {
+                "name" : "multipleNftTransfers",
+                "label" : "@@action.TokenTransferAction.getDataFromList@@",
+                "type" : "checkbox",
+                "options" : [{
+                    "value" : "true",
+                    "label" : ""
+                }],
+                "value" : ""
+            },
+            {
+                "name" : "nftDatalistId",
+                "label" : "@@action.TokenTransferAction.nftDatalistId@@",
+                "type" : "selectbox",
+                "required" : "true",
+                "options_ajax" : "[CONTEXT_PATH]/web/json/console/app[APP_PATH]/datalist/options",
+                "control_field":"multipleNftTransfers",
+                "control_value":"true",
+                "control_use_regex":"false"
+            },
+            {
+                "name" : "nftPolicyIdColumn",
+                "label" : "@@action.TokenTransferAction.policyId@@",
+                "type" : "selectbox",
+                "required":"true",
+                "options_ajax_on_change":"id:nftDatalistId",
+                "options_ajax":"[CONTEXT_PATH]/web/json/app[APP_PATH]/plugin/org.joget.cardano.lib.webservice.internal.HelperWebService/service?action=getDatalistColumns",
+                "options_ajax_method":"POST",
+                "control_field":"multipleNftTransfers",
+                "control_value":"true",
+                "control_use_regex":"false"
+            },
+            {
+                "name" : "nftAssetNameColumn",
+                "label" : "@@action.TokenTransferAction.assetName@@",
+                "type" : "selectbox",
+                "required":"true",
+                "options_ajax_on_change":"id:nftDatalistId",
+                "options_ajax":"[CONTEXT_PATH]/web/json/app[APP_PATH]/plugin/org.joget.cardano.lib.webservice.internal.HelperWebService/service?action=getDatalistColumns",
+                "options_ajax_method":"POST",
+                "control_field":"multipleNftTransfers",
+                "control_value":"true",
+                "control_use_regex":"false"
+            },
+            {
+                "name" : "nftReceiverAddressColumn",
+                "label" : "@@action.TokenTransferAction.receiverAddress@@",
+                "type" : "selectbox",
+                "required":"true",
+                "options_ajax_on_change":"id:nftDatalistId",
+                "options_ajax":"[CONTEXT_PATH]/web/json/app[APP_PATH]/plugin/org.joget.cardano.lib.webservice.internal.HelperWebService/service?action=getDatalistColumns",
+                "options_ajax_method":"POST",
+                "control_field":"multipleNftTransfers",
+                "control_value":"true",
+                "control_use_regex":"false"
+            },
+            {
+                "name":"nftTransfers",
+                "label":"@@action.TokenTransferAction.nftTransfers@@",
+                "type":"grid",
+                "columns":[
+                    {
+                        "key":"policyId",
+                        "label":"@@action.TokenTransferAction.policyId@@",
+                        "required" : "true"
+                    },
+                    {
+                        "key":"assetName",
+                        "label":"@@action.TokenTransferAction.assetName@@",
+                        "required" : "true"
+                    },
+                    {
+                        "key":"receiverAddress",
+                        "label":"@@action.TokenTransferAction.receiverAddress@@",
+                        "required" : "true",
+                        "options_ajax_on_change":"formDefId",
+                        "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options"
+                    }
+                ],
+                "control_field":"multipleNftTransfers",
+                "control_value":"",
+                "control_use_regex":"false"
+            }
+        ]
+    }
+]

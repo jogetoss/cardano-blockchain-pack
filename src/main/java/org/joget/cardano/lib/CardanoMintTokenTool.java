@@ -52,6 +52,12 @@ import org.joget.commons.util.LogUtil;
 import org.joget.commons.util.PluginThread;
 import org.joget.workflow.util.WorkflowUtil;
 
+/**
+* @deprecated
+* This plugin does not support CIP-30 wallet interaction.
+* <p> Use {@link org.joget.cardano.lib.processformmodifier.actions.TokenMintAction TokenMintAction} instead.
+*/
+@Deprecated
 public class CardanoMintTokenTool extends CardanoProcessTool {
     
     @Override

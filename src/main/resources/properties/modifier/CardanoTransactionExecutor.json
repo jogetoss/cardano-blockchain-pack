@@ -1,0 +1,66 @@
+[
+    {
+       "title":"@@modifier.CardanoTransactionExecutor.header.config@@",
+       "properties":[
+            %s
+        ]
+    },
+    {
+        "title":"@@modifier.CardanoTransactionExecutor.header.transactionProperties@@",
+        "properties":[
+            {
+                "label" : "@@modifier.CardanoTransactionExecutor.subheader.walletConfig@@",
+                "type" : "header"
+            },
+            {
+                "name":"walletHandler",
+                "label":"@@modifier.CardanoTransactionExecutor.walletHandler@@",
+                "type":"selectbox",
+                "options" : [
+                    {
+                        "value" : "internal",
+                        "label" : "@@modifier.CardanoTransactionExecutor.walletHandler.internal@@"
+                    },
+                    {
+                        "value" : "cip30Wallet",
+                        "label" : "@@modifier.CardanoTransactionExecutor.walletHandler.cip30Wallet@@"
+                    }
+                ],
+                "value":"cip30Wallet"
+            },
+            {
+                "label" : "@@modifier.CardanoTransactionExecutor.subheader.transactionParams@@",
+                "type" : "header"
+            },
+            {
+                "name" : "txAction",
+                "label" : "@@modifier.CardanoTransactionExecutor.txAction@@",
+                "type" : "elementselect",
+                "options_ajax" : "[CONTEXT_PATH]/web/property/json/getElements?classname=org.joget.cardano.model.transaction.CardanoTransactionPlugin",
+                "url" : "[CONTEXT_PATH]/web/property/json[APP_PATH]/getPropertyOptions",
+                "required" : "true"
+            },
+            {
+                "name":"feeLimit",
+                "label":"@@cardano.prop.feeLimit@@",
+                "description":"@@cardano.prop.feeLimit.desc@@",
+                "type":"textfield"
+            },
+            {
+                "name":"metadata",
+                "label":"@@modifier.CardanoTransactionExecutor.metadata@@",
+                "type":"grid",
+                "columns":[{
+                    "key":"fieldId",
+                    "label":"@@modifier.CardanoTransactionExecutor.metadata.fieldId@@"
+                }]
+            }
+        ]
+    },
+    {
+        "title":"@@cardano.prop.header.storeToWorkflowVariable@@",
+        "properties":[
+            %s
+        ]
+    }
+]

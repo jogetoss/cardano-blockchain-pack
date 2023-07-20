@@ -1,7 +1,7 @@
 import { createRoot } from "react-dom/client";
 import { CardanoWallet, MeshProvider } from "@meshsdk/react";
 
-function LoginButton() {
+function CardanoWalletLoginButton() {
     return (
         <>
             <div>
@@ -14,7 +14,9 @@ function LoginButton() {
 }
 
 //Meant to bind permanently to header nav
-const domNode = document.getElementById("wallet-login-react-component")!;
-createRoot(domNode).render(<LoginButton />);
+const domNode = document.getElementById(
+    "cardano-wallet-login-react-component"
+)!;
+createRoot(domNode).render(<CardanoWalletLoginButton />);
 
-export default LoginButton;
+export default CardanoWalletLoginButton;

@@ -23,7 +23,7 @@ public class CardanoDefaultBackendPlugin extends DefaultAuditTrailPlugin {
     @Override
     public String getPropertyOptions() {
         String backendConfigs = PluginUtil.forceReadGenericBackendConfigs(getClassName());
-        return AppUtil.readPluginResource(getClassName(), "/properties/CardanoDefaultBackendPlugin.json", new String[]{backendConfigs}, true, PluginUtil.MESSAGE_PATH);
+        return AppUtil.readPluginResource(getClassName(), "/properties/plugindefaultproperties/CardanoDefaultBackendPlugin.json", new String[]{backendConfigs}, true, PluginUtil.MESSAGE_PATH);
     }
     
     @Override
