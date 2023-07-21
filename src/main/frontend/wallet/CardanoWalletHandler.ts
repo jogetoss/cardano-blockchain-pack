@@ -15,7 +15,11 @@ class CardanoWalletHandler {
         "#cardano-transaction-data-handle"
     ) as HTMLElement;
 
-    async _initHandler() {
+    constructor() {
+        this._initHandler();
+    }
+
+    private async _initHandler(): Promise<void> {
         //Cater to ajax_loaded pages
         $(this.formObj).off("submit");
 
@@ -56,7 +60,7 @@ class CardanoWalletHandler {
         }
     }
 
-    private async handle() {
+    private async handle(): Promise<void> {
         const isFormDataValid = await this.walletWebService!.validateFormData();
 
         if (isFormDataValid) {
@@ -91,7 +95,7 @@ class CardanoWalletHandler {
     }
 
     //See form.ftl
-    private doOriginalFormModification() {
+    private doOriginalFormModification(): void {
         const connectionManager = (window as any).ConnectionManager;
         if (connectionManager) {
             const tokenName = connectionManager.tokenName;
@@ -110,7 +114,6 @@ class CardanoWalletHandler {
     }
 }
 
-export async function bind() {
-    const handler = new CardanoWalletHandler();
-    await handler._initHandler();
+export function bindHandler(): void {
+    new CardanoWalletHandler();
 }
