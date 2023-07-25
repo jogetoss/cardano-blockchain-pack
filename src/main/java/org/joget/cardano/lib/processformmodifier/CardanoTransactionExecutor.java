@@ -26,6 +26,7 @@ import org.joget.apps.form.model.Element;
 import org.joget.apps.form.model.Form;
 import org.joget.apps.form.model.FormAction;
 import org.joget.apps.form.model.FormData;
+import org.joget.apps.form.model.FormValidator;
 import org.joget.apps.form.service.FormService;
 import org.joget.apps.form.service.FormUtil;
 import org.joget.apps.workflow.lib.AssignmentCompleteButton;
@@ -89,14 +90,51 @@ public class CardanoTransactionExecutor extends ExtDefaultPlugin implements Proc
             form.getActions().clear();
             form.getActions().addAll(actions);
         }
-    }
-    
-    public void validateTransactionResult(Form form, FormData formData) {
-        /* Add logic here AFTER complete wallet interaction, CHECK for valid tx hash */
-//        wfAssignment = (WorkflowAssignment) props.get("workflowAssignment");
-//        String formId = FormUtil.getElementParameterName(form);
-//        formData.addFormError(formId, "Transaction failed!");
         
+        form.setValidator(
+                new FormValidator() {
+                    @Override
+                    public boolean validate(Element element, FormData formData, String[] values) {
+                        final String isValidScriptFormSubmit = formData.getRequestParameter("CARDANO_VALID_SUBMISSION");
+                        if (isValidScriptFormSubmit == null || !"true".equalsIgnoreCase(isValidScriptFormSubmit)) {
+                            formData.addFormError(FormUtil.getElementParameterName(form), "Improper form submission blocked");
+                            return false;
+                        }
+                        
+                        return true;
+                    }
+
+                    @Override
+                    public String getPropertyOptions() {
+                        return "";
+                    }
+                    
+                    @Override
+                    public String getName() {
+                        return "(INTERNAL) Cardano Form Submission Validator";
+                    }
+
+                    @Override
+                    public String getDescription() {
+                        return "Used to validate form submission in conjuction with frontend script. For internal use only.";
+                    }
+
+                    @Override
+                    public String getLabel() {
+                        return getName();
+                    }
+
+                    @Override
+                    public String getVersion() {
+                        return PluginUtil.getProjectVersion(this.getClass());
+                    }
+                    
+                    @Override
+                    public String getClassName() {
+                        return getClass().getName();
+                    }
+                }
+        );
     }
     
     private void storeToWorkflowVariable(
@@ -255,6 +293,7 @@ public class CardanoTransactionExecutor extends ExtDefaultPlugin implements Proc
         Map<String, String> jsonMap = new HashMap<>();
         
         switch (WebServiceType.fromString(serviceType)) {
+            case RENEW_ENDPOINTS:
             case INIT_SERVICE: {
                 ApplicationContext appContext = AppUtil.getApplicationContext();
                 FormDefinitionDao formDefinitionDao = (FormDefinitionDao) appContext.getBean("formDefinitionDao");
@@ -345,7 +384,8 @@ public class CardanoTransactionExecutor extends ExtDefaultPlugin implements Proc
     private enum WebServiceType {
         INIT_SERVICE("initService"),
         VALIDATE_FORM_DATA("validateFormData"),
-        BUILD_TX_CBOR("buildTxCbor");
+        BUILD_TX_CBOR("buildTxCbor"),
+        RENEW_ENDPOINTS("renewEndpoints");
 
         private final String value;
 

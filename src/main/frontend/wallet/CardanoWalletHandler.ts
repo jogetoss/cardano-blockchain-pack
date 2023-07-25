@@ -1,21 +1,24 @@
 import { BrowserWallet } from "@meshsdk/core";
 import { createService, type WalletWebServiceType } from "./WalletWebService";
-import { WalletPwaToast } from "./WalletPwaToast";
+import { WalletPwaHelper } from "./WalletPwaHelper";
+import { Buffer } from "buffer";
 
 class CardanoWalletHandler {
     private walletWebService: WalletWebServiceType | null = null;
+    private installedWallets: any;
 
     readonly formObj = document.querySelector(
         "#form-canvas > form"
     ) as HTMLFormElement;
     readonly completeButton = this.formObj.querySelector(
-        "#assignmentComplete"
+        "input#assignmentComplete.form-button"
     ) as HTMLInputElement;
     readonly handleComponent = this.formObj.querySelector(
-        "#cardano-transaction-data-handle"
+        "#section-actions div#cardano-transaction-data-handle"
     ) as HTMLElement;
 
     constructor() {
+        window.Buffer = Buffer;
         this._initHandler();
     }
 
@@ -29,69 +32,117 @@ class CardanoWalletHandler {
             $(this).off("submit");
         });
 
-        const installedWallets = await BrowserWallet.getInstalledWallets();
-        if (!Array.isArray(installedWallets) || !installedWallets.length) {
+        this.installedWallets = await BrowserWallet.getInstalledWallets();
+
+        //If no wallet found, block form submission
+        if (
+            !Array.isArray(this.installedWallets) ||
+            !this.installedWallets.length
+        ) {
+            this.formObj.addEventListener("submit", (event) => {
+                WalletPwaHelper.unblockUI();
+                event.preventDefault();
+                event.stopPropagation();
+                return false;
+            });
+            this.completeButton.disabled = true;
             this.completeButton.value = "No Cardano wallet found...";
+
+            return;
+        }
+
+        this.walletWebService = await createService(
+            this.formObj,
+            this.handleComponent.dataset.serviceurl as string,
+            this.handleComponent.dataset.propjson as string
+        );
+
+        if (this.walletWebService) {
+            this.bindSubmitFormListener();
+            this.completeButton.disabled = false;
+            this.completeButton.value = "Initiate Transaction";
         } else {
-            this.walletWebService = await createService(
-                this.formObj,
-                this.handleComponent.dataset.serviceurl as string,
-                this.handleComponent.dataset.propjson as string
-            );
-
-            //Re-enable assignment complete button after service initialized
-            if (this.walletWebService) {
-                this.formObj.addEventListener(
-                    "submit",
-                    (event) => {
-                        event.preventDefault();
-                        event.stopPropagation();
-                        this.handle();
-                        return false;
-                    },
-                    { once: true } //prevent infinite loop
-                );
-
-                this.completeButton.disabled = false;
-                this.completeButton.value = "Initiate Transaction";
-            } else {
-                this.completeButton.value = "Unable to start wallet service...";
-            }
+            WalletPwaHelper.genericError();
+            this.completeButton.value = "Unable to start wallet service...";
         }
     }
 
     private async handle(): Promise<void> {
         const isFormDataValid = await this.walletWebService!.validateFormData();
+        if (!isFormDataValid) {
+            //Submit form as usual to display form errors to end user
+            this.submitAssignment();
+            return;
+        }
 
-        if (isFormDataValid) {
-            WalletPwaToast.showBuildingTxToast();
+        try {
+            let wallet;
+            try {
+                WalletPwaHelper.requestingWalletPermission();
 
-            // /* MOCK TEST */
-            // const address =
-            //     "addr_test1qrcqj305zeg034vwcmsyeq7dvspdjf4uap4wxmqrt4d26ty7yfm5444vgsdal5044pke7x2ldauqag6802wm8azkg9tqw00pc3";
-            // const unsignedTxCbor = await walletWebService!.buildTxCbor(
-            //     address,
-            //     address
-            // );
+                //TODO: If user has multiple wallets installed, allow user to select their preferred wallet
+                wallet = await BrowserWallet.enable(
+                    this.installedWallets[0].name
+                );
+            } catch (e) {
+                await this.renewService();
+                WalletPwaHelper.walletConnectCancelled();
+                return;
+            }
 
-            const installedWallets = await BrowserWallet.getInstalledWallets();
-            const wallet = await BrowserWallet.enable(installedWallets[0].name);
-            const usedAddress = await wallet.getUsedAddresses()[0];
+            const usedAddress = await wallet.getUsedAddresses();
+            const unusedAddress = await wallet.getUnusedAddresses();
             const changeAddress = await wallet.getChangeAddress();
+
+            WalletPwaHelper.buildingTx();
             const unsignedTxCbor = await this.walletWebService!.buildTxCbor(
-                usedAddress,
+                usedAddress == null ? unusedAddress[0] : usedAddress[0],
                 changeAddress
             );
-            const signedTx = await wallet.signTx(unsignedTxCbor);
+
+            let signedTx;
+            try {
+                signedTx = await wallet.signTx(unsignedTxCbor);
+            } catch (e) {
+                await this.renewService();
+                WalletPwaHelper.txSigningCancelled();
+                return;
+            }
+
+            WalletPwaHelper.submittingTx();
+
             const txHash: string = await wallet.submitTx(signedTx);
             if (this.walletWebService!.validateTxHash(txHash)) {
                 //Logic to remove form data error to allow successful form submit
-                console.log("tx hash did match!!!!");
+                console.log("LOG --> tx hash did match!!!!");
+                this.submitAssignment();
+            } else {
+                console.log("LOG --> tx hash does NOT match!!");
             }
+        } catch (e) {
+            await this.renewService();
+            WalletPwaHelper.genericError();
+            throw e;
         }
+    }
 
-        this.doOriginalFormModification();
-        this.formObj.requestSubmit();
+    private async renewService(): Promise<void> {
+        await this.walletWebService?.renewEndpoints();
+        this.bindSubmitFormListener();
+        WalletPwaHelper.unblockUI();
+    }
+
+    private bindSubmitFormListener(): void {
+        this.formObj.addEventListener(
+            "submit",
+            (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                this.handle();
+                return false;
+            },
+            { once: true } //prevent infinite loop
+        );
     }
 
     //See form.ftl
@@ -102,8 +153,9 @@ class CardanoWalletHandler {
             const tokenValue = connectionManager.tokenValue;
 
             if (!!!this.formObj.querySelector("[name='" + tokenName + "']")) {
-                this.formObj.append(
-                    '<input type="hidden" style="display:none;" name="' +
+                this.formObj.insertAdjacentHTML(
+                    "beforeend",
+                    '<input type="hidden" name="' +
                         tokenName +
                         '" value="' +
                         tokenValue +
@@ -111,6 +163,15 @@ class CardanoWalletHandler {
                 );
             }
         }
+    }
+
+    private submitAssignment() {
+        this.doOriginalFormModification();
+        this.formObj.insertAdjacentHTML(
+            "beforeend",
+            '<input type="hidden" name="CARDANO_VALID_SUBMISSION" value="true"/>'
+        );
+        this.completeButton.click();
     }
 }
 

@@ -41,8 +41,6 @@ public class CustomCompleteButton extends AssignmentCompleteButton implements Hi
     
     @Override
     public FormData actionPerformed(Form form, FormData formData) {
-        plugin.validateTransactionResult(form, formData);
-
         return super.actionPerformed(form, formData);
     }
 }

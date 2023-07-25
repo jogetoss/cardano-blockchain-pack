@@ -1,6 +1,7 @@
 class WalletWebService {
     private validateFormDataUrl: string = "";
     private buildTxCborUrl: string = "";
+    private renewEndpointsUrl: string = "";
 
     private calculatedTxHash: string = "";
 
@@ -15,6 +16,15 @@ class WalletWebService {
 
         this.validateFormDataUrl = endpointsMap.get("validateFormData")!;
         this.buildTxCborUrl = endpointsMap.get("buildTxCbor")!;
+        this.renewEndpointsUrl = endpointsMap.get("renewEndpoints")!;
+    }
+
+    async renewEndpoints() {
+        let endpointsMap = await this.fetchData(this.renewEndpointsUrl);
+
+        this.validateFormDataUrl = endpointsMap.get("validateFormData")!;
+        this.buildTxCborUrl = endpointsMap.get("buildTxCbor")!;
+        this.renewEndpointsUrl = endpointsMap.get("renewEndpoints")!;
     }
 
     async validateFormData(): Promise<boolean> {
