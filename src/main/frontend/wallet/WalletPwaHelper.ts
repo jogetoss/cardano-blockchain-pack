@@ -31,7 +31,14 @@ export class WalletPwaHelper {
         toast({
             heading: "Cardano - Building Your Transaction",
             text: "Please wait...",
-            loader: true,
+            hideAfter: false,
+        });
+    }
+    static signingTx(): void {
+        toast({
+            heading: "Cardano - Transaction Signing",
+            text: "Waiting for wallet to sign the transaction...",
+            hideAfter: false,
         });
     }
     static txSigningCancelled(): void {
@@ -43,9 +50,17 @@ export class WalletPwaHelper {
     }
     static submittingTx(): void {
         toast({
-            heading: "Cardano - Submitting Your Transaction",
+            heading: "Cardano - Submitting Transaction",
             text: "Please wait...",
-            loader: true,
+            hideAfter: false,
+        });
+    }
+    static submitTxError(): void {
+        toast({
+            heading: "Cardano - Transaction Error",
+            text: "Unable to submit transaction. Please contact the server administrator.",
+            bgColor: "#a90b1b",
+            hideAfter: 12000,
         });
     }
     static genericError(): void {

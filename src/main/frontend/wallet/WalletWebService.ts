@@ -33,16 +33,10 @@ class WalletWebService {
         return JSON.parse(result.get("isValid") as string);
     }
 
-    async buildTxCbor(
-        usedAddress: string,
-        changeAddress: string
-    ): Promise<string> {
+    async buildTxCbor(utxos: string, changeAddress: string): Promise<string> {
         let result = await this.fetchData(
-            this.buildTxCborUrl +
-                "&_usedAddress=" +
-                usedAddress +
-                "&_changeAddress=" +
-                changeAddress
+            this.buildTxCborUrl + "&_changeAddress=" + changeAddress,
+            { "wallet-utxos-json": utxos }
         );
 
         this.calculatedTxHash = result.get("calculatedTxHash") as string;
@@ -54,11 +48,15 @@ class WalletWebService {
         return this.calculatedTxHash === actualTxHash;
     }
 
-    private async fetchData(url: string): Promise<Map<string, string>> {
+    private async fetchData(
+        url: string,
+        customHeaders?: object
+    ): Promise<Map<string, string>> {
         const response = await fetch(url, {
             method: "POST",
             headers: {
                 "plugin-props-json": this.pluginPropertiesJson,
+                ...customHeaders,
             },
             body: new FormData(this.formObj),
         });

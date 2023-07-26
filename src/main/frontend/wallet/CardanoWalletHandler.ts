@@ -90,16 +90,16 @@ class CardanoWalletHandler {
                 return;
             }
 
-            const usedAddress = await wallet.getUsedAddresses();
-            const unusedAddress = await wallet.getUnusedAddresses();
+            const utxos = await wallet.getUtxos();
             const changeAddress = await wallet.getChangeAddress();
 
             WalletPwaHelper.buildingTx();
             const unsignedTxCbor = await this.walletWebService!.buildTxCbor(
-                usedAddress == null ? unusedAddress[0] : usedAddress[0],
+                JSON.stringify(utxos),
                 changeAddress
             );
 
+            WalletPwaHelper.signingTx();
             let signedTx;
             try {
                 signedTx = await wallet.signTx(unsignedTxCbor);
@@ -110,8 +110,15 @@ class CardanoWalletHandler {
             }
 
             WalletPwaHelper.submittingTx();
+            let txHash;
+            try {
+                txHash = await wallet.submitTx(signedTx);
+            } catch (e) {
+                await this.renewService();
+                WalletPwaHelper.submitTxError();
+                throw e;
+            }
 
-            const txHash: string = await wallet.submitTx(signedTx);
             if (this.walletWebService!.validateTxHash(txHash)) {
                 //Logic to remove form data error to allow successful form submit
                 console.log("LOG --> tx hash did match!!!!");
