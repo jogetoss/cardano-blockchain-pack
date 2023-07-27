@@ -13,18 +13,12 @@ interface ToastProps {
 }
 
 export class WalletPwaHelper {
+    //Notices
     static requestingWalletPermission(): void {
         toast({
             heading: "Cardano - dApp Wallet Bridge",
             text: "Connecting wallet...",
             hideAfter: false,
-        });
-    }
-    static walletConnectCancelled(): void {
-        toast({
-            heading: "Cardano - dApp Wallet Bridge",
-            text: "Wallet connection cancelled.<br>No further action performed.",
-            bgColor: "#d47603",
         });
     }
     static buildingTx(): void {
@@ -41,13 +35,6 @@ export class WalletPwaHelper {
             hideAfter: false,
         });
     }
-    static txSigningCancelled(): void {
-        toast({
-            heading: "Cardano - Transaction Signing",
-            text: "Wallet cancelled signing the transaction.<br>No further action performed.",
-            bgColor: "#d47603",
-        });
-    }
     static submittingTx(): void {
         toast({
             heading: "Cardano - Submitting Transaction",
@@ -55,6 +42,24 @@ export class WalletPwaHelper {
             hideAfter: false,
         });
     }
+
+    //Warnings
+    static walletConnectCancelled(): void {
+        toast({
+            heading: "Cardano - dApp Wallet Bridge",
+            text: "Wallet connection cancelled.<br>No further action performed.",
+            bgColor: "#d47603",
+        });
+    }
+    static txSigningCancelled(): void {
+        toast({
+            heading: "Cardano - Transaction Signing",
+            text: "Wallet cancelled signing the transaction.<br>No further action performed.",
+            bgColor: "#d47603",
+        });
+    }
+
+    //Errors
     static submitTxError(): void {
         toast({
             heading: "Cardano - Transaction Error",
@@ -71,6 +76,7 @@ export class WalletPwaHelper {
             hideAfter: 12000,
         });
     }
+
     static unblockUI(): void {
         $.unblockUI();
     }

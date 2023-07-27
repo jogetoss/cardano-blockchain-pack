@@ -4,6 +4,7 @@ import com.bloxbean.cardano.client.api.UtxoSupplier;
 import com.bloxbean.cardano.client.api.model.Amount;
 import com.bloxbean.cardano.client.api.model.Utxo;
 import com.bloxbean.cardano.client.backend.api.BackendService;
+import com.bloxbean.cardano.client.backend.api.BlockService;
 import com.bloxbean.cardano.client.backend.api.DefaultProtocolParamsSupplier;
 import com.bloxbean.cardano.client.backend.api.DefaultUtxoSupplier;
 import com.bloxbean.cardano.client.backend.api.EpochService;
@@ -31,6 +32,7 @@ import org.joget.apps.form.model.FormData;
 import org.joget.apps.form.service.FormService;
 import org.joget.cardano.util.BackendUtil;
 import org.joget.cardano.util.MetadataUtil;
+import org.joget.cardano.util.TransactionUtil;
 import org.joget.commons.util.LogUtil;
 import org.joget.plugin.base.PluginManager;
 import org.springframework.context.ApplicationContext;
@@ -45,7 +47,7 @@ public class TransactionHandler {
     
     //Cardano backend services
 //    protected AssetService assetService;
-//    protected BlockService blockService;
+    protected BlockService blockService;
 //    protected NetworkInfoService networkInfoService;
 //    protected TransactionService transactionService;
     private final UtxoService utxoService;
@@ -68,7 +70,7 @@ public class TransactionHandler {
 //        this.networkType = BackendUtil.getNetworkType(pluginProperties);
         
 //        this.assetService = backendService.getAssetService();
-//        this.blockService = backendService.getBlockService();
+        this.blockService = backendService.getBlockService();
 //        this.networkInfoService = backendService.getNetworkInfoService();
 //        this.transactionService = backendService.getTransactionService();
         this.utxoService = backendService.getUtxoService();
@@ -84,6 +86,11 @@ public class TransactionHandler {
         this.pluginManager = (PluginManager) AppUtil.getApplicationContext().getBean("pluginManager");
     }
     
+    /**
+     * Prepares the unsigned transaction
+     * @return an unsigned Transaction object
+     * @see Transaction
+    */
     public Transaction createTransaction() {
         final Map txActionProps = (Map) pluginProperties.get("txAction");
         final CardanoTransactionAction actionPlugin = (CardanoTransactionAction) pluginManager.getPlugin(txActionProps.get("className").toString());
@@ -106,9 +113,54 @@ public class TransactionHandler {
         final String walletUtxosJson = request.getHeader("wallet-utxos-json");
         final String changeAddress = request.getParameter("_changeAddress");
         
+        TxBuilder txBuilder = txOutputBuilder.buildInputs(
+                createFromUtxos(
+                        getUtxosFromJson(
+                                new Gson().fromJson(walletUtxosJson, JsonArray.class).asList()
+                        ), 
+                        changeAddress
+                )
+        );
         
-        List<JsonElement> utxosJsonList = new Gson().fromJson(walletUtxosJson, JsonArray.class).asList();
+        List metadataFields = (ArrayList) pluginProperties.get("metadata");
+        if (metadataFields != null) {
+            MessageMetadata cip20Metadata = MetadataUtil.generateMsgMetadataFromFormData(metadataFields, formData);
+            txBuilder = txBuilder.andThen(metadataProvider(cip20Metadata));
+        }
+        
+        TxBuilder modifiedTxBuilder = actionPlugin.modifyTxBuilder(txBuilder);
+        if (modifiedTxBuilder != null) {
+            txBuilder = modifiedTxBuilder;
+        }
+        
+        final int numberOfSigners = 2 + actionPlugin.numberOfAdditionalSigners();
+        
+        txBuilder = txBuilder.andThen(balanceTx(changeAddress, numberOfSigners));
+        
+        UtxoSupplier utxoSupplier = new DefaultUtxoSupplier(utxoService);
+        TxBuilderContext txBuilderContext = TxBuilderContext.init(utxoSupplier, new DefaultProtocolParamsSupplier(epochService));
+        txBuilderContext.setUtxoSelectionStrategy(new LargestFirstUtxoSelectionStrategy(utxoSupplier));
+        
+        Transaction unsignedTx = txBuilderContext.build(txBuilder);
+        
+        TxSigner signers = actionPlugin.addSigners();
+        if (signers != null) {
+            unsignedTx = signers.sign(unsignedTx);
+        }
+        
+        try {
+            unsignedTx.getBody().setTtl(TransactionUtil.getTtl(blockService, 2000));
+        } catch (Exception ex) {
+            LogUtil.error(getClassName(), ex, "Unable to prepare final unsigned tx");
+            return null;
+        }
+        
+        return unsignedTx;
+    }
+    
+    private List<Utxo> getUtxosFromJson(List<JsonElement> utxosJsonList) {
         List<Utxo> utxos = new ArrayList<>();
+        
         for (JsonElement utxosJson : utxosJsonList) {
             final JsonObject utxoJsonObj = utxosJson.getAsJsonObject();
             final JsonObject utxoInput = utxoJsonObj.getAsJsonObject("input");
@@ -139,37 +191,7 @@ public class TransactionHandler {
             utxos.add(utxo);
         }
         
-        TxBuilder txBuilder = txOutputBuilder.buildInputs(
-                createFromUtxos(utxos, changeAddress)
-        );
-        
-        List metadataFields = (ArrayList) pluginProperties.get("metadata");
-        if (metadataFields != null) {
-            MessageMetadata cip20Metadata = MetadataUtil.generateMsgMetadataFromFormData(metadataFields, formData);
-            txBuilder = txBuilder.andThen(metadataProvider(cip20Metadata));
-        }
-        
-        TxBuilder modifiedTxBuilder = actionPlugin.modifyTxBuilder(txBuilder);
-        if (modifiedTxBuilder != null) {
-            txBuilder = modifiedTxBuilder;
-        }
-        
-        final int numberOfSigners = 1 + actionPlugin.numberOfAdditionalSigners();
-        
-        txBuilder = txBuilder.andThen(balanceTx(changeAddress, numberOfSigners));
-        
-        UtxoSupplier utxoSupplier = new DefaultUtxoSupplier(utxoService);
-        TxBuilderContext txBuilderContext = TxBuilderContext.init(utxoSupplier, new DefaultProtocolParamsSupplier(epochService));
-        txBuilderContext.setUtxoSelectionStrategy(new LargestFirstUtxoSelectionStrategy(utxoSupplier));
-        
-        Transaction unsignedTx = txBuilderContext.build(txBuilder);
-        
-        TxSigner signers = actionPlugin.addSigners();
-        if (signers != null) {
-            unsignedTx = signers.sign(unsignedTx);
-        }
-        
-        return unsignedTx;
+        return utxos;
     }
     
     private static String getClassName() {

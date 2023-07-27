@@ -119,13 +119,13 @@ class CardanoWalletHandler {
                 throw e;
             }
 
-            if (this.walletWebService!.validateTxHash(txHash)) {
-                //Logic to remove form data error to allow successful form submit
-                console.log("LOG --> tx hash did match!!!!");
-                this.submitAssignment();
-            } else {
-                console.log("LOG --> tx hash does NOT match!!");
+            if (!this.walletWebService!.validateTxHash(txHash)) {
+                await this.renewService();
+                WalletPwaHelper.genericError();
+                return;
             }
+
+            this.submitAssignment();
         } catch (e) {
             await this.renewService();
             WalletPwaHelper.genericError();

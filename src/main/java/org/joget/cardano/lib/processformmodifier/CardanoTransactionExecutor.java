@@ -341,11 +341,9 @@ public class CardanoTransactionExecutor extends ExtDefaultPlugin implements Proc
                     if (unsignedTx == null) {
                         return;
                     }
-                    final String unsignedTxCbor = unsignedTx.serializeToHex();
-                    final String evalTxHash = TransactionUtil.getTxHash(unsignedTx);
                     
-                    jsonMap.put("unsignedTxCbor", unsignedTxCbor);
-                    jsonMap.put("calculatedTxHash", evalTxHash);
+                    jsonMap.put("unsignedTxCbor", unsignedTx.serializeToHex());
+                    jsonMap.put("calculatedTxHash", TransactionUtil.getTxHash(unsignedTx));
                     
                     break;
                 } catch (Exception ex) {
