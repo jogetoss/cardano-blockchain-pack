@@ -32,25 +32,6 @@ class CardanoWalletHandler {
             $(this).off("submit");
         });
 
-        this.installedWallets = await BrowserWallet.getInstalledWallets();
-
-        //If no wallet found, block form submission
-        if (
-            !Array.isArray(this.installedWallets) ||
-            !this.installedWallets.length
-        ) {
-            this.formObj.addEventListener("submit", (event) => {
-                WalletPwaHelper.unblockUI();
-                event.preventDefault();
-                event.stopPropagation();
-                return false;
-            });
-            this.completeButton.disabled = true;
-            this.completeButton.value = "No Cardano wallet found...";
-
-            return;
-        }
-
         this.walletWebService = await createService(
             this.formObj,
             this.handleComponent.dataset.serviceurl as string,
@@ -58,6 +39,27 @@ class CardanoWalletHandler {
         );
 
         if (this.walletWebService) {
+            if (!this.walletWebService.isInternalWallet()) {
+                //If no browser wallet found, block form submission
+                this.installedWallets =
+                    await BrowserWallet.getInstalledWallets();
+                if (
+                    !Array.isArray(this.installedWallets) ||
+                    !this.installedWallets.length
+                ) {
+                    this.formObj.addEventListener("submit", (event) => {
+                        WalletPwaHelper.unblockUI();
+                        event.preventDefault();
+                        event.stopPropagation();
+                        return false;
+                    });
+                    this.completeButton.disabled = true;
+                    this.completeButton.value = "No Cardano wallet found...";
+
+                    return;
+                }
+            }
+
             this.bindSubmitFormListener();
             this.completeButton.disabled = false;
             this.completeButton.value = "Initiate Transaction";
@@ -76,47 +78,64 @@ class CardanoWalletHandler {
         }
 
         try {
-            let wallet;
-            try {
-                WalletPwaHelper.requestingWalletPermission();
+            let txHash: string;
 
-                //TODO: If user has multiple wallets installed, allow user to select their preferred wallet
-                wallet = await BrowserWallet.enable(
-                    this.installedWallets[0].name
+            if (this.walletWebService!.isInternalWallet()) {
+                WalletPwaHelper.buildingTx();
+                await this.walletWebService!.internalBuildTxCbor();
+
+                const isWithinFeeLimit =
+                    await this.walletWebService!.internalCheckFee();
+                if (!isWithinFeeLimit) {
+                    await this.renewService();
+                    WalletPwaHelper.internal_feeTooHigh();
+                    return;
+                }
+
+                WalletPwaHelper.submittingTx();
+                txHash = await this.walletWebService!.internalSignSubmitTx();
+            } else {
+                let wallet;
+                try {
+                    WalletPwaHelper.requestingWalletPermission();
+
+                    //TODO: If user has multiple wallets installed, allow user to select their preferred wallet
+                    wallet = await BrowserWallet.enable(
+                        this.installedWallets[0].name
+                    );
+                } catch (e) {
+                    await this.renewService();
+                    WalletPwaHelper.walletConnectCancelled();
+                    return;
+                }
+
+                const utxos = await wallet.getUtxos();
+                const changeAddress = await wallet.getChangeAddress();
+
+                WalletPwaHelper.buildingTx();
+                const unsignedTxCbor = await this.walletWebService!.buildTxCbor(
+                    JSON.stringify(utxos),
+                    changeAddress
                 );
-            } catch (e) {
-                await this.renewService();
-                WalletPwaHelper.walletConnectCancelled();
-                return;
-            }
 
-            const utxos = await wallet.getUtxos();
-            const changeAddress = await wallet.getChangeAddress();
+                WalletPwaHelper.signingTx();
+                let signedTx;
+                try {
+                    signedTx = await wallet.signTx(unsignedTxCbor);
+                } catch (e) {
+                    await this.renewService();
+                    WalletPwaHelper.txSigningCancelled();
+                    return;
+                }
 
-            WalletPwaHelper.buildingTx();
-            const unsignedTxCbor = await this.walletWebService!.buildTxCbor(
-                JSON.stringify(utxos),
-                changeAddress
-            );
-
-            WalletPwaHelper.signingTx();
-            let signedTx;
-            try {
-                signedTx = await wallet.signTx(unsignedTxCbor);
-            } catch (e) {
-                await this.renewService();
-                WalletPwaHelper.txSigningCancelled();
-                return;
-            }
-
-            WalletPwaHelper.submittingTx();
-            let txHash;
-            try {
-                txHash = await wallet.submitTx(signedTx);
-            } catch (e) {
-                await this.renewService();
-                WalletPwaHelper.submitTxError();
-                throw e;
+                WalletPwaHelper.submittingTx();
+                try {
+                    txHash = await wallet.submitTx(signedTx);
+                } catch (e) {
+                    await this.renewService();
+                    WalletPwaHelper.submitTxError();
+                    throw e;
+                }
             }
 
             if (!this.walletWebService!.validateTxHash(txHash)) {

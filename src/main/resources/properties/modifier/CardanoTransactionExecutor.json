@@ -29,6 +29,38 @@
                 "value":"cip30Wallet"
             },
             {
+                "name":"formDefIdAccountData",
+                "label":"@@modifier.CardanoTransactionExecutor.formDefId@@",
+                "type":"selectbox",
+                "required":"true",
+                "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/forms/options",
+                "control_field":"walletHandler",
+                "control_value":"internal",
+                "control_use_regex":"false"
+            },
+            {
+                "name":"accountMnemonic",
+                "label":"@@modifier.CardanoTransactionExecutor.accountMnemonic@@",
+                "description":"@@modifier.CardanoTransactionExecutor.accountMnemonic.desc@@",
+                "type":"selectbox",
+                "required":"true",
+                "options_ajax_on_change":"formDefId:formDefIdAccountData",
+                "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options",
+                "control_field":"walletHandler",
+                "control_value":"internal",
+                "control_use_regex":"false"
+            },
+            {
+                "name":"accountDataRecordId",
+                "label":"@@modifier.CardanoTransactionExecutor.accountDataRecordId@@",
+                "description":"@@modifier.CardanoTransactionExecutor.accountDataRecordId.desc@@",
+                "type":"textfield",
+                "required":"true",
+                "control_field":"walletHandler",
+                "control_value":"internal",
+                "control_use_regex":"false"
+            },
+            {
                 "label" : "@@modifier.CardanoTransactionExecutor.subheader.transactionParams@@",
                 "type" : "header"
             },
@@ -44,7 +76,10 @@
                 "name":"feeLimit",
                 "label":"@@cardano.prop.feeLimit@@",
                 "description":"@@cardano.prop.feeLimit.desc@@",
-                "type":"textfield"
+                "type":"textfield",
+                "control_field":"walletHandler",
+                "control_value":"internal",
+                "control_use_regex":"false"
             },
             {
                 "name":"metadata",

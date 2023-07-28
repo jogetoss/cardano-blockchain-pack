@@ -58,6 +58,13 @@ export class WalletPwaHelper {
             bgColor: "#d47603",
         });
     }
+    static internal_feeTooHigh(): void {
+        toast({
+            heading: "Cardano - Transaction Aborted",
+            text: "Fee exceeded limit set by app.<br>No further action performed.",
+            bgColor: "#d47603",
+        });
+    }
 
     //Errors
     static submitTxError(): void {

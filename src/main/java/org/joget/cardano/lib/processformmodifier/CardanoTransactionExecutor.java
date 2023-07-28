@@ -35,7 +35,7 @@ import org.joget.cardano.model.NetworkType;
 import org.joget.cardano.model.explorer.Explorer;
 import org.joget.cardano.model.explorer.ExplorerFactory;
 import static org.joget.cardano.model.explorer.ExplorerFactory.DEFAULT_EXPLORER;
-import org.joget.cardano.model.transaction.TransactionHandler;
+import org.joget.cardano.lib.processformmodifier.components.TransactionHandler;
 import org.joget.cardano.util.PluginUtil;
 import org.joget.commons.util.LogUtil;
 import org.joget.commons.util.SecurityUtil;
@@ -312,6 +312,8 @@ public class CardanoTransactionExecutor extends ExtDefaultPlugin implements Proc
                     jsonMap.put(type.toString(), getServiceUrl(form, type));
                 }
                 
+                jsonMap.put("isInternalWalletHandle", String.valueOf("internal".equalsIgnoreCase(getPropertyString("walletHandler"))));
+                
                 break;
             }
             case VALIDATE_FORM_DATA: {
@@ -337,7 +339,7 @@ public class CardanoTransactionExecutor extends ExtDefaultPlugin implements Proc
             case BUILD_TX_CBOR: {
                 try {
                     final TransactionHandler txHandler = new TransactionHandler(getProperties(), request);
-                    final Transaction unsignedTx = txHandler.createTransaction();
+                    final Transaction unsignedTx = txHandler.createUnsignedTx();
                     if (unsignedTx == null) {
                         return;
                     }
@@ -350,6 +352,18 @@ public class CardanoTransactionExecutor extends ExtDefaultPlugin implements Proc
                     LogUtil.error(getClassName(), ex, "Unable to build transaction CBOR");
                     return;
                 }
+            }
+            case INTERNAL_CHECK_FEE: {
+                final TransactionHandler txHandler = new TransactionHandler(getProperties(), request);
+                jsonMap.put("isWithinFeeLimit", String.valueOf(txHandler.internalIsWithinFeeLimit()));
+
+                break;
+            }
+            case INTERNAL_SIGN_SUBMIT_TX: {
+                final TransactionHandler txHandler = new TransactionHandler(getProperties(), request);
+                jsonMap.put("txHash", txHandler.internalSignAndSubmitTx());
+
+                break;
             }
             default:
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -383,6 +397,8 @@ public class CardanoTransactionExecutor extends ExtDefaultPlugin implements Proc
         INIT_SERVICE("initService"),
         VALIDATE_FORM_DATA("validateFormData"),
         BUILD_TX_CBOR("buildTxCbor"),
+        INTERNAL_CHECK_FEE("internalCheckFee"),
+        INTERNAL_SIGN_SUBMIT_TX("internalSignSubmitTx"),
         RENEW_ENDPOINTS("renewEndpoints");
 
         private final String value;

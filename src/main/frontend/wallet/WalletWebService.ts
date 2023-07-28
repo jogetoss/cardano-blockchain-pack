@@ -1,8 +1,12 @@
 class WalletWebService {
     private validateFormDataUrl: string = "";
     private buildTxCborUrl: string = "";
+    private internalCheckFeeUrl: string = "";
+    private internalSignSubmitTxUrl: string = "";
     private renewEndpointsUrl: string = "";
 
+    private isInternalWalletHandle: boolean = false;
+    private txCbor: string = "";
     private calculatedTxHash: string = "";
 
     constructor(
@@ -16,15 +20,31 @@ class WalletWebService {
 
         this.validateFormDataUrl = endpointsMap.get("validateFormData")!;
         this.buildTxCborUrl = endpointsMap.get("buildTxCbor")!;
+        this.internalCheckFeeUrl = endpointsMap.get("internalCheckFee")!;
+        this.internalSignSubmitTxUrl = endpointsMap.get(
+            "internalSignSubmitTx"
+        )!;
         this.renewEndpointsUrl = endpointsMap.get("renewEndpoints")!;
+
+        this.isInternalWalletHandle = JSON.parse(
+            endpointsMap.get("isInternalWalletHandle") as string
+        );
     }
 
-    async renewEndpoints() {
+    async renewEndpoints(): Promise<void> {
         let endpointsMap = await this.fetchData(this.renewEndpointsUrl);
 
         this.validateFormDataUrl = endpointsMap.get("validateFormData")!;
         this.buildTxCborUrl = endpointsMap.get("buildTxCbor")!;
+        this.internalCheckFeeUrl = endpointsMap.get("internalCheckFee")!;
+        this.internalSignSubmitTxUrl = endpointsMap.get(
+            "internalSignSubmitTx"
+        )!;
         this.renewEndpointsUrl = endpointsMap.get("renewEndpoints")!;
+    }
+
+    isInternalWallet(): boolean {
+        return this.isInternalWalletHandle;
     }
 
     async validateFormData(): Promise<boolean> {
@@ -39,9 +59,35 @@ class WalletWebService {
             { "wallet-utxos-json": utxos }
         );
 
+        this.txCbor = result.get("unsignedTxCbor") as string;
         this.calculatedTxHash = result.get("calculatedTxHash") as string;
 
-        return result.get("unsignedTxCbor") as string;
+        return this.txCbor;
+    }
+
+    async internalBuildTxCbor(): Promise<string> {
+        let result = await this.fetchData(this.buildTxCborUrl);
+
+        this.txCbor = result.get("unsignedTxCbor") as string;
+        this.calculatedTxHash = result.get("calculatedTxHash") as string;
+
+        return this.txCbor;
+    }
+
+    async internalCheckFee(): Promise<boolean> {
+        let result = await this.fetchData(this.internalCheckFeeUrl, {
+            "unsigned-tx-cbor": this.txCbor,
+        });
+
+        return JSON.parse(result.get("isWithinFeeLimit") as string);
+    }
+
+    async internalSignSubmitTx(): Promise<string> {
+        let result = await this.fetchData(this.internalSignSubmitTxUrl, {
+            "unsigned-tx-cbor": this.txCbor,
+        });
+
+        return result.get("txHash") as string;
     }
 
     validateTxHash(actualTxHash: string): boolean {
