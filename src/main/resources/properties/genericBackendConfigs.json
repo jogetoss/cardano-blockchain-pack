@@ -39,8 +39,8 @@
     "name":"blockfrostProjectKey",
     "label":"@@cardano.prop.blockfrostProjectKey@@",
     "description":"@@cardano.prop.blockfrostProjectKey.desc@@",
-    "type":"textfield",
-    "required":"True",
+    "type":"password",
+    "required":"true",
     "control_field":"backendService",
     "control_value":"blockfrost",
     "control_use_regex":"false"
