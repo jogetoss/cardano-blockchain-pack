@@ -20,7 +20,6 @@ export default defineConfig({
         // Library mode since this is not building a web app
         lib: {
             entry: [
-                "src/main/frontend/CardanoWalletLoginButton.tsx",
                 "src/main/frontend/CardanoExplorerButton.tsx",
                 "src/main/frontend/wallet/CardanoWalletHandler.ts",
             ],
