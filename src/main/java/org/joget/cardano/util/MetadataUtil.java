@@ -8,8 +8,10 @@ import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.net.URLEncoder;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.joget.apps.form.model.FormData;
 import org.joget.apps.form.model.FormRow;
 
 public class MetadataUtil {
@@ -31,6 +33,22 @@ public class MetadataUtil {
             String fieldId = mapping.get("fieldId").toString();
 
             messageMetadata.add(fieldId + ": " + row.getProperty(fieldId));
+        }
+        
+        return messageMetadata;
+    }
+    
+    public static MessageMetadata generateMsgMetadataFromFormData(List metadataFields, FormData formData) {
+        if (metadataFields == null || metadataFields.isEmpty()) {
+            return null;
+        }
+        
+        MessageMetadata messageMetadata = MessageMetadata.create();
+        for (Object o : metadataFields) {
+            Map mapping = (Map) o;
+            String fieldId = mapping.get("fieldId").toString();
+
+            messageMetadata.add(fieldId + ": " + formData.getRequestParameter(fieldId));
         }
         
         return messageMetadata;

@@ -1,0 +1,128 @@
+[
+    {
+       "title":"@@modifier.CardanoTransactionExecutor.header.config@@",
+       "properties":[
+            %s
+        ]
+    },
+    {
+        "title":"@@modifier.CardanoTransactionExecutor.header.transactionProperties@@",
+        "properties":[
+            {
+                "label" : "@@modifier.CardanoTransactionExecutor.subheader.walletConfig@@",
+                "type" : "header"
+            },
+            {
+                "name":"walletHandler",
+                "label":"@@modifier.CardanoTransactionExecutor.walletHandler@@",
+                "type":"selectbox",
+                "options" : [
+                    {
+                        "value" : "internal",
+                        "label" : "@@modifier.CardanoTransactionExecutor.walletHandler.internal@@"
+                    },
+                    {
+                        "value" : "cip30Wallet",
+                        "label" : "@@modifier.CardanoTransactionExecutor.walletHandler.cip30Wallet@@"
+                    }
+                ],
+                "value":"cip30Wallet"
+            },
+            {
+                "name":"formDefIdAccountData",
+                "label":"@@modifier.CardanoTransactionExecutor.formDefId@@",
+                "type":"selectbox",
+                "required":"true",
+                "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/forms/options",
+                "control_field":"walletHandler",
+                "control_value":"internal",
+                "control_use_regex":"false"
+            },
+            {
+                "name":"accountMnemonic",
+                "label":"@@modifier.CardanoTransactionExecutor.accountMnemonic@@",
+                "description":"@@modifier.CardanoTransactionExecutor.accountMnemonic.desc@@",
+                "type":"selectbox",
+                "required":"true",
+                "options_ajax_on_change":"formDefId:formDefIdAccountData",
+                "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options",
+                "control_field":"walletHandler",
+                "control_value":"internal",
+                "control_use_regex":"false"
+            },
+            {
+                "name":"accountDataRecordId",
+                "label":"@@modifier.CardanoTransactionExecutor.accountDataRecordId@@",
+                "description":"@@modifier.CardanoTransactionExecutor.accountDataRecordId.desc@@",
+                "type":"textfield",
+                "required":"true",
+                "control_field":"walletHandler",
+                "control_value":"internal",
+                "control_use_regex":"false"
+            },
+            {
+                "label" : "@@modifier.CardanoTransactionExecutor.subheader.transactionParams@@",
+                "type" : "header"
+            },
+            {
+                "name" : "txAction",
+                "label" : "@@modifier.CardanoTransactionExecutor.txAction@@",
+                "type" : "elementselect",
+                "options_ajax" : "[CONTEXT_PATH]/web/property/json/getElements?classname=org.joget.cardano.model.transaction.CardanoTransactionPlugin",
+                "url" : "[CONTEXT_PATH]/web/property/json[APP_PATH]/getPropertyOptions",
+                "required" : "true"
+            },
+            {
+                "name":"feeLimit",
+                "label":"@@cardano.prop.feeLimit@@",
+                "description":"@@cardano.prop.feeLimit.desc@@",
+                "type":"textfield",
+                "control_field":"walletHandler",
+                "control_value":"internal",
+                "control_use_regex":"false"
+            },
+            {
+                "name":"metadata",
+                "label":"@@modifier.CardanoTransactionExecutor.metadata@@",
+                "type":"grid",
+                "columns":[{
+                    "key":"fieldId",
+                    "label":"@@modifier.CardanoTransactionExecutor.metadata.fieldId@@"
+                }]
+            }
+        ]
+    },
+    {
+        "title":"@@cardano.prop.header.storeToForm@@",
+        "properties":[
+            {
+                "name" : "formDefIdStoreTxData",
+                "label" : "@@modifier.CardanoTransactionExecutor.formDefIdStoreTxData@@",
+                "type" : "selectbox",
+                "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/formsWithCustomTable/options"
+            },
+            {
+                "name":"varTransactionValidated",
+                "label":"@@cardano.prop.wfMapping.wfTransactionValidated@@",
+                "description":"@@cardano.prop.wfMapping.wfTransactionValidated.desc@@",
+                "type":"selectbox",
+                "options_ajax_on_change":"formDefId:formDefIdStoreTxData",
+                "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options"
+            },
+            {
+                "name":"varTransactionId",
+                "label":"@@cardano.prop.wfMapping.wfTransactionId@@",
+                "type":"selectbox",
+                "options_ajax_on_change":"formDefId:formDefIdStoreTxData",
+                "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options"
+            },
+            {
+                "name":"varTransactionExplorerUrl",
+                "label":"@@cardano.prop.wfMapping.wfTransactionExplorerUrl@@",
+                "type":"selectbox",
+                "options_ajax_on_change":"formDefId:formDefIdStoreTxData",
+                "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options"
+            }
+        ]
+    }
+]

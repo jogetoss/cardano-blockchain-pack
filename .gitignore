@@ -1,4 +1,9 @@
-src/main/resources/secure.properties
+
+#################
+## Front End
+#################
+
+node_modules
 
 #################
 ## Apple Macs
@@ -36,6 +41,11 @@ local.properties
 # PDT-specific
 .buildpath
 
+#################
+## Visual Studio Code
+#################
+
+.vscode
 
 #################
 ## Visual Studio

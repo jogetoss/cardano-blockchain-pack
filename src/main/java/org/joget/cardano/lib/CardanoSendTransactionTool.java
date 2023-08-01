@@ -2,7 +2,7 @@ package org.joget.cardano.lib;
 
 import org.joget.cardano.util.PluginUtil;
 import org.joget.cardano.util.BackendUtil;
-import org.joget.cardano.util.TransactionUtil;
+import org.joget.cardano.util.TxUtil;
 import java.math.BigDecimal;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.commons.util.LogUtil;
@@ -20,19 +20,14 @@ import com.bloxbean.cardano.client.exception.AddressExcepion;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
 import com.bloxbean.cardano.client.metadata.Metadata;
 import com.bloxbean.cardano.client.transaction.model.TransactionDetailsParams;
-import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.joget.apps.app.dao.DatalistDefinitionDao;
 import org.joget.apps.app.model.DatalistDefinition;
 import org.joget.apps.datalist.model.DataList;
 import org.joget.apps.datalist.model.DataListBinder;
 import org.joget.apps.datalist.model.DataListCollection;
-import org.joget.apps.datalist.model.DataListColumn;
 import org.joget.apps.datalist.service.DataListService;
 import org.joget.apps.form.model.FormRow;
 import org.joget.apps.form.model.FormRowSet;
@@ -43,15 +38,17 @@ import org.joget.cardano.model.explorer.ExplorerFactory;
 import static org.joget.cardano.model.explorer.ExplorerFactory.DEFAULT_EXPLORER;
 import org.joget.cardano.util.MetadataUtil;
 import org.joget.cardano.util.TokenUtil;
-import static org.joget.cardano.util.TransactionUtil.MAX_FEE_LIMIT;
+import static org.joget.cardano.util.TxUtil.MAX_FEE_LIMIT;
 import org.joget.commons.util.PluginThread;
-import org.joget.plugin.base.PluginWebSupport;
-import org.joget.workflow.model.service.WorkflowUserManager;
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.springframework.beans.BeansException;
 
-public class CardanoSendTransactionTool extends CardanoProcessTool implements PluginWebSupport {
+/**
+* @deprecated
+* This plugin does not support CIP-30 wallet interaction.
+* <p> Use {@link org.joget.cardano.lib.processformmodifier.actions.TokenTransferAction TokenTransferAction} instead.
+*/
+@Deprecated
+public class CardanoSendTransactionTool extends CardanoProcessTool {
     
     protected DataListBinder binder = null;
     
@@ -154,7 +151,7 @@ public class CardanoSendTransactionTool extends CardanoProcessTool implements Pl
                 paymentList.add(paymentTransaction);
             }
 
-            long ttl = TransactionUtil.getTtl(blockService, 2000);
+            long ttl = TxUtil.getTtl(blockService, 2000);
             TransactionDetailsParams detailsParams = TransactionDetailsParams.builder().ttl(ttl).build();
 
             // See https://cips.cardano.org/cips/cip20/
@@ -166,7 +163,7 @@ public class CardanoSendTransactionTool extends CardanoProcessTool implements Pl
             if (!getPropertyString("feeLimit").isBlank()) {
                 feeLimit = ADAConversionUtil.adaToLovelace(new BigDecimal(getPropertyString("feeLimit")));
             }
-            if (!TransactionUtil.checkFeeLimit(fee, feeLimit)) {
+            if (!TxUtil.checkFeeLimit(fee, feeLimit)) {
                 LogUtil.warn(getClassName(), "Send transaction aborted. Transaction fee in units of lovelace of " + fee.toString() + " exceeded set fee limit of " + feeLimit.toString() + ".");
                 storeToWorkflowVariable(wfAssignment.getActivityId(), networkType, null, null);
                 return null;
@@ -189,7 +186,7 @@ public class CardanoSendTransactionTool extends CardanoProcessTool implements Pl
                 Result<TransactionContent> validatedTransactionResult = null;
 
                 try {
-                    validatedTransactionResult = TransactionUtil.waitForTransaction(transactionService, transactionResult);
+                    validatedTransactionResult = TxUtil.waitForTransaction(transactionService, transactionResult);
                 } catch (Exception ex) {
                     LogUtil.error(getClassName(), ex, "Error waiting for transaction validation...");
                 }
@@ -339,50 +336,5 @@ public class CardanoSendTransactionTool extends CardanoProcessTool implements Pl
         }
         
         workflowManager.activityVariable(activityId, variable, value);
-    }
-    
-    @Override
-    public void webService(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        boolean isAdmin = WorkflowUtil.isCurrentUserInRole(WorkflowUserManager.ROLE_ADMIN);
-        if (!isAdmin) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
-            return;
-        }
-        
-        String action = request.getParameter("action");
-        if ("getDatalistColumns".equals(action)) {
-            try {
-                ApplicationContext ac = AppUtil.getApplicationContext();
-                appDef = AppUtil.getCurrentAppDefinition();
-                DatalistDefinitionDao datalistDefinitionDao = (DatalistDefinitionDao) ac.getBean("datalistDefinitionDao");
-                dataListService = (DataListService) ac.getBean("dataListService");
-                
-                String datalistId = request.getParameter("id");
-                DatalistDefinition datalistDefinition = datalistDefinitionDao.loadById(datalistId, appDef);
-                
-                DataList datalist;
-                if (datalistDefinition != null) {
-                    datalist = dataListService.fromJson(datalistDefinition.getJson());
-                    DataListColumn[] datalistcolumns = datalist.getColumns();
-                    
-                    //JSONObject jsonObject = new JSONObject();
-                    JSONArray columns = new JSONArray();
-                    for (DataListColumn datalistcolumn : datalistcolumns) {
-                        JSONObject column = new JSONObject();
-                        column.put("value", datalistcolumn.getName());
-                        column.put("label", datalistcolumn.getLabel());
-                        columns.put(column);
-                    }
-                    columns.write(response.getWriter());
-                } else {
-                    JSONArray columns = new JSONArray();
-                    columns.write(response.getWriter());
-                }
-            } catch (Exception e) {
-                LogUtil.error(getClassName(), e, "Unable to retrieve datalist columns for plugin properties.");
-            } 
-        } else {
-            response.setStatus(HttpServletResponse.SC_NO_CONTENT);
-        }
     }
 }

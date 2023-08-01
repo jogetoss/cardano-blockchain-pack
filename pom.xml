@@ -4,9 +4,12 @@
     <groupId>org.joget.cardano</groupId>
     <artifactId>cardano_blockchain_pack</artifactId>
     <packaging>bundle</packaging>
-    <version>7.0.10</version>
+    <version>8.0.0</version>
     <name>cardano_blockchain_pack</name>
-    <url>http://www.joget.org</url>
+    <url>https://www.joget.org</url>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
     <build>
         <resources>
             <resource>
@@ -16,13 +19,54 @@
                 <directory>src/main/resources-filtered</directory>
                 <filtering>true</filtering>
             </resource>
+            <!-- After building frontend, get files from "npm-build-output" dir to pack into jar "resources" dir -->
+            <resource>
+                <directory>target/npm-build-output</directory>
+                <targetPath>resources</targetPath>
+            </resource>
         </resources>
         <plugins>
             <plugin>
+                <!-- See https://github.com/eirslett/frontend-maven-plugin -->
+                <groupId>com.github.eirslett</groupId>
+                <artifactId>frontend-maven-plugin</artifactId>
+                <version>1.13.4</version>
+                <configuration>
+                    <installDirectory>target</installDirectory>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>install node and npm</id>
+                        <goals>
+                            <goal>install-node-and-npm</goal>
+                        </goals>
+                        <configuration>
+                            <nodeVersion>v18.16.1</nodeVersion>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>npm install</id>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>vite build</id>
+                        <goals>
+                            <goal>npx</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>vite build</arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.10.1</version>
+                <version>3.11.0</version>
                 <configuration>
+                    <source>11</source>
                     <release>11</release>
                 </configuration>
             </plugin>
@@ -49,13 +93,13 @@
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
-                <version>5.1.4</version>
+                <version>5.1.8</version>
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
                         <!-- Change package and plugin class here -->
-                        <Export-Package>org.joget.cardano</Export-Package>
-                        <Private-Package>org.joget.cardano.*</Private-Package>
+                        <Export-Package></Export-Package>
+                        <Private-Package>{local-packages}</Private-Package>
                         <Bundle-Activator>org.joget.cardano.lib.Activator</Bundle-Activator>
                         <Import-Package>!*,org.joget.report.dao,org.joget.report.model,org.joget.report.service,org.joget.commons.util,org.joget.plugin.base,org.joget.plugin.property.model,org.joget.plugin.property.service,org.joget.directory.model,org.joget.directory.model.service,org.joget.directory.dao,org.joget.workflow.model,org.joget.workflow.model.dao,org.joget.workflow.model.service,org.joget.workflow.util,org.joget.apps.app.dao,org.joget.apps.app.lib,org.joget.apps.app.model,org.joget.apps.app.service,org.joget.apps.datalist.lib,org.joget.apps.datalist.model,org.joget.apps.datalist.service,org.joget.apps.form.lib,org.joget.apps.form.dao,org.joget.apps.form.model,org.joget.apps.form.service,org.joget.apps.list.service,org.joget.apps.userview.lib,org.joget.apps.userview.model,org.joget.apps.userview.service,org.joget.apps.workflow.lib,javax.servlet,javax.servlet.http,org.osgi.framework;version="1.3.0"</Import-Package>
                         <!-- End change package and plugin class here -->
@@ -79,7 +123,7 @@
         <dependency>
             <groupId>org.joget</groupId>
             <artifactId>wflow-core</artifactId>
-            <version>7.0-SNAPSHOT</version>
+            <version>8.0-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
                     <groupId>javax.servlet</groupId>
@@ -119,7 +163,6 @@
             <artifactId>cardano-client-backend-ogmios</artifactId>
             <version>0.4.3</version>
         </dependency>-->
-        <!--vasil update removed graphql support-->
         <!-- End change plugin specific dependencies here -->
     </dependencies>
     <distributionManagement>

@@ -40,7 +40,7 @@ import java.util.HashSet;
 import java.util.List;
 import org.joget.cardano.util.PluginUtil;
 import org.joget.cardano.util.BackendUtil;
-import org.joget.cardano.util.TransactionUtil;
+import org.joget.cardano.util.TxUtil;
 import java.util.Optional;
 import java.util.Set;
 import org.joget.apps.app.service.AppUtil;
@@ -52,11 +52,17 @@ import org.joget.cardano.model.explorer.Explorer;
 import org.joget.cardano.model.explorer.ExplorerFactory;
 import static org.joget.cardano.model.explorer.ExplorerFactory.DEFAULT_EXPLORER;
 import org.joget.cardano.util.TokenUtil;
-import static org.joget.cardano.util.TransactionUtil.MAX_FEE_LIMIT;
+import static org.joget.cardano.util.TxUtil.MAX_FEE_LIMIT;
 import org.joget.commons.util.LogUtil;
 import org.joget.commons.util.PluginThread;
 import org.joget.workflow.util.WorkflowUtil;
 
+/**
+* @deprecated
+* This plugin does not support CIP-30 wallet interaction.
+* <p> Use {@link org.joget.cardano.lib.processformmodifier.actions.TokenBurnAction TokenBurnAction} instead.
+*/
+@Deprecated
 public class CardanoBurnTokenTool extends CardanoProcessTool {
     
     @Override
@@ -204,7 +210,7 @@ public class CardanoBurnTokenTool extends CardanoProcessTool {
                     });
             outputs.add(transactionOutput);
 
-            long ttl = TransactionUtil.getTtl(blockService);
+            long ttl = TxUtil.getTtl(blockService);
 
             TransactionBody body = TransactionBody.builder()
                 .inputs(inputs)
@@ -232,7 +238,7 @@ public class CardanoBurnTokenTool extends CardanoProcessTool {
             if (!getPropertyString("feeLimit").isBlank()) {
                 feeLimit = ADAConversionUtil.adaToLovelace(new BigDecimal(getPropertyString("feeLimit")));
             }
-            if (!TransactionUtil.checkFeeLimit(fee, feeLimit)) {
+            if (!TxUtil.checkFeeLimit(fee, feeLimit)) {
                 LogUtil.warn(getClassName(), "Burn transaction aborted. Transaction fee in units of lovelace of " + fee.toString() + " exceeded set fee limit of " + feeLimit.toString() + ".");
                 storeToWorkflowVariable(wfAssignment.getActivityId(), networkType, null, null);
                 return null;
@@ -256,7 +262,7 @@ public class CardanoBurnTokenTool extends CardanoProcessTool {
                 Result<TransactionContent> validatedTransactionResult = null;
 
                 try {
-                    validatedTransactionResult = TransactionUtil.waitForTransaction(transactionService, transactionResult);
+                    validatedTransactionResult = TxUtil.waitForTransaction(transactionService, transactionResult);
                 } catch (Exception ex) {
                     LogUtil.error(getClassName(), ex, "Error waiting for transaction validation...");
                 }
