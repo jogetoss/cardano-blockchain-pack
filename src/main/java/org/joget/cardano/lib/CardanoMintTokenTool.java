@@ -10,6 +10,8 @@ import com.bloxbean.cardano.client.cip.cip25.NFT;
 import com.bloxbean.cardano.client.cip.cip25.NFTFile;
 import com.bloxbean.cardano.client.cip.cip25.NFTMetadata;
 import com.bloxbean.cardano.client.common.ADAConversionUtil;
+import com.bloxbean.cardano.client.crypto.KeyGenUtil;
+import com.bloxbean.cardano.client.crypto.Keys;
 import com.bloxbean.cardano.client.crypto.SecretKey;
 import com.bloxbean.cardano.client.exception.AddressExcepion;
 import com.bloxbean.cardano.client.exception.CborDeserializationException;
@@ -34,6 +36,8 @@ import org.joget.cardano.util.PluginUtil;
 import org.joget.cardano.util.BackendUtil;
 import org.joget.cardano.util.TxUtil;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.apps.form.model.FormRow;
 import org.joget.apps.form.model.FormRowSet;
@@ -147,9 +151,28 @@ public class CardanoMintTokenTool extends CardanoProcessTool {
 
                 policy = new Policy(TokenUtil.getFormattedPolicyName(policyId), policyScript, skeys);
             } else { // Generate a new minting policy for this minting transaction
-                /* Perhaps support multisig policy signing in future? 1 signer for now. */
-                policy = PolicyUtil.createMultiSigScriptAllPolicy("", 1);
+                if ("true".equalsIgnoreCase(getPropertyString("useCustomPolicyScript")) && !getPropertyString("manualPolicyScript").isBlank()) {
+                    String policyScriptJson = getPropertyString("manualPolicyScript").replaceAll("\\s", "");
+                    List<SecretKey> skeys = TokenUtil.getSecretKeysStringAsList(getPropertyString("manualPolicyKeys"));
+                    
+                    Pattern pattern = Pattern.compile("#policyKey#");
+                    Matcher matcher = pattern.matcher(policyScriptJson);
 
+                    StringBuffer sb = new StringBuffer();
+                    while (matcher.find()) {
+                        Keys keys = KeyGenUtil.generateKey();
+                        matcher.appendReplacement(sb, KeyGenUtil.getKeyHash(keys.getVkey()));
+                        skeys.add(keys.getSkey());
+                    }
+                    matcher.appendTail(sb);
+                    
+                    NativeScript policyScript = NativeScript.deserializeJson(sb.toString());
+                    
+                    policy = new Policy("", policyScript, skeys);
+                } else {
+                    policy = PolicyUtil.createMultiSigScriptAllPolicy("", 1);
+                }
+                
                 policy.setName(TokenUtil.getFormattedPolicyName(policy.getPolicyId()));
             }
 

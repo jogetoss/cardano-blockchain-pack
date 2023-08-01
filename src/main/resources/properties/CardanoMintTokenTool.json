@@ -54,6 +54,37 @@
                 "value":"generateNew"
             },
             {
+                "name" : "useCustomPolicyScript",
+                "label" : "@@process.cardanominttokentool.useCustomPolicyScript@@",
+                "type" : "checkbox",
+                "options" : [{
+                    "value" : "true",
+                    "label" : ""
+                }],
+                "value" : "",
+                "control_field":"mintingPolicyHandling",
+                "control_value":"generateNew",
+                "control_use_regex":"false"
+            },
+            {
+                "name":"manualPolicyScript",
+                "label":"@@process.cardanominttokentool.manualPolicyScript@@",
+                "description":"@@process.cardanominttokentool.manualPolicyScript.desc@@",
+                "type":"textarea",
+                "control_field":"useCustomPolicyScript",
+                "control_value":"true",
+                "control_use_regex":"false"
+            },
+            {
+                "name":"manualPolicyKeys",
+                "label":"@@process.cardanominttokentool.manualPolicyKeys@@",
+                "description":"@@process.cardanominttokentool.manualPolicyKeys.desc@@",
+                "type":"textarea",
+                "control_field":"useCustomPolicyScript",
+                "control_value":"true",
+                "control_use_regex":"false"
+            },
+            {
                 "name":"policyId",
                 "label":"@@process.cardanominttokentool.policyId@@",
                 "description":"@@process.cardanominttokentool.policyId.desc@@",
