@@ -226,16 +226,19 @@ public class TransactionHandler {
         
         Transaction unsignedTx = txBuilderContext.build(txBuilder);
         
-        TxSigner signers = actionPlugin.addSigners();
-        if (signers != null) {
-            unsignedTx = signers.sign(unsignedTx);
-        }
-        
         try {
             unsignedTx.getBody().setTtl(TxUtil.getTtl(blockService));
+            
+            //Re-serializing later on will reorder tx and may invalidate witnesses. Workaround.
+            unsignedTx = Transaction.deserialize(HexUtil.decodeHexString(unsignedTx.serializeToHex()));
         } catch (Exception ex) {
             LogUtil.error(getClassName(), ex, "Unable to prepare final unsigned tx");
             return null;
+        }
+        
+        TxSigner signers = actionPlugin.addSigners();
+        if (signers != null) {
+            unsignedTx = signers.sign(unsignedTx);
         }
         
         return unsignedTx;
