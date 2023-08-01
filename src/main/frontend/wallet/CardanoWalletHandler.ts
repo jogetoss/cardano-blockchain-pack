@@ -144,6 +144,7 @@ class CardanoWalletHandler {
                 return;
             }
 
+            this.storeTxHashToForm(txHash);
             this.submitAssignment();
         } catch (e) {
             await this.renewService();
@@ -168,6 +169,15 @@ class CardanoWalletHandler {
                 return false;
             },
             { once: true } //prevent infinite loop
+        );
+    }
+
+    private storeTxHashToForm(txHash: string): void {
+        this.formObj.insertAdjacentHTML(
+            "beforeend",
+            '<input type="hidden" name="CARDANO_TX_HASH" value="' +
+                txHash +
+                '"/>'
         );
     }
 

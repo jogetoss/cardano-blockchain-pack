@@ -93,9 +93,36 @@
         ]
     },
     {
-        "title":"@@cardano.prop.header.storeToWorkflowVariable@@",
+        "title":"@@cardano.prop.header.storeToForm@@",
         "properties":[
-            %s
+            {
+                "name" : "formDefIdStoreTxData",
+                "label" : "@@modifier.CardanoTransactionExecutor.formDefIdStoreTxData@@",
+                "type" : "selectbox",
+                "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/formsWithCustomTable/options"
+            },
+            {
+                "name":"varTransactionValidated",
+                "label":"@@cardano.prop.wfMapping.wfTransactionValidated@@",
+                "description":"@@cardano.prop.wfMapping.wfTransactionValidated.desc@@",
+                "type":"selectbox",
+                "options_ajax_on_change":"formDefId:formDefIdStoreTxData",
+                "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options"
+            },
+            {
+                "name":"varTransactionId",
+                "label":"@@cardano.prop.wfMapping.wfTransactionId@@",
+                "type":"selectbox",
+                "options_ajax_on_change":"formDefId:formDefIdStoreTxData",
+                "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options"
+            },
+            {
+                "name":"varTransactionExplorerUrl",
+                "label":"@@cardano.prop.wfMapping.wfTransactionExplorerUrl@@",
+                "type":"selectbox",
+                "options_ajax_on_change":"formDefId:formDefIdStoreTxData",
+                "options_ajax":"[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options"
+            }
         ]
     }
 ]

@@ -2,7 +2,7 @@ package org.joget.cardano.lib;
 
 import org.joget.cardano.util.PluginUtil;
 import org.joget.cardano.util.BackendUtil;
-import org.joget.cardano.util.TransactionUtil;
+import org.joget.cardano.util.TxUtil;
 import java.math.BigDecimal;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.commons.util.LogUtil;
@@ -38,7 +38,7 @@ import org.joget.cardano.model.explorer.ExplorerFactory;
 import static org.joget.cardano.model.explorer.ExplorerFactory.DEFAULT_EXPLORER;
 import org.joget.cardano.util.MetadataUtil;
 import org.joget.cardano.util.TokenUtil;
-import static org.joget.cardano.util.TransactionUtil.MAX_FEE_LIMIT;
+import static org.joget.cardano.util.TxUtil.MAX_FEE_LIMIT;
 import org.joget.commons.util.PluginThread;
 import org.springframework.beans.BeansException;
 
@@ -151,7 +151,7 @@ public class CardanoSendTransactionTool extends CardanoProcessTool {
                 paymentList.add(paymentTransaction);
             }
 
-            long ttl = TransactionUtil.getTtl(blockService, 2000);
+            long ttl = TxUtil.getTtl(blockService, 2000);
             TransactionDetailsParams detailsParams = TransactionDetailsParams.builder().ttl(ttl).build();
 
             // See https://cips.cardano.org/cips/cip20/
@@ -163,7 +163,7 @@ public class CardanoSendTransactionTool extends CardanoProcessTool {
             if (!getPropertyString("feeLimit").isBlank()) {
                 feeLimit = ADAConversionUtil.adaToLovelace(new BigDecimal(getPropertyString("feeLimit")));
             }
-            if (!TransactionUtil.checkFeeLimit(fee, feeLimit)) {
+            if (!TxUtil.checkFeeLimit(fee, feeLimit)) {
                 LogUtil.warn(getClassName(), "Send transaction aborted. Transaction fee in units of lovelace of " + fee.toString() + " exceeded set fee limit of " + feeLimit.toString() + ".");
                 storeToWorkflowVariable(wfAssignment.getActivityId(), networkType, null, null);
                 return null;
@@ -186,7 +186,7 @@ public class CardanoSendTransactionTool extends CardanoProcessTool {
                 Result<TransactionContent> validatedTransactionResult = null;
 
                 try {
-                    validatedTransactionResult = TransactionUtil.waitForTransaction(transactionService, transactionResult);
+                    validatedTransactionResult = TxUtil.waitForTransaction(transactionService, transactionResult);
                 } catch (Exception ex) {
                     LogUtil.error(getClassName(), ex, "Error waiting for transaction validation...");
                 }

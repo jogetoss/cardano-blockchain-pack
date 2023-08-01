@@ -10,9 +10,9 @@ import java.math.BigInteger;
 import org.joget.apps.form.service.FormUtil;
 import org.joget.commons.util.LogUtil;
 
-public class TransactionUtil {
+public class TxUtil {
     
-    private TransactionUtil() {}
+    private TxUtil() {}
     
     public static final BigInteger MAX_FEE_LIMIT = BigInteger.valueOf(999999999);
     
@@ -51,6 +51,7 @@ public class TransactionUtil {
         return fee.compareTo(limit) <= 0;
     }
     
+    @Deprecated
     public static Result<TransactionContent> waitForTransaction(TransactionService transactionService, Result transactionResult) 
             throws ApiException, InterruptedException {
         if (!transactionResult.isSuccessful()) {
@@ -66,7 +67,7 @@ public class TransactionUtil {
             String txResultObj = (String) transactionResult.getValue();
             transactionId = txResultObj;
         } else {
-            LogUtil.warn(TransactionUtil.class.getName(), "Something went wrong. Unknown tx result type found!");
+            LogUtil.warn(TxUtil.class.getName(), "Something went wrong. Unknown tx result type found!");
             return null;
         }
         

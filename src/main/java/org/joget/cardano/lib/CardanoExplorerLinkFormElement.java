@@ -16,7 +16,7 @@ import org.joget.cardano.util.AccountUtil;
 import org.joget.cardano.util.BackendUtil;
 import org.joget.cardano.util.PluginUtil;
 import org.joget.cardano.util.TokenUtil;
-import org.joget.cardano.util.TransactionUtil;
+import org.joget.cardano.util.TxUtil;
 import org.joget.commons.util.LogUtil;
 import org.joget.workflow.util.WorkflowUtil;
 
@@ -95,7 +95,7 @@ public class CardanoExplorerLinkFormElement extends CardanoFormElement implement
                     return TokenUtil.isAssetIdExist(assetService, retrievedValue);
                 case TX_ID_TYPE:
                 default:
-                    return TransactionUtil.isTransactionIdExist(transactionService, retrievedValue);
+                    return TxUtil.isTransactionIdExist(transactionService, retrievedValue);
             }
         } catch (ApiException ex) {
             /* 

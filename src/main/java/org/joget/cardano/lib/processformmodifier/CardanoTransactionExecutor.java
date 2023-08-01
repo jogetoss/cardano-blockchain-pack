@@ -1,8 +1,5 @@
 package org.joget.cardano.lib.processformmodifier;
 
-import com.bloxbean.cardano.client.api.helper.model.TransactionResult;
-import com.bloxbean.cardano.client.api.model.Result;
-import com.bloxbean.cardano.client.backend.model.TransactionContent;
 import com.bloxbean.cardano.client.transaction.spec.Transaction;
 import com.bloxbean.cardano.client.transaction.util.TransactionUtil;
 import com.google.gson.Gson;
@@ -21,29 +18,32 @@ import org.joget.apps.app.model.AppDefinition;
 import org.joget.apps.app.model.FormDefinition;
 import org.joget.apps.app.model.ProcessFormModifier;
 import org.joget.apps.app.model.StartProcessFormModifier;
+import org.joget.apps.app.service.AppService;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.apps.form.model.Element;
 import org.joget.apps.form.model.Form;
 import org.joget.apps.form.model.FormAction;
 import org.joget.apps.form.model.FormData;
+import org.joget.apps.form.model.FormRow;
+import org.joget.apps.form.model.FormRowSet;
 import org.joget.apps.form.model.FormValidator;
 import org.joget.apps.form.service.FormService;
 import org.joget.apps.form.service.FormUtil;
 import org.joget.apps.workflow.lib.AssignmentCompleteButton;
 import org.joget.cardano.lib.processformmodifier.components.CustomCompleteButton;
-import org.joget.cardano.model.NetworkType;
 import org.joget.cardano.model.explorer.Explorer;
 import org.joget.cardano.model.explorer.ExplorerFactory;
 import static org.joget.cardano.model.explorer.ExplorerFactory.DEFAULT_EXPLORER;
 import org.joget.cardano.lib.processformmodifier.components.TransactionHandler;
+import org.joget.cardano.util.BackendUtil;
 import org.joget.cardano.util.PluginUtil;
 import org.joget.commons.util.LogUtil;
+import org.joget.commons.util.PluginThread;
 import org.joget.commons.util.SecurityUtil;
 import org.joget.plugin.base.ExtDefaultPlugin;
 import org.joget.plugin.base.PluginWebSupport;
 import org.joget.workflow.model.WorkflowAssignment;
 import org.joget.workflow.model.WorkflowProcessResult;
-import org.joget.workflow.model.service.WorkflowManager;
 import org.joget.workflow.util.WorkflowUtil;
 import org.springframework.context.ApplicationContext;
 
@@ -62,8 +62,13 @@ public class CardanoTransactionExecutor extends ExtDefaultPlugin implements Proc
     @Override
     public String getPropertyOptions() {
         String backendConfigs = PluginUtil.readGenericBackendConfigs(getClassName());
-        String wfVarMappings = PluginUtil.readGenericWorkflowVariableMappings(getClassName());
-        return AppUtil.readPluginResource(getClassName(), "/properties/modifier/CardanoTransactionExecutor.json", new String[]{backendConfigs, wfVarMappings}, true, PluginUtil.MESSAGE_PATH);
+        return AppUtil.readPluginResource(
+                getClassName(), 
+                "/properties/modifier/CardanoTransactionExecutor.json", 
+                new String[]{backendConfigs}, 
+                true, 
+                PluginUtil.MESSAGE_PATH
+        );
     }
 
     protected void modifyForm(Form form, FormData formData) {
@@ -137,44 +142,80 @@ public class CardanoTransactionExecutor extends ExtDefaultPlugin implements Proc
         );
     }
     
-    private void storeToWorkflowVariable(
-            String activityId,
-            NetworkType networkType,
-            Result<TransactionResult> transactionResult,
-            Result<TransactionContent> validatedtransactionResult) {
-        
-        Explorer explorer = new ExplorerFactory(networkType).createExplorer(DEFAULT_EXPLORER);
-        
-        storeValuetoActivityVar(
-                activityId, 
-                getPropertyString("wfTransactionSuccessful"), 
-                transactionResult != null ? String.valueOf(transactionResult.isSuccessful()) : "false"
-        );
-        storeValuetoActivityVar(
-                activityId, 
-                getPropertyString("wfTransactionValidated"), 
-                validatedtransactionResult != null ? String.valueOf(validatedtransactionResult.isSuccessful()) : "false"
-        );
-        storeValuetoActivityVar(
-                activityId, 
-                getPropertyString("wfTransactionId"), 
-                transactionResult != null ? transactionResult.getValue().getTransactionId() : ""
-        );
-        storeValuetoActivityVar(
-                activityId, 
-                getPropertyString("wfTransactionExplorerUrl"), 
-                transactionResult != null ? explorer.getTransactionUrl(transactionResult.getValue().getTransactionId()) : ""
-        );
-    }
-    
-    private void storeValuetoActivityVar(String activityId, String variable, String value) {
-        if (activityId == null || activityId.isEmpty() || variable.isEmpty() || value == null) {
+    private void storeTxDataToForm(FormData formData) {
+        final String formDefId = getPropertyString("formDefIdStoreTxData");
+        if (formDefId == null || formDefId.isBlank()) {
+            LogUtil.warn(getClassName(), "Unable to store tx data to form. Encountered blank form ID.");
             return;
         }
         
-        ApplicationContext appContext = AppUtil.getApplicationContext();
-        WorkflowManager workflowManager = (WorkflowManager) appContext.getBean("workflowManager");
-        workflowManager.activityVariable(activityId, variable, value);
+        Map pluginProps = getProperties();
+        String primaryKey = formData.getPrimaryKeyValue();
+        
+        AppService appService = (AppService) AppUtil.getApplicationContext().getBean("appService");
+        AppDefinition appDef = AppUtil.getCurrentAppDefinition();
+        Explorer explorer = new ExplorerFactory(BackendUtil.getNetworkType(pluginProps)).createExplorer(DEFAULT_EXPLORER);
+        
+        FormRowSet rowSet = appService.loadFormData(appDef.getAppId(), appDef.getVersion().toString(), formDefId, primaryKey);
+        FormRow row = new FormRow();
+        if (!rowSet.isEmpty()) {
+            row = rowSet.get(0);
+        } else {
+            primaryKey = null;
+        }
+        
+        row = addValue(
+                row, 
+                getPropertyString("varTransactionValidated"), 
+                "pending"
+        );
+        row = addValue(
+                row, 
+                getPropertyString("varTransactionId"), 
+                formData.getRequestParameter("CARDANO_TX_HASH")
+        );
+        row = addValue(
+                row, 
+                getPropertyString("varTransactionExplorerUrl"), 
+                explorer.getTransactionUrl(formData.getRequestParameter("CARDANO_TX_HASH"))
+        );
+        
+        if (!rowSet.isEmpty()) {
+            rowSet.set(0, row);
+        } else {
+            rowSet.add(0, row);
+        }
+        
+        final FormRowSet storedFormRowSet = appService.storeFormData(appDef.getId(), appDef.getVersion().toString(), formDefId, rowSet, primaryKey);
+        
+        //Use separate thread to wait for tx confirmation
+        if (!getPropertyString("varTransactionValidated").isBlank()) {
+            final TransactionHandler txHandler = new TransactionHandler(pluginProps, null);
+            
+            Thread waitTransactionThread = new PluginThread(() -> {
+                FormRow storedRow = storedFormRowSet.get(0);
+                
+                final boolean txConfirmed = txHandler.waitForTx(formData.getRequestParameter("CARDANO_TX_HASH"));
+                
+                storedRow = addValue(
+                        storedRow,
+                        getPropertyString("varTransactionValidated"),
+                        String.valueOf(txConfirmed)
+                );
+
+                storedFormRowSet.set(0, storedRow);
+
+                appService.storeFormData(appDef.getId(), appDef.getVersion().toString(), formDefId, storedFormRowSet, storedRow.getId());
+            });
+            waitTransactionThread.start();
+        }
+    }
+    
+    private FormRow addValue(FormRow row, String field, String value) {
+        if (row != null && !field.isEmpty()) {
+            row.setProperty(field, value);
+        }
+        return row;
     }
     
     private String getServiceUrl(Form form, WebServiceType serviceType) {
@@ -380,6 +421,7 @@ public class CardanoTransactionExecutor extends ExtDefaultPlugin implements Proc
 
     @Override
     public WorkflowProcessResult customSubmissionHandling(Form form, FormData formData, WorkflowProcessResult result) {
+        storeTxDataToForm(formData);
         return null;
     }
     
@@ -390,6 +432,7 @@ public class CardanoTransactionExecutor extends ExtDefaultPlugin implements Proc
 
     @Override
     public boolean customSubmissionHandling(Form form, FormData formData, WorkflowAssignment assignment) {
+        storeTxDataToForm(formData);
         return false;
     }
     

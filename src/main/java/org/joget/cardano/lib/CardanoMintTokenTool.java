@@ -32,7 +32,7 @@ import java.util.Arrays;
 import java.util.List;
 import org.joget.cardano.util.PluginUtil;
 import org.joget.cardano.util.BackendUtil;
-import org.joget.cardano.util.TransactionUtil;
+import org.joget.cardano.util.TxUtil;
 import java.util.Map;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.apps.form.model.FormRow;
@@ -47,7 +47,7 @@ import org.joget.cardano.util.MetadataUtil;
 import static org.joget.cardano.util.MetadataUtil.NFT_FORMDATA_PROPERTY_LABEL;
 import static org.joget.cardano.util.MetadataUtil.TOKEN_INFO_METADATUM_LABEL;
 import org.joget.cardano.util.TokenUtil;
-import static org.joget.cardano.util.TransactionUtil.MAX_FEE_LIMIT;
+import static org.joget.cardano.util.TxUtil.MAX_FEE_LIMIT;
 import org.joget.commons.util.LogUtil;
 import org.joget.commons.util.PluginThread;
 import org.joget.workflow.util.WorkflowUtil;
@@ -223,7 +223,7 @@ public class CardanoMintTokenTool extends CardanoProcessTool {
                         .policy(policy)
                         .build();
 
-            long ttl = TransactionUtil.getTtl(blockService, 2000);
+            long ttl = TxUtil.getTtl(blockService, 2000);
             TransactionDetailsParams detailsParams = TransactionDetailsParams.builder().ttl(ttl).build();
 
             final BigInteger fee = feeCalculationService.calculateFee(mintTransaction, detailsParams, metadata);
@@ -232,7 +232,7 @@ public class CardanoMintTokenTool extends CardanoProcessTool {
             if (!getPropertyString("feeLimit").isBlank()) {
                 feeLimit = ADAConversionUtil.adaToLovelace(new BigDecimal(getPropertyString("feeLimit")));
             }
-            if (!TransactionUtil.checkFeeLimit(fee, feeLimit)) {
+            if (!TxUtil.checkFeeLimit(fee, feeLimit)) {
                 LogUtil.warn(getClassName(), "Mint transaction aborted. Transaction fee in units of lovelace of " + fee.toString() + " exceeded set fee limit of " + feeLimit.toString() + ".");
                 storeToWorkflowVariable(wfAssignment.getActivityId(), networkType, null, null);
                 return null;
@@ -255,7 +255,7 @@ public class CardanoMintTokenTool extends CardanoProcessTool {
                 Result<TransactionContent> validatedTransactionResult = null;
 
                 try {
-                    validatedTransactionResult = TransactionUtil.waitForTransaction(transactionService, transactionResult);
+                    validatedTransactionResult = TxUtil.waitForTransaction(transactionService, transactionResult);
                 } catch (Exception ex) {
                     LogUtil.error(getClassName(), ex, "Error waiting for transaction validation...");
                 }

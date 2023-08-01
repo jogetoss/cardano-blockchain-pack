@@ -45,7 +45,8 @@ import org.joget.cardano.model.transaction.CardanoTransactionAction;
 import org.joget.cardano.util.BackendUtil;
 import org.joget.cardano.util.MetadataUtil;
 import org.joget.cardano.util.PluginUtil;
-import org.joget.cardano.util.TransactionUtil;
+import org.joget.cardano.util.TxUtil;
+import static org.joget.cardano.util.TxUtil.DEFAULT_WAIT_INTERVAL_MS;
 import org.joget.commons.util.LogUtil;
 import org.joget.plugin.base.PluginManager;
 import org.springframework.context.ApplicationContext;
@@ -140,7 +141,7 @@ public class TransactionHandler {
             
             final BigInteger feeLimit = ADAConversionUtil.adaToLovelace(new BigDecimal(adaFeeLimit));
             
-            if (!TransactionUtil.checkFeeLimit(unsignedTx.getBody().getFee(), feeLimit)) {
+            if (!TxUtil.checkFeeLimit(unsignedTx.getBody().getFee(), feeLimit)) {
                 return false;
             }
         }
@@ -163,6 +164,24 @@ public class TransactionHandler {
         }
         
         return null;
+    }
+    
+    public boolean waitForTx(String transactionId) {
+        try {
+            int count = 0;
+            while (count < 60) {
+                if (transactionService.getTransaction(transactionId).isSuccessful()) {
+                    return true;
+                }
+
+                count++;
+                Thread.sleep(DEFAULT_WAIT_INTERVAL_MS);
+            }
+        } catch (Exception ex) {
+            LogUtil.error(getClassName(), ex, "Unable to wait for tx confirmation");
+        }
+        
+        return false;
     }
     
     private Transaction constructTx(final TxInputBuilder txInputBuilder, final String changeAddress) {
@@ -213,7 +232,7 @@ public class TransactionHandler {
         }
         
         try {
-            unsignedTx.getBody().setTtl(TransactionUtil.getTtl(blockService, 2000));
+            unsignedTx.getBody().setTtl(TxUtil.getTtl(blockService));
         } catch (Exception ex) {
             LogUtil.error(getClassName(), ex, "Unable to prepare final unsigned tx");
             return null;
