@@ -8,6 +8,10 @@ Do see [documentation and sample app](https://dev.joget.org/community/display/ma
 
 Credits: [https://github.com/bloxbean/cardano-client-lib](https://github.com/bloxbean/cardano-client-lib)
 
+# Pre-requisites
+
+- Requires Joget DX8 and higher.
+
 # Changelog
 
 See changelog [here](changelog.md).
