@@ -4,7 +4,7 @@
     <groupId>org.joget.cardano</groupId>
     <artifactId>cardano_blockchain_pack</artifactId>
     <packaging>bundle</packaging>
-    <version>8.0.0</version>
+    <version>8.0.1</version>
     <name>cardano_blockchain_pack</name>
     <url>https://www.joget.org</url>
     <properties>
