@@ -3,7 +3,7 @@ package org.joget.cardano.util;
 import com.bloxbean.cardano.client.api.exception.ApiException;
 import com.bloxbean.cardano.client.backend.api.AssetService;
 import com.bloxbean.cardano.client.crypto.SecretKey;
-import com.bloxbean.cardano.client.util.AssetUtil;
+import com.bloxbean.cardano.client.api.util.AssetUtil;
 import com.bloxbean.cardano.client.util.HexUtil;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
