@@ -33,7 +33,7 @@ public class Activator implements BundleActivator {
         // Form Binder plugins
         registrationList.add(context.registerService(CardanoAccountLoadBinder.class.getName(),new CardanoAccountLoadBinder(), null));
         registrationList.add(context.registerService(CardanoMetadataLoadBinder.class.getName(),new CardanoMetadataLoadBinder(), null));
-        registrationList.add(context.registerService(CardanoTokenLoadBinder.class.getName(),new CardanoMetadataLoadBinder(), null));
+        registrationList.add(context.registerService(CardanoTokenLoadBinder.class.getName(),new CardanoTokenLoadBinder(), null));
 
 
         // Form Element plugins
