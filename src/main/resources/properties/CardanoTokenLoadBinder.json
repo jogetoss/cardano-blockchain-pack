@@ -10,29 +10,27 @@
                 "label":"@@form.cardanotokenloadbinder.assetId@@",
                 "description":"@@form.cardanotokenloadbinder.assetId.desc@@",
                 "type":"textfield",
-                "required":"True"
+                "required":"true"
             }
         ]
     },
     {
         "title":"@@form.cardanotokenloadbinder.header.mapToFields@@",
         "properties":[
-            
             {
                 "name":"assetName",
                 "label":"@@form.cardanotokenloadbinder.mapToFields.assetName@@",
                 "type" : "selectbox",
                 "options_callback" : "FormBuilder.getFieldOptions",
-                "required":"True"
+                "required":"true"
 
             },
-
             {
                 "name":"policyId",
                 "label":"@@form.cardanotokenloadbinder.mapToFields.policyId@@",
                 "type" : "selectbox",
                 "options_callback" : "FormBuilder.getFieldOptions",
-                "required":"True"
+                "required":"true"
 
             },
             {
@@ -40,7 +38,7 @@
                 "label":"@@form.cardanotokenloadbinder.mapToFields.fingerprint@@",
                 "type" : "selectbox",
                 "options_callback" : "FormBuilder.getFieldOptions",
-                "required":"True"
+                "required":"true"
 
             },
             {
@@ -48,7 +46,7 @@
                 "label":"@@form.cardanotokenloadbinder.mapToFields.quantity@@",
                 "type" : "selectbox",
                 "options_callback" : "FormBuilder.getFieldOptions",
-                "required":"True"
+                "required":"true"
 
             },
             {
@@ -56,7 +54,7 @@
                 "label":"@@form.cardanotokenloadbinder.mapToFields.initialMintTxHash@@",
                 "type" : "selectbox",
                 "options_callback" : "FormBuilder.getFieldOptions",
-                "required":"True"
+                "required":"true"
 
             },
             {
@@ -64,7 +62,7 @@
                 "label":"@@form.cardanotokenloadbinder.mapToFields.mintOrBurnCount@@",
                 "type" : "selectbox",
                 "options_callback" : "FormBuilder.getFieldOptions",
-                "required":"True"
+                "required":"true"
 
             },
             {
@@ -72,15 +70,8 @@
                 "label":"@@form.cardanotokenloadbinder.mapToFields.onchainMetadata@@",
                 "type" : "selectbox",
                 "options_callback" : "FormBuilder.getFieldOptions",
-                "required":"True"
-
+                "required":"true"
             }
-          
-            
-            
-            
-
         ]
-        
     }
 ]

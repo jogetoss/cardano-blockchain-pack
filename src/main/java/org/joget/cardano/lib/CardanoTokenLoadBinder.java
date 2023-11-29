@@ -19,6 +19,7 @@ import java.util.Map;
 import org.joget.cardano.model.CardanoFormBinder;
 
 public class CardanoTokenLoadBinder extends CardanoFormBinder implements FormLoadElementBinder {
+    
     @Override
     public String getName() {
         return "Cardano Token Load Binder";
@@ -32,8 +33,7 @@ public class CardanoTokenLoadBinder extends CardanoFormBinder implements FormLoa
     @Override
     public String getPropertyOptions() {
         String backendConfigs = PluginUtil.readGenericBackendConfigs(getClassName());
-        return AppUtil.readPluginResource(getClassName(), "/properties/CardanoTokenLoadBinder.json",
-                new String[] { backendConfigs }, true, PluginUtil.MESSAGE_PATH);
+        return AppUtil.readPluginResource(getClassName(), "/properties/CardanoTokenLoadBinder.json", new String[] { backendConfigs }, true, PluginUtil.MESSAGE_PATH);
     }
 
     @Override
@@ -50,6 +50,7 @@ public class CardanoTokenLoadBinder extends CardanoFormBinder implements FormLoa
 
         try {
             final String assetId = WorkflowUtil.processVariable(getPropertyString("assetId"), "", null);
+            
             final String assetName = getPropertyString("assetName");
             final String policyId = getPropertyString("policyId");
             final String fingerprint = getPropertyString("fingerprint");
@@ -179,5 +180,4 @@ public class CardanoTokenLoadBinder extends CardanoFormBinder implements FormLoa
 
         return row;
     }
-
 }
