@@ -21,56 +21,49 @@
                 "name":"assetName",
                 "label":"@@form.cardanotokenloadbinder.mapToFields.assetName@@",
                 "type" : "selectbox",
-                "options_callback" : "FormBuilder.getFieldOptions",
-                "required":"true"
+                "options_callback" : "FormBuilder.getFieldOptions"
 
             },
             {
                 "name":"policyId",
                 "label":"@@form.cardanotokenloadbinder.mapToFields.policyId@@",
                 "type" : "selectbox",
-                "options_callback" : "FormBuilder.getFieldOptions",
-                "required":"true"
+                "options_callback" : "FormBuilder.getFieldOptions"
 
             },
             {
                 "name":"fingerprint",
                 "label":"@@form.cardanotokenloadbinder.mapToFields.fingerprint@@",
                 "type" : "selectbox",
-                "options_callback" : "FormBuilder.getFieldOptions",
-                "required":"true"
+                "options_callback" : "FormBuilder.getFieldOptions"
 
             },
             {
                 "name":"quantity",
                 "label":"@@form.cardanotokenloadbinder.mapToFields.quantity@@",
                 "type" : "selectbox",
-                "options_callback" : "FormBuilder.getFieldOptions",
-                "required":"true"
+                "options_callback" : "FormBuilder.getFieldOptions"
 
             },
             {
                 "name":"initialMintTxHash",
                 "label":"@@form.cardanotokenloadbinder.mapToFields.initialMintTxHash@@",
                 "type" : "selectbox",
-                "options_callback" : "FormBuilder.getFieldOptions",
-                "required":"true"
+                "options_callback" : "FormBuilder.getFieldOptions"
 
             },
             {
                 "name":"mintOrBurnCount",
                 "label":"@@form.cardanotokenloadbinder.mapToFields.mintOrBurnCount@@",
                 "type" : "selectbox",
-                "options_callback" : "FormBuilder.getFieldOptions",
-                "required":"true"
+                "options_callback" : "FormBuilder.getFieldOptions"
 
             },
             {
                 "name":"onchainMetadata",
                 "label":"@@form.cardanotokenloadbinder.mapToFields.onchainMetadata@@",
                 "type" : "selectbox",
-                "options_callback" : "FormBuilder.getFieldOptions",
-                "required":"true"
+                "options_callback" : "FormBuilder.getFieldOptions"
             }
         ]
     }
