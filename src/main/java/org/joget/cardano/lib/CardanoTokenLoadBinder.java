@@ -4,7 +4,6 @@ import com.bloxbean.cardano.client.api.exception.ApiException;
 import org.joget.cardano.util.PluginUtil;
 import com.bloxbean.cardano.client.backend.model.Asset;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.bloxbean.cardano.client.api.model.Result;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.apps.form.model.Element;
@@ -14,8 +13,6 @@ import org.joget.apps.form.model.FormRow;
 import org.joget.apps.form.model.FormRowSet;
 import org.joget.commons.util.LogUtil;
 import org.joget.workflow.util.WorkflowUtil;
-import java.util.HashMap;
-import java.util.Map;
 import org.joget.cardano.model.CardanoFormBinder;
 
 public class CardanoTokenLoadBinder extends CardanoFormBinder implements FormLoadElementBinder {
@@ -49,15 +46,7 @@ public class CardanoTokenLoadBinder extends CardanoFormBinder implements FormLoa
             throws RuntimeException {
 
         try {
-            final String assetId = WorkflowUtil.processVariable(getPropertyString("assetId"), "", null);
-            
-            final String assetName = getPropertyString("assetName");
-            final String policyId = getPropertyString("policyId");
-            final String fingerprint = getPropertyString("fingerprint");
-            final String quantity = getPropertyString("quantity");
-            final String initialMintTxHash = getPropertyString("initialMintTxHash");
-            final String mintOrBurnCount = getPropertyString("mintOrBurnCount");
-            final String onchainMetadata = getPropertyString("onchainMetadata");
+            final String assetId = WorkflowUtil.processVariable(getPropertyString("assetId"), "", null);            
 
             final Result<Asset> assetInfoResult = assetService.getAsset(assetId);
 
@@ -67,16 +56,24 @@ public class CardanoTokenLoadBinder extends CardanoFormBinder implements FormLoa
                 return null;
             }
 
+            final String assetName = getPropertyString("assetName");
+            final String policyId = getPropertyString("policyId");
+            final String fingerprint = getPropertyString("fingerprint");
+            final String quantity = getPropertyString("quantity");
+            final String initialMintTxHash = getPropertyString("initialMintTxHash");
+            final String mintOrBurnCount = getPropertyString("mintOrBurnCount");
+            final String onchainMetadata = getPropertyString("onchainMetadata");
+            
             final Asset assetInfo = assetInfoResult.getValue();
 
             FormRow row = new FormRow();
 
-            row = addRow(row, assetName, getAssetName(assetInfo));
-            row = addRow(row, policyId, getPolicyId(assetInfo));
-            row = addRow(row, fingerprint, getFingerprint(assetInfo));
-            row = addRow(row, quantity, getQuantity(assetInfo));
-            row = addRow(row, initialMintTxHash, getInitialMintTxHash(assetInfo));
-            row = addRow(row, mintOrBurnCount, getMintOrBurnCount(assetInfo));
+            row = addRow(row, assetName, assetInfo.getAssetName());
+            row = addRow(row, policyId, assetInfo.getPolicyId());
+            row = addRow(row, fingerprint, assetInfo.getFingerprint());
+            row = addRow(row, quantity, assetInfo.getQuantity());
+            row = addRow(row, initialMintTxHash, assetInfo.getInitialMintTxHash());
+            row = addRow(row, mintOrBurnCount, String.valueOf(assetInfo.getMintOrBurnCount()));
             row = addRow(row, onchainMetadata, getOnchainMetadata(assetInfo));
 
             FormRowSet rows = new FormRowSet();
@@ -90,28 +87,18 @@ public class CardanoTokenLoadBinder extends CardanoFormBinder implements FormLoa
 
     private String getOnchainMetadata(Asset assetInfo) {
         final JsonNode onChainData = assetInfo.getOnchainMetadata();
-        if (onChainData != null) {
-            LogUtil.info(getClass().getName(), "onchainMetadata JSON: " + onChainData.toString());
-
-            // Assuming you have an ObjectMapper instance
-            ObjectMapper objectMapper = new ObjectMapper();
-            // Convert JsonNode to a Map
-            Map<String, Object> onChainDataMap = objectMapper.convertValue(onChainData, Map.class);
-            onChainDataMap = onChainDataMap != null ? onChainDataMap : new HashMap<>();
-
-            // Convert the Map to a JSON string
-            try {
-                return objectMapper.writeValueAsString(onChainDataMap);
-            } catch (Exception e) {
-                LogUtil.warn(getClass().getName(),
-                        "Error converting on-chain metadata to JSON string: " + e.getMessage());
-                return null;
-            }
-        } else {
-            return null;
-        }
+        
+        return (onChainData != null && !onChainData.isNull()) ? onChainData.toString() : "";
     }
 
+    private FormRow addRow(FormRow row, String field, String value) {
+        if (row != null && !field.isEmpty()) {
+            row.put(field, value);
+        }
+
+        return row;
+    }
+    
     // private String getMetadata(Asset assetInfo) {
     // final JsonNode metadata = assetInfo.getMetadata();
     // if (metadata != null) {
@@ -136,48 +123,4 @@ public class CardanoTokenLoadBinder extends CardanoFormBinder implements FormLoa
     // return null;
     // }
     // }
-
-    private String getMintOrBurnCount(Asset assetInfo) {
-        String mintOrBurnCount = String.valueOf(assetInfo.getMintOrBurnCount());
-
-        return mintOrBurnCount;
-    }
-
-    private String getInitialMintTxHash(Asset assetInfo) {
-        String initialMintTxHash = assetInfo.getInitialMintTxHash();
-
-        return initialMintTxHash;
-    }
-
-    private String getQuantity(Asset assetInfo) {
-        String quantity = assetInfo.getQuantity();
-
-        return quantity;
-    }
-
-    private String getFingerprint(Asset assetInfo) {
-        String fingerprint = assetInfo.getFingerprint();
-
-        return fingerprint;
-    }
-
-    private String getAssetName(Asset assetInfo) {
-        String name = assetInfo.getAssetName();
-
-        return name;
-    }
-
-    private String getPolicyId(Asset assetInfo) {
-        String policy = assetInfo.getPolicyId();
-
-        return policy;
-    }
-
-    private FormRow addRow(FormRow row, String field, String value) {
-        if (row != null && !field.isEmpty()) {
-            row.put(field, value);
-        }
-
-        return row;
-    }
 }
