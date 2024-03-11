@@ -30,7 +30,7 @@
                 <!-- See https://github.com/eirslett/frontend-maven-plugin -->
                 <groupId>com.github.eirslett</groupId>
                 <artifactId>frontend-maven-plugin</artifactId>
-                <version>1.14.0</version>
+                <version>1.15.0</version>
                 <configuration>
                     <installDirectory>target</installDirectory>
                 </configuration>
@@ -64,7 +64,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.11.0</version>
+                <version>3.12.1</version>
                 <configuration>
                     <source>11</source>
                     <release>11</release>
@@ -73,7 +73,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.4.3</version>
+                <version>3.2.5</version>
                 <configuration>
                     <skipTests>false</skipTests>
                 </configuration>
@@ -146,17 +146,17 @@
         <dependency>
             <groupId>com.bloxbean.cardano</groupId>
             <artifactId>cardano-client-lib</artifactId>
-            <version>0.5.0</version>
+            <version>0.5.1</version>
         </dependency>
         <dependency>
             <groupId>com.bloxbean.cardano</groupId>
             <artifactId>cardano-client-backend-blockfrost</artifactId>
-            <version>0.5.0</version>
+            <version>0.5.1</version>
         </dependency>
         <dependency>
             <groupId>com.bloxbean.cardano</groupId>
             <artifactId>cardano-client-backend-koios</artifactId>
-            <version>0.5.0</version>
+            <version>0.5.1</version>
         </dependency>
 <!--        <dependency>
             <groupId>com.bloxbean.cardano</groupId>
